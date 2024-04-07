@@ -6,7 +6,7 @@ procés res Calçot() fer:
 
     Això és un comentari 
 
-    multilínia 
+    multilínia
 
     ficomenta 
 
@@ -16,8 +16,8 @@ procés res Calçot() fer:
 
     mentre (nombre > nombre2) fer: 
 
-    nombre2 = nombre + 1 ç 
+    nombre2 = nombre + 1 ç
 
-    fi 
+    fi
 
 fi 

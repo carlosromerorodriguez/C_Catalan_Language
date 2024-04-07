@@ -61,6 +61,7 @@ public class TokenConverter {
         tokensDictionary.put("proces", "function");
         tokensDictionary.put("retorn", "return");
         tokensDictionary.put("crida", "call");
+
         //TODO: Token del nom de la funció
     }
 
