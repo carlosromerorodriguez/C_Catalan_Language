@@ -1,13 +1,20 @@
-//TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
-// click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
-public class Main {
-    public static void  main(String[] args) {
-        System.out.printf("Hello and welcome!");
+import frontEnd.ErrorHandler;
+import frontEnd.Lexer;
+import frontEnd.PreProcessing;
+import frontEnd.TokenConverter;
 
-        for (int i = 1; i <= 5; i++) {
-            //TIP Press <shortcut actionId="Debug"/> to start debugging your code. We have set one <icon src="AllIcons.Debugger.Db_set_breakpoint"/> breakpoint
-            // for you, but you can always add more by pressing <shortcut actionId="ToggleLineBreakpoint"/>.
-            System.out.println("i = " + i);
-        }
+
+public class Main {
+
+    public static void  main(String[] args) {
+        TokenConverter tokenConverter = new TokenConverter();
+        ErrorHandler errorHandler = new ErrorHandler();
+        PreProcessing preProcessing = new PreProcessing(errorHandler, "ProjecteLlenguatges/src/files/example1.ç");
+        Lexer lexer = new Lexer(errorHandler, preProcessing.readFile(), tokenConverter);
+
+        lexer.showTokens();
+
+        System.out.println("\n\nERRORS:");
+        errorHandler.printErrors();
     }
 }

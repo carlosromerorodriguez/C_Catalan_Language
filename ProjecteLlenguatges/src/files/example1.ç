@@ -1,14 +1,14 @@
-procés res Calçot() fer:   
+proces res Calçot() fer:
 
     enter: nombre = 10 ç		xiuxiueja aquesta és la primeria línia i això és un comentari  
 
     comenta 
 
-    Això és un comentari 
+    Aixo es un comentri
 
     multilínia
 
-    ficomenta 
+    ficomenta
 
     enter: nombre2 ç 
 

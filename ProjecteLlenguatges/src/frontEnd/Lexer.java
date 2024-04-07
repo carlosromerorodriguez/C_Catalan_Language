@@ -5,18 +5,30 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ *
+ */
 public class Lexer {
-    private String sourceCode;
+    private ErrorHandler errorHandler;
+
+    private List<CodeLine> codeLines;
+
     private int currentIndex = 0;
-    private List<String> tokens = new ArrayList<>();
-    private TokenConverter tokenConverter = new TokenConverter();
+    private List<Token> tokens;
+    private TokenConverter tokenConverter;
+
 
     /**
      * Constructor for the Lexer class.
-     * @param sourceCode The source code to be tokenized.
+     * @param codeLines The source code to be tokenized.
+     * @param tokenConverter converter of tokens
      */
-    public Lexer(String sourceCode) {
-        this.sourceCode = sourceCode;
+    public Lexer(ErrorHandler errorHandler, List<CodeLine> codeLines, TokenConverter tokenConverter) {
+        this.errorHandler = errorHandler;
+        this.codeLines = codeLines;
+        this.tokenConverter = tokenConverter;
+        tokenConverter.fillTokensDictionary();
+        this.tokens = new ArrayList<>();
         tokenize();
     }
 
@@ -84,10 +96,16 @@ public class Lexer {
         }
     }
 
+    public void showTokens() {
+        for (Token token : tokens) {
+            System.out.println("Token: "+token.getStringToken()+" in line: "+token.getLine()+" value: " + (token.getValue() == null ? "" : token.getValue()) + " -> ");
+        }
+    }
+
     /**
      * Gets the next token.
      */
-    public String nextToken() {
+    public Token nextToken() {
         if (currentIndex < tokens.size()) {
             return tokens.get(currentIndex++);
         }
@@ -97,7 +115,7 @@ public class Lexer {
     /**
      * Peeks the next token.
      */
-    public String peekToken() {
+    public Token peekToken() {
         if (currentIndex < tokens.size()) {
             return tokens.get(currentIndex);
         }
@@ -107,10 +125,23 @@ public class Lexer {
     /**
      * Gets the current token.
      */
-    public String currentToken() {
+    public Token currentToken() {
         if (currentIndex > 0 && currentIndex <= tokens.size()) {
             return tokens.get(currentIndex - 1);
         }
         return null;
     }
 }
+
+/* REGEX:
+OPTION1:
+String tokenPatterns =
+                "(\\b(si|sino|mentre|per|fer:|fi|enter:|decimal:|lletra:|lletres:|siono:|res|Calçot|proces|retorn|crida)\\b)|" + // Palabras reservadas
+                        "([A-Za-zÀ-ú_][A-Za-zÀ-ú0-9]*)|" + // Identificadores
+                        "(-?\\d+(\\.\\d+)?)|" + // Números (decimales y enteros)
+                        "(==|!=|<=|>=|\\+|\\-|\\*|/|=|<|>|\\(|\\)|;|,)"; // Operadores y símbolos
+
+
+OPTION2:
+
+ */

@@ -14,7 +14,7 @@ public class TokenConverter {
     /**
      * Fills the tokens dictionary.
      */
-    private void fillTokensDictionary() {
+    public void fillTokensDictionary() {
         // Basic tokens
         tokensDictionary.put("fer:", "start");
         tokensDictionary.put("fi", "end");
@@ -27,13 +27,12 @@ public class TokenConverter {
         tokensDictionary.put("mentre", "while");
         tokensDictionary.put("per", "for");
 
-
         // Variable types
-        tokensDictionary.put("enter", "vartype");
-        tokensDictionary.put("decimal", "vartype");
-        tokensDictionary.put("lletra", "vartype");
-        tokensDictionary.put("lletres", "vartype");
-        tokensDictionary.put("siono", "vartype");
+        tokensDictionary.put("enter:", "vartype");
+        tokensDictionary.put("decimal:", "vartype");
+        tokensDictionary.put("lletra:", "vartype");
+        tokensDictionary.put("lletres:", "vartype");
+        tokensDictionary.put("siono:", "vartype");
         tokensDictionary.put("res", "vartype");
         //TODO: Token de un nom de variable i de un valor
 
@@ -53,11 +52,10 @@ public class TokenConverter {
         tokensDictionary.put(">", "greater");
         tokensDictionary.put("<=", "lower_equal");
         tokensDictionary.put(">=", "greater_equal");
-        tokensDictionary.put(":", ":");
         tokensDictionary.put("=", "=");
 
         // Functions and function calls
-        tokensDictionary.put("calçot", "main");
+        tokensDictionary.put("Calçot", "main");
         tokensDictionary.put("proces", "function");
         tokensDictionary.put("retorn", "return");
         tokensDictionary.put("crida", "call");
