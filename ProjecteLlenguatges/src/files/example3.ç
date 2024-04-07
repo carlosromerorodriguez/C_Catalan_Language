@@ -1,0 +1,10 @@
+procés Calçot() fer: 
+    siono: end = fals ç 
+    enter: nombre = 0 ç 
+    enter: nombre3 = 6 ç 
+
+    mentre (no end i nombre diferent nombre3) fer: 
+        nombre = nombre + 5 ç 
+        nombre3 = nombre + 3 ç 
+    fi
+fi 

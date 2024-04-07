@@ -1,0 +1,8 @@
+procés enter Funció() fer: 
+    enter: resultat = 10 ç  
+    retorna resultat ç  
+fi 
+
+procés Calçot() fer: 
+    enter: a = Funció()
+fi

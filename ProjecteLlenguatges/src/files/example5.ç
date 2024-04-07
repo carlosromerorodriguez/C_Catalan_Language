@@ -1,0 +1,14 @@
+procés enter Fibonacci(enter: numero) fer: 
+    si numero <= 1 fer: 
+            retorna numero ç 
+        fi 
+
+    
+        retorna Fibonacci(numero - 1) + Fibonacci(numero - 2)  
+    fi 
+
+ 
+procés Calçot() fer: 
+    enter: num_fibo = 10, i, resultat ç 
+
+    resultat = crida Fibonacci(num_fibo) ç 

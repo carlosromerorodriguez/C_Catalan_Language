@@ -1,0 +1,23 @@
+procés res Calçot() fer:   
+
+    enter: nombre = 10 ç		xiuxiueja aquesta és la primeria línia i això és un comentari  
+
+    comenta 
+
+    Això és un comentari 
+
+    multilínia 
+
+    ficomenta 
+
+    enter: nombre2 ç 
+
+    nombre2 = 10 ç 
+
+    mentre (nombre > nombre2) fer: 
+
+    nombre2 = nombre + 1 ç 
+
+    fi 
+
+fi 
