@@ -83,3 +83,12 @@ public class PreProcessing {
         return codeLines;
     }
 }
+
+/* ------ FUNCIÓ ESBORRAR COMENTARIS COMPRIMIDA ------
+
+public static String removeComments(String code) {
+    String scanComments = "(xiuxiueja[^\n]*)|(comenta[\\s\\S]*?ficomenta)";
+    String emptyLines = code.replaceAll(scanComments, "");
+    return emptyLines.replaceAll("(?m)^[ \t]*\r?\n", "");
+}
+*/
