@@ -4,11 +4,11 @@ proces        enter         Fibonacci(enter: numero) fer:
         fi 
 
     
-        retorna Fibonacci(numero - 1) + Fibonacci(numero - 2)  
+        retorna Fibonacci(numero - 1) + Fibonacci(numero - 2) ç
     fi 
 
  
 proces Calçot() fer:
-    enter: num_fibo = 10, i, resultat ç 
+    enter              : num_fibo = 10        ,       i,     resultat ç
 
-    resultat = crida Fibonacci(num_fibo) ç 
+    resultat          =  crida          Fibonacci(num_fibo) ç

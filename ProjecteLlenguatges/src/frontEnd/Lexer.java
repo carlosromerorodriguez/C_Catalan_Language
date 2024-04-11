@@ -37,10 +37,10 @@ public class Lexer {
      */
     private void tokenize() {
         String tokenPatterns =
-                "(si|sino|mentre|per|fer:|fi|enter:|decimal:|lletra:|lletres:|siono:|res|Calçot|proces|retorn|crida)|" + // Palabras reservadas
-                        "([A-Za-zÀ-ú_][A-Za-zÀ-ú0-9]*)|" + // Identificadores
+                "\\b(si|sino|mentre|per|fer|fi|enter|decimal|lletra|lletres|siono|res|Calçot|proces|retorn|crida)\\b\n|" + // Palabras reservadas
+                        "([A-Za-zÀ-ú][A-Za-zÀ-ú0-9_]*)|" + // Identificadores
                         "(-?\\d+(\\.\\d+)?)|" + // Números (decimales y enteros)
-                        "(==|!=|<=|>=|\\+|\\-|\\*|/|=|<|>|\\(|\\)|;|,)"; // Operadores y símbolos
+                        "(==|!=|<=|>=|\\+|\\-|\\*|/|=|<|>|\\(|\\)|;|,|:)"; // Operadores y símbolos
 
         for (int i = 0; i < codeLines.size(); i++) {
             Pattern pattern = Pattern.compile(tokenPatterns);
@@ -62,7 +62,7 @@ public class Lexer {
                     } else {
                         tokens.add(new Token<Integer>("number", codeLines.get(i).getLine(), Integer.parseInt(lexeme)));
                     }
-                } else if (lexeme.matches("[+\\-*/=<>!]|==|!=|<=|>=|\\(|\\)|;|,")) {
+                } else if (lexeme.matches("[+\\-*/=<>!]|==|!=|<=|>=|\\(|\\)|;|,|:")) {
                     //System.out.println("Operator: " + lexeme);
                     tokens.add(new Token<String>("operator", codeLines.get(i).getLine(), lexeme));
                 } else {
@@ -75,7 +75,7 @@ public class Lexer {
                             errorHandler.recordError(lexeme + " contains invalid character.", codeLines.get(i).getLine());
                         } else {
                             // Es un nom acceptat mirem si es un function_name o var_name
-                            String tokenType = lastToken.equals("call") || lastToken.equals("function") ? "function_name" : "var_name";
+                            String tokenType = "name";
                             tokens.add(new Token<String>(tokenType, codeLines.get(i).getLine(), lexeme));
                         }
                     }
@@ -93,11 +93,21 @@ public class Lexer {
                 errorHandler.recordError(line + " is not a statement.", codeLines.get(i).getLine());
             }
         }
+
+        for (int i = 0; i < tokens.size() - 1; i++) {
+            if(tokens.get(i).getStringToken().equals("name")) {
+                if(tokens.get(i+1).equals("(")) {
+                    tokens.get(i).setStringToken("function_name");
+                } else {
+                    tokens.get(i).setStringToken("var_name");
+                }
+            }
+        }
     }
 
     public void showTokens() {
         for (Token token : tokens) {
-            System.out.println("Token: "+token.getStringToken()+" in line: "+token.getLine()+" value: " + (token.getValue() == null ? "" : token.getValue()) + " -> ");
+            System.out.println("Token: "+token.getStringToken()+" in line: "+token.getLine()+" value: " + (token.getValue() == null ? "" : token.getValue()));
         }
     }
 

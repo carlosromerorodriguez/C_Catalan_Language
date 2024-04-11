@@ -16,10 +16,27 @@ import java.util.Map;
 public class PreProcessing {
     private final String filePath;
     private ErrorHandler errorHandler;
+    private HashMap<String, String> tokensDictionary = new HashMap<>();
+
+    private void CreateMap() {
+        // Operators
+        this.tokensDictionary.put("(", " ( ");
+        this.tokensDictionary.put(")", " ) ");
+        this.tokensDictionary.put("+", " + ");
+        this.tokensDictionary.put("-", " - ");
+        this.tokensDictionary.put("·", " · ");
+        this.tokensDictionary.put("/", " / ");
+        this.tokensDictionary.put(",", " , ");
+        this.tokensDictionary.put("<", " < ");
+        this.tokensDictionary.put(">", " > ");
+        this.tokensDictionary.put("=", " = ");
+        this.tokensDictionary.put(":", " : ");
+    }
 
     public PreProcessing(ErrorHandler errorHandler, String filePath) {
         this.filePath = filePath;
         this.errorHandler = errorHandler;
+        CreateMap();
     }
 
     public List<CodeLine> readFile() {
@@ -42,29 +59,37 @@ public class PreProcessing {
 
             if (line.contains("xiuxiueja") && !comentaInLine) {
                 String[] line_split = line.split("xiuxiueja", 2);
-                line = line_split[0].replaceAll(" ", "").trim();
+                line = line_split[0];
                 if (line_split.length > 1 && !line_split[0].isEmpty()) {
                     resultLines.add(new CodeLine(codeLine.getLine(), line));
                 }
             } else if (line.contains("ficomenta")) {
                 String[] line_split = line.split("ficomenta", 2);
-                line = line_split[1].replaceAll(" ", "").trim();
+                line = line_split[1];
                 if (line_split.length > 2 && !line.isEmpty()) {
                     resultLines.add(new CodeLine(codeLine.getLine(), line));
                 }
                 comentaInLine = false;
             } else if (line.contains("comenta")) {
                 String[] line_split = line.split("comenta", 2);
-                line = line_split[0].replaceAll(" ", "").trim();
+                line = line_split[0];
                 if (line_split.length > 1 && !line.isEmpty()) {
                     resultLines.add(new CodeLine(codeLine.getLine(), line));
                 }
                 comentaInLine = true;
             } else {
                 if (!comentaInLine) {
-                    resultLines.add(new CodeLine(codeLine.getLine(), line.replaceAll(" ", "").trim()));
+                    resultLines.add(new CodeLine(codeLine.getLine(), line));
                 }
             }
+
+            String penultimeLine = resultLines.get(resultLines.size() - 1).getContentLine();
+            for(Map.Entry<String, String> operand : tokensDictionary.entrySet()) {
+                if (penultimeLine.contains(operand.getKey())) {
+                    penultimeLine.replace(operand.getKey(), operand.getValue());
+                }
+            }
+
         }
 
         return resultLines;
