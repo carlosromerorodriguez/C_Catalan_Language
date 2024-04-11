@@ -65,10 +65,6 @@ public class PreProcessing {
             }
         }
 
-        /*for (CodeLine c : resultLines) {
-            System.out.println("Codeline: " + c.getContentLine() + " i=" + c.getLine());
-        }*/
-
         return resultLines;
     }
 

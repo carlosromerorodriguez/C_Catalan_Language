@@ -5,6 +5,7 @@ public class Token<T> {
     private int line;
     private final T value;
 
+
     public Token(String stringToken, int line) {
         this.stringToken = stringToken;
         this.line = line;
@@ -36,4 +37,5 @@ public class Token<T> {
     public T getValue() {
         return value;
     }
+
 }
