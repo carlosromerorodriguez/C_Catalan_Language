@@ -88,8 +88,7 @@ public class Lexer {
                 line = line.replaceFirst(Pattern.quote(lexeme), "");
             }
 
-
-            if(!line.isEmpty()) { //Si encara queden coses a la linia ens guardem l'error
+            if(!line.trim().isEmpty()) { //Si encara queden coses a la linia ens guardem l'error
                 //Guardem l'error amb la linia
                 errorHandler.recordError(line + " is not a statement.", codeLines.get(i).getLine());
             }

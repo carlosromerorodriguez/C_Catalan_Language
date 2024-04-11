@@ -1,4 +1,4 @@
-procés Calçot() fer: 
+procés Calçot ( ) fer:
     siono: end = fals ç 
     enter: nombre = 0 ç 
     enter: nombre3 = 6 ç 

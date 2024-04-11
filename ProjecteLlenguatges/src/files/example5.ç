@@ -1,6 +1,6 @@
-proces enter Fibonacci(enter: numero) fer:
-    si numero <= 1 fer: 
-            retorna numero ç 
+proces        enter         Fibonacci(enter: numero) fer:
+    si     numero <= 1 fer:
+            retorna     numero ç
         fi 
 
     

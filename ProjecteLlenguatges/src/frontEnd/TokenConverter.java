@@ -16,9 +16,9 @@ public class TokenConverter {
      */
     public void fillTokensDictionary() {
         // Basic tokens
-        tokensDictionary.put("fer:", "start");
-        tokensDictionary.put("fi", "end");
-        tokensDictionary.put("(", "(");
+        tokensDictionary.put("fer:", " start ");
+        tokensDictionary.put("fi", " end ");
+        tokensDictionary.put("(", " ( ");
         tokensDictionary.put(")", ")");
 
         // Control structures
@@ -58,7 +58,7 @@ public class TokenConverter {
         tokensDictionary.put("Calçot", "main");
         tokensDictionary.put("proces", "function");
         tokensDictionary.put("retorn", "return");
-        tokensDictionary.put("crida", "call");
+        tokensDictionary.put("crida", "call ");
 
         //TODO: Token del nom de la funció
     }
