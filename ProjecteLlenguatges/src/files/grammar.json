@@ -1,0 +1,201 @@
+{
+  "sortida": {
+    "estructura": [
+      ["llista de funcions", "main"],
+      ["main"]
+    ]
+  },
+  "llista de funcions": {
+    "estructura": [
+      ["funcio", "llista de funcions"],
+      []
+    ]
+  },
+  "main": {
+    "estructura": ["FUNCTION", "void", "Calçot", "START", "llista_sentencies", "END"]
+  },
+  "funcio": {
+    "estructura": ["FUNCTION", "var_type", "function_name", "arguments", "START", "llista_sentencies", "END"]
+  },
+  "arguments": {
+    "estructura": [
+      ["var_type", ":", "var"],
+      ["var_type", ":", "var", ",", "arguments"],
+      []
+    ]
+  },
+  "llista_sentencies": {
+    "estructura": [
+      ["sentencia", "llista_sentencies"],
+      []
+    ]
+  },
+  "sentencia": {
+    "estructura": [
+      ["avaluació", ";"],
+      ["condicionals"],
+      ["iteratives"],
+      ["crida", ";"],
+      ["assignació", ";"],
+      ["retorn", ";"]
+    ]
+  },
+  "retorn": {
+    "estructura": ["RETORN", "return_expression"]
+  },
+  "return_expression": {
+    "estructura": ["return_terme", "return_expression'"]
+  },
+  "return_expression'": {
+    "estructura": [
+      ["+", "return_terme", "return_expression'"],
+      ["-", "return_terme", "return_expression'"],
+      []
+    ]
+  },
+  "return_terme": {
+    "estructura": ["return_factor", "return_terme'"]
+  },
+  "return_terme'": {
+    "estructura": [
+      ["*", "return_factor", "return_terme'"],
+      ["/", "return_factor", "return_terme'"],
+      []
+    ]
+  },
+  "return_factor": {
+    "estructura": [
+      ["return_id"],
+      ["(", "return_expression", ")"]
+    ]
+  },
+  "return_id": {
+    "estructura": [
+      ["function"],
+      ["var"],
+      ["literal"]
+    ]
+  },
+  "crida": {
+    "estructura": ["call", "function_name", "arguments_crida"]
+  },
+  "arguments_crida": {
+    "estructura": [
+      ["avaluació", "arguments_crida"],
+      ["avaluació"],
+      []
+    ]
+  },
+  "iteratives": {
+    "estructura": [
+      ["per"],
+      ["mentre"]
+    ]
+  },
+  "condicionals": {
+    "estructura": ["IF", "(", "condicio", ")", "START:", "llista_sentencies", "END", "condicional'"]
+  },
+  "condicional'": {
+    "estructura": [
+      ["ELSE", "START:", "llista_sentencies", "END"],
+      []
+    ]
+  },
+  "mentre": {
+    "estructura": ["WHILE", "(condicio)", "START:", "llista_sentencies", "END"]
+  },
+  "per": {
+    "estructura": ["FOR", "var", "DE", "factor_for", "FINS", "factor_for", "for_mode", "var", "START:", "llista_sentencies", "END"]
+  },
+  "assignació": {
+    "estructura": [
+      ["var_type", ":", "var", "=", "expressio"],
+      ["var_type", ":", "var"],
+      ["var", "<=>", "expressio"],
+      ["var_type", ":", "var", "=", "crida"],
+      ["var", "=", "crida"]
+    ]
+  },
+  "condició": {
+    "estructura": [
+      ["oració", "condició'"],
+      ["crida"],
+      ["!", "oració", "condició'"]
+    ]
+  },
+  "condició'": {
+    "estructura": [
+      ["and", "oració", "condició'"],
+      ["or", "oració", "condició'"],
+      []
+    ]
+  },
+  "oració": {
+    "estructura": ["component", "oració'"]
+  },
+  "oració'": {
+    "estructura": [
+      ["operador_relacional", "component", "oració'"],
+      []
+    ]
+  },
+  "component": {
+    "estructura": [
+      ["var"],
+      ["literal"],
+      ["(", "condició", ")"]
+    ]
+  },
+  "avaluació": {
+    "estructura": ["operació", "avaluació'"]
+  },
+  "avaluació'": {
+    "estructura": [
+      ["and", "operació", "avaluació'"],
+      ["or", "operació", "avaluació'"],
+      []
+    ]
+  },
+  "operació": {
+    "estructura": ["expressió", "operació'"]
+  },
+  "operació'": {
+    "estructura": [
+      ["operador_relacional", "expressió", "operació'"],
+      []
+    ]
+  },
+  "expressio": {
+    "estructura": ["terme", "expressio'"]
+  },
+  "expressio'": {
+    "estructura": [
+      ["+", "terme", "expressio'"],
+      ["-", "terme", "expressio'"],
+      []
+    ]
+  },
+  "terme": {
+    "estructura": ["factor", "terme'"]
+  },
+  "terme'": {
+    "estructura": [
+      ["*", "factor", "terme'"],
+      ["/", "factor", "terme'"],
+      []
+    ]
+  },
+  "factor": {
+    "estructura": [
+      ["var"],
+      ["literal"],
+      ["(", "expressio", ")"]
+    ]
+  },
+  "factor_for": {
+    "estructura": [
+      ["var"],
+      ["literal"]
+    ]
+  }
+}
