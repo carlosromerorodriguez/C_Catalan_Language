@@ -58,7 +58,7 @@ public class TokenConverter {
         // Functions and function calls
         tokensDictionary.put("Calçot", "main");
         tokensDictionary.put("proces", "function");
-        tokensDictionary.put("retorn", "return");
+        tokensDictionary.put("retorna", "return");
         tokensDictionary.put("crida", "call ");
 
         //TODO: Token del nom de la funció

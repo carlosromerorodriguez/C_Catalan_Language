@@ -17,6 +17,7 @@ public class PreProcessing {
     private final String filePath;
     private ErrorHandler errorHandler;
     private HashMap<String, String> tokensDictionary = new HashMap<>();
+    int a;
 
     private void CreateMap() {
         // Operators

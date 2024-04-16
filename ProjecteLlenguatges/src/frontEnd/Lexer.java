@@ -16,6 +16,7 @@ public class Lexer {
     private int currentIndex = 0;
     private List<Token> tokens;
     private TokenConverter tokenConverter;
+    int a;
 
 
     /**

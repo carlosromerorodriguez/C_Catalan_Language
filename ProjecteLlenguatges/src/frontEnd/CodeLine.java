@@ -3,6 +3,7 @@ package frontEnd;
 public class CodeLine {
     private int line;
     private String contentLine;
+    int a;
 
     public CodeLine(int line, String contentLine) {
         this.line = line;
