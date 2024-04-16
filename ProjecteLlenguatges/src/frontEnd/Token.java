@@ -4,8 +4,6 @@ public class Token<T> {
     private String stringToken;
     private int line;
     private final T value;
-    int a;
-
 
     public Token(String stringToken, int line) {
         this.stringToken = stringToken;
