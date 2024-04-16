@@ -1,8 +1,14 @@
 package frontEnd;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
+
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -94,6 +100,25 @@ public class PreProcessing {
         }
 
         return resultLines;
+    }
+    public Map<String, List<List<String>>> loadGrammar(String path){
+        Gson gson = new GsonBuilder().create();
+        Map<String, List<List<String>>> productions = new HashMap<>();
+        try (FileReader reader = new FileReader(path)) {
+            Type mapType = new TypeToken<Map<String, List<List<String>>>>() {}.getType();
+            productions = gson.fromJson(reader, mapType);
+            for (Map.Entry<String, List<List<String>>> entry : productions.entrySet()) {
+                System.out.println("Name: " + entry.getKey());
+                System.out.println("Estructura:");
+                for (List<String> lista : entry.getValue()) {
+                    System.out.println(lista);
+                }
+                System.out.println();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return productions;
     }
 
     private List<CodeLine> readAllLines() throws IOException {

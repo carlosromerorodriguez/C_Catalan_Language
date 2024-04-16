@@ -1,7 +1,7 @@
-import frontEnd.ErrorHandler;
-import frontEnd.Lexer;
-import frontEnd.PreProcessing;
-import frontEnd.TokenConverter;
+import frontEnd.*;
+
+import java.util.List;
+import java.util.Map;
 
 
 public class Main {
@@ -16,5 +16,12 @@ public class Main {
 
         System.out.println("\n\nERRORS:");
         errorHandler.printErrors();
+
+        Map<String, List<List<String>>> grammar = preProcessing.loadGrammar("src/files/grammar.json");
+
+        FirstFollow firstFollow = new FirstFollow(grammar);
+        firstFollow.FIRST();
+
+
     }
 }
