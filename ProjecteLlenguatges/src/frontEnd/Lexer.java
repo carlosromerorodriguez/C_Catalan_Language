@@ -97,7 +97,7 @@ public class Lexer {
 
         for (int i = 0; i < tokens.size() - 1; i++) {
             if(tokens.get(i).getStringToken().equals("name")) {
-                if(tokens.get(i+1).equals("(")) {
+                if(tokens.get(i+1).getStringToken().equals("operator") && tokens.get(i+1).getValue().equals("(")) {
                     tokens.get(i).setStringToken("function_name");
                 } else {
                     tokens.get(i).setStringToken("var_name");
