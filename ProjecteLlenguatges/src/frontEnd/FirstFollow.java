@@ -5,7 +5,7 @@ import java.util.*;
 public class FirstFollow {
     private Map<String, List<List<String>>> grammar;
     private Set<String> terminals;
-    private Map<String, List<String>> first;
+    private Map<String, Set<String>> first;
 
     public FirstFollow(Map<String, List<List<String>>> grammar) {
         this.grammar = grammar;
@@ -16,13 +16,13 @@ public class FirstFollow {
 
     private void initializeTerminals() {
         // Agrega los terminales al conjunto de terminales
-        String[] terminalSymbols = {"+", "-", "*", "/", "=", ";", ",", ":", "(", ")", "{", "}", "<", ">", "<=", ">=", "!", "==", "!=", "RETORN", "FUNCTION", "START", "END", "LITERAL", "VAR_NAME", "FOR", "DE", "FINS", "VAR_TYPE", "IF", "ELSE", "WHILE", "CALL", "FUNCTION_NAME", "AND", "OR"};
+        String[] terminalSymbols = {"+", "-", "*", "/", "=", ";", ",", ":", "(", ")", "{", "}", "<", ">", "<=", ">=", "!", "==", "!=", "RETORN", "FUNCTION", "START", "END", "LITERAL", "VAR_NAME", "FOR", "DE", "FINS", "VAR_TYPE", "IF", "ELSE", "WHILE", "CALL", "FUNCTION_NAME", "AND", "OR", "CALÇOT"};
         terminals.addAll(Arrays.asList(terminalSymbols));
     }
-    public Map<String, List<String>> FIRST() {
+    public Map<String, Set<String>> FIRST() {
         for (String noTerminal : grammar.keySet()){
             // Inicialitza el conjunt FIRST pel símbol no terminal
-            first.put(noTerminal, new ArrayList<>());
+            first.put(noTerminal, new HashSet<>());
         }
         // Itera sobre cada símbol de la gramàtica
         for (String no_terminal : grammar.keySet()){
@@ -31,21 +31,21 @@ public class FirstFollow {
         return first;
     }
 
-    private List<String> compute_FIRST(String symbol) {
+    private Set<String> compute_FIRST(String symbol) {
         // Si el símbol és un terminal, el seu conjunt FIRST conté només ell mateix
         if (terminals.contains(symbol)){
-            List<String> symbol_list = new ArrayList<>();
+            Set<String> symbol_list = new HashSet<>();
             symbol_list.add(symbol);
             return symbol_list;
         }
         if (terminals.contains("ε")){
-            List<String> symbol_list = new ArrayList<>();
+            Set<String> symbol_list = new HashSet<>();
             symbol_list.add("ε");
             return symbol_list;
         }
 
         // Iterate over each production rule for the symbol
-        List<String> first_set = new ArrayList<>();
+        Set<String> first_set = new HashSet<>();
         for (List<String> rule: grammar.get(symbol)){
             // Get the first symbol of the production rule
             String first_symbol = rule.get(0);
