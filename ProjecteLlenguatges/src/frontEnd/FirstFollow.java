@@ -46,8 +46,14 @@ public class FirstFollow {
             return symbol_list;
         }
 
-        // Iterem sobre les regles de producció del símbol
         Set<String> first_set = new HashSet<>();
+        // Ens assegurem que hi ha produccions per al símbol; si no, retornem un conjunt buit
+        List<List<String>> rules = grammar.get(symbol);
+        if (rules == null) {
+            return new HashSet<>();  // Retornem un conjunt buit si no hi ha produccions
+        }
+
+        // Iterem sobre les regles de producció del símbol
         for (List<String> rule: grammar.get(symbol)){
             // Agafem el primer símbol de la regla
             String first_symbol = rule.get(0);
