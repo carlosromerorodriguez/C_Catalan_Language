@@ -17,7 +17,7 @@ public class Main {
         System.out.println("\n\nERRORS:");
         errorHandler.printErrors();
 
-        Map<String, List<List<String>>> grammar = preProcessing.loadGrammar("src/files/grammar2.json");
+        Map<String, List<List<String>>> grammar = preProcessing.loadGrammar("src/files/grammar3.json");
 
         FirstFollow firstFollow = new FirstFollow(grammar);
         firstFollow.FIRST();

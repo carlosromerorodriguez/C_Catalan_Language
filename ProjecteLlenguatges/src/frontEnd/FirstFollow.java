@@ -19,7 +19,9 @@ public class FirstFollow {
     private void initializeTerminals() {
         // Inicialitza els terminals
         //String[] terminalSymbols = {"+", "-", "*", "/", "=", ";", ",", ":", "(", ")", "{", "}", "<", ">", "<=", ">=", "!", "==", "!=", "RETORN", "FUNCTION", "START", "END", "LITERAL", "VAR_NAME", "FOR", "DE", "FINS", "VAR_TYPE", "IF", "ELSE", "WHILE", "CALL", "FUNCTION_NAME", "AND", "OR", "CALÇOT"};
-        String[] terminalSymbols = {"+", "*", "(", ")", "id"};
+        //String[] terminalSymbols = {"+", "*", "(", ")", "id"};
+        String[] terminalSymbols = {"+", "*", "(", ")", "id", "const"};
+
         terminals.addAll(Arrays.asList(terminalSymbols));
     }
     public void FIRST() {
