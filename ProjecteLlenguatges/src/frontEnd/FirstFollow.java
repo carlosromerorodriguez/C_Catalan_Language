@@ -7,7 +7,6 @@ public class FirstFollow {
     private Set<String> terminals;
     private Map<String, Set<String>> first;
     private Map<String, Set<String>> follow;
-    private Map<String, Map<String, List<String>>> parseTable;
 
     public FirstFollow(Map<String, List<List<String>>> grammar) {
         this.grammar = grammar;
@@ -163,7 +162,7 @@ public class FirstFollow {
     }
 
     // Funcio que calcula el conjunt FIRST d'una seqüència de símbols
-    private Set<String> computeFirstOfSequence(List<String> symbols) {
+    public Set<String> computeFirstOfSequence(List<String> symbols) {
         Set<String> firstSet = new HashSet<>();
         // Per cada símbol de la seqüència, calculem el conjunt FIRST i l'afegim al conjunt FIRST de la seqüència
         for (String symbol : symbols) {
@@ -178,34 +177,11 @@ public class FirstFollow {
         }
     }
 
-    public Map<String, Map<String, List<String>>> getParseTable() {
-        this.buildParseTable();
-        return parseTable;
+    public Map<String, Set<String>> getFollow() {
+        return this.follow;
     }
 
-    private void buildParseTable() {
-        parseTable = new HashMap<>();
-
-        for (String nonTerminal : grammar.keySet()) {
-            Map<String, List<String>> row = new HashMap<>();
-            parseTable.put(nonTerminal, row);
-
-            for (List<String> production : grammar.get(nonTerminal)) {
-                Set<String> firstSet = computeFirstOfSequence(production);
-
-                for (String terminal : firstSet) {
-                    if (!terminal.equals("ε")) {
-                        row.put(terminal, production);
-                    }
-                }
-
-                if (firstSet.contains("ε")) {
-                    for (String followSymbol : follow.get(nonTerminal)) {
-                        row.put(followSymbol, production);
-                    }
-                }
-            }
-        }
+    public Map<String, List<List<String>>> getGrammar() {
+        return this.grammar;
     }
-
 }

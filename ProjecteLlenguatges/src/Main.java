@@ -19,14 +19,7 @@ public class Main {
 
         Map<String, List<List<String>>> grammar = preProcessing.loadGrammar("ProjecteLlenguatges/src/files/grammar.json");
 
-        FirstFollow firstFollow = new FirstFollow(grammar);
-        firstFollow.FIRST();
-        //firstFollow.showFIRST();
-        firstFollow.FOLLOW();
-        //System.out.println("\n\nFOLLOW:");
-        //firstFollow.showFOLLOW();
-
-        Parser parser = new Parser(firstFollow.getParseTable());
+        Parser parser = new Parser(new FirstFollow(grammar));
         parser.printParseTable();
     }
 }
