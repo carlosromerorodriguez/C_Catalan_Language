@@ -9,7 +9,7 @@ public class Main {
     public static void  main(String[] args) {
         TokenConverter tokenConverter = new TokenConverter();
         ErrorHandler errorHandler = new ErrorHandler();
-        PreProcessing preProcessing = new PreProcessing(errorHandler, "src/files/example5.ç");
+        PreProcessing preProcessing = new PreProcessing(errorHandler, "ProjecteLlenguatges/src/files/example5.ç");
         Lexer lexer = new Lexer(errorHandler, preProcessing.readFile(), tokenConverter);
 
         lexer.showTokens();
@@ -26,5 +26,7 @@ public class Main {
         System.out.println("\n\nFOLLOW:");
         firstFollow.showFOLLOW();
 
+        Parser parser = new Parser(firstFollow.getParseTable());
+        parser.printParseTable();
     }
 }

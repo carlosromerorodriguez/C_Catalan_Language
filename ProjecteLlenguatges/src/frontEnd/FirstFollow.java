@@ -7,6 +7,7 @@ public class FirstFollow {
     private Set<String> terminals;
     private Map<String, Set<String>> first;
     private Map<String, Set<String>> follow;
+    private Map<String, Map<String, List<String>>> parseTable;
 
     public FirstFollow(Map<String, List<List<String>>> grammar) {
         this.grammar = grammar;
@@ -42,6 +43,7 @@ public class FirstFollow {
             symbol_list.add(symbol);
             return symbol_list;
         }
+
         if (terminals.contains("ε")){
             Set<String> symbol_list = new HashSet<>();
             symbol_list.add("ε");
@@ -177,4 +179,35 @@ public class FirstFollow {
             System.out.println("FOLLOW(" + no_terminal + ") = " + follow.get(no_terminal));
         }
     }
+
+    public Map<String, Map<String, List<String>>> getParseTable() {
+        this.buildParseTable();
+        return parseTable;
+    }
+
+    private void buildParseTable() {
+        parseTable = new HashMap<>();
+
+        for (String nonTerminal : grammar.keySet()) {
+            Map<String, List<String>> row = new HashMap<>();
+            parseTable.put(nonTerminal, row);
+
+            for (List<String> production : grammar.get(nonTerminal)) {
+                Set<String> firstSet = computeFirstOfSequence(production);
+
+                for (String terminal : firstSet) {
+                    if (!terminal.equals("ε")) {
+                        row.put(terminal, production);
+                    }
+                }
+
+                if (firstSet.contains("ε")) {
+                    for (String followSymbol : follow.get(nonTerminal)) {
+                        row.put(followSymbol, production);
+                    }
+                }
+            }
+        }
+    }
+
 }
