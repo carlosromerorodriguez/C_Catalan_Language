@@ -105,7 +105,6 @@
   ],
   "oració'": [
     ["operador_relacional", "component", "oració'"],
-    ["operador_relacional", "component", "oració'"],
     ["ε"]
   ],
   "component": [
@@ -125,7 +124,6 @@
     ["expressió", "operació'"]
   ],
   "operació'": [
-    ["operador_relacional", "expressió", "operació'"],
     ["operador_relacional", "expressió", "operació'"],
     ["ε"]
   ],

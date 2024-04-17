@@ -18,8 +18,10 @@ public class FirstFollow {
 
     private void initializeTerminals() {
         // Inicialitza els terminals
-        String[] terminalSymbols = {"+", "-", "*", "/", "=", ";", ",", ":", "(", ")", "{", "}", "<", ">", "<=", ">=", "!", "==", "!=", "RETORN", "FUNCTION", "START", "END", "LITERAL", "VAR_NAME", "FOR", "DE", "FINS", "VAR_TYPE", "IF", "ELSE", "WHILE", "CALL", "FUNCTION_NAME", "AND", "OR", "CALÇOT"};
+        //String[] terminalSymbols = {"+", "-", "*", "/", "=", ";", ",", ":", "(", ")", "{", "}", "<", ">", "<=", ">=", "!", "==", "!=", "RETORN", "FUNCTION", "START", "END", "LITERAL", "VAR_NAME", "FOR", "DE", "FINS", "VAR_TYPE", "IF", "ELSE", "WHILE", "CALL", "FUNCTION_NAME", "AND", "OR", "CALÇOT"};
         //String[] terminalSymbols = {"+", "*", "(", ")", "id"};
+        String[] terminalSymbols = {"+", "*", "(", ")", "id", "const"};
+
         terminals.addAll(Arrays.asList(terminalSymbols));
     }
     public void FIRST() {
@@ -101,8 +103,8 @@ public class FirstFollow {
             follow.put(noTerminal, new HashSet<>());
         }
         // El símbol inicial rep el símbol de finalització de cadena al seu FOLLOW
-        //follow.get("E").add("$");
-        follow.get("sortida").add("$");
+        follow.get("E").add("$");
+        //follow.get("sortida").add("$");
 
         /* Definim una variable per saber si hi ha hagut canvis en algun conjunt FOLLOW durant l'iteració,
         * ho fem així perquè el conjunt FOLLOW d'un símbol pot dependre del conjunt FOLLOW d'un altre símbol
