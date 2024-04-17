@@ -10,5 +10,5 @@ proces        enter         Fibonacci(enter: numero) fer:
  
 proces Calçot() fer:
     enter              : num_fibo = 10        ,       i,     resultat ç
-
+    lletres : prova = hola ç
     resultat          =  crida          Fibonacci(num_fibo) ç

@@ -104,8 +104,8 @@
     ["component", "oració'"]
   ],
   "oració'": [
-    ["AND", "component", "oració'"],
-    ["OR", "component", "oració'"],
+    ["operador_relacional", "component", "oració'"],
+    ["operador_relacional", "component", "oració'"],
     ["ε"]
   ],
   "component": [
@@ -125,9 +125,17 @@
     ["expressió", "operació'"]
   ],
   "operació'": [
-    ["AND", "expressió", "operació'"],
-    ["OR", "expressió", "operació'"],
+    ["operador_relacional", "expressió", "operació'"],
+    ["operador_relacional", "expressió", "operació'"],
     ["ε"]
+  ],
+  "operador_relacional": [
+    ["<"],
+    [">"],
+    ["=="],
+    ["!="],
+    ["<="],
+    [">="]
   ],
   "expressió": [
     ["terme", "expressió'"]

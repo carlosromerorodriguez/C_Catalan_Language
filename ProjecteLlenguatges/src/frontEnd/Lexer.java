@@ -59,13 +59,14 @@ public class Lexer {
                 if (lexeme.matches("\\d+(\\.\\d+)?([eE][-+]?\\d+)?")) {
                     //System.out.println("Number: " + lexeme);
                     if (lexeme.contains(".")) {
-                        tokens.add(new Token<Float>("number", codeLines.get(i).getLine(), Float.parseFloat(lexeme)));
+                        tokens.add(new Token<Float>("id", codeLines.get(i).getLine(), Float.parseFloat(lexeme)));
                     } else {
-                        tokens.add(new Token<Integer>("number", codeLines.get(i).getLine(), Integer.parseInt(lexeme)));
+                        tokens.add(new Token<Integer>("id", codeLines.get(i).getLine(), Integer.parseInt(lexeme)));
                     }
                 } else if (lexeme.matches("[+\\-*/=<>!]|==|!=|<=|>=|\\(|\\)|;|,|:")) {
                     //System.out.println("Operator: " + lexeme);
-                    tokens.add(new Token<String>("operator", codeLines.get(i).getLine(), lexeme));
+                    String tokenName = tokenConverter.convertLexemeToToken(lexeme);
+                    tokens.add(new Token<String>(tokenName, codeLines.get(i).getLine(), lexeme));
                 } else {
                     String token = tokenConverter.convertLexemeToToken(lexeme);
                     if (!token.equals(lexeme)) {
@@ -97,8 +98,10 @@ public class Lexer {
 
         for (int i = 0; i < tokens.size() - 1; i++) {
             if(tokens.get(i).getStringToken().equals("name")) {
-                if(tokens.get(i+1).getStringToken().equals("operator") && tokens.get(i+1).getValue().equals("(")) {
+                if(tokens.get(i+1).getStringToken().equals(" ( ")) {
                     tokens.get(i).setStringToken("function_name");
+                } else if (i > 0 && tokens.get(i-1).getStringToken().equals("=")) {
+                    tokens.get(i).setStringToken("id");
                 } else {
                     tokens.get(i).setStringToken("var_name");
                 }
