@@ -7,6 +7,7 @@ public class FirstFollow {
     private Set<String> terminals;
     private Map<String, Set<String>> first;
     private Map<String, Set<String>> follow;
+    private Map<String, Map<String, List<String>>> parseTable;
 
     public FirstFollow(Map<String, List<List<String>>> grammar) {
         this.grammar = grammar;
@@ -18,8 +19,8 @@ public class FirstFollow {
 
     private void initializeTerminals() {
         // Inicialitza els terminals
-        //String[] terminalSymbols = {"+", "-", "*", "/", "=", ";", ",", ":", "(", ")", "{", "}", "<", ">", "<=", ">=", "!", "==", "!=", "RETORN", "FUNCTION", "START", "END", "LITERAL", "VAR_NAME", "FOR", "DE", "FINS", "VAR_TYPE", "IF", "ELSE", "WHILE", "CALL", "FUNCTION_NAME", "AND", "OR", "CALÇOT"};
-        String[] terminalSymbols = {"+", "*", "(", ")", "id"};
+        String[] terminalSymbols = {"+", "-", "*", "/", "=", ";", ",", ":", "(", ")", "{", "}", "<", ">", "<=", ">=", "!", "==", "!=", "RETORN", "FUNCTION", "START", "END", "LITERAL", "VAR_NAME", "FOR", "DE", "FINS", "VAR_TYPE", "IF", "ELSE", "WHILE", "CALL", "FUNCTION_NAME", "AND", "OR", "CALÇOT"};
+        //String[] terminalSymbols = {"+", "*", "(", ")", "id"};
         terminals.addAll(Arrays.asList(terminalSymbols));
     }
     public void FIRST() {
@@ -40,6 +41,7 @@ public class FirstFollow {
             symbol_list.add(symbol);
             return symbol_list;
         }
+
         if (terminals.contains("ε")){
             Set<String> symbol_list = new HashSet<>();
             symbol_list.add("ε");
@@ -100,8 +102,8 @@ public class FirstFollow {
             follow.put(noTerminal, new HashSet<>());
         }
         // El símbol inicial rep el símbol de finalització de cadena al seu FOLLOW
-        follow.get("E").add("$");
-        //follow.get("sortida").add("$");
+        //follow.get("E").add("$");
+        follow.get("sortida").add("$");
 
         /* Definim una variable per saber si hi ha hagut canvis en algun conjunt FOLLOW durant l'iteració,
         * ho fem així perquè el conjunt FOLLOW d'un símbol pot dependre del conjunt FOLLOW d'un altre símbol
@@ -175,4 +177,35 @@ public class FirstFollow {
             System.out.println("FOLLOW(" + no_terminal + ") = " + follow.get(no_terminal));
         }
     }
+
+    public Map<String, Map<String, List<String>>> getParseTable() {
+        this.buildParseTable();
+        return parseTable;
+    }
+
+    private void buildParseTable() {
+        parseTable = new HashMap<>();
+
+        for (String nonTerminal : grammar.keySet()) {
+            Map<String, List<String>> row = new HashMap<>();
+            parseTable.put(nonTerminal, row);
+
+            for (List<String> production : grammar.get(nonTerminal)) {
+                Set<String> firstSet = computeFirstOfSequence(production);
+
+                for (String terminal : firstSet) {
+                    if (!terminal.equals("ε")) {
+                        row.put(terminal, production);
+                    }
+                }
+
+                if (firstSet.contains("ε")) {
+                    for (String followSymbol : follow.get(nonTerminal)) {
+                        row.put(followSymbol, production);
+                    }
+                }
+            }
+        }
+    }
+
 }
