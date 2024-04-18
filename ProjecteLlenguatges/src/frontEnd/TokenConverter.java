@@ -6,6 +6,7 @@ import java.util.Map;
 public class TokenConverter {
     private final Map<String, String> tokensDictionary;
 
+
     public TokenConverter() {
         tokensDictionary = new HashMap<>();
         fillTokensDictionary();
@@ -18,7 +19,7 @@ public class TokenConverter {
         // Basic tokens
         tokensDictionary.put("fer", " start ");
         tokensDictionary.put("fi", " end ");
-        tokensDictionary.put("(", " ( ");
+        tokensDictionary.put("(", "(");
         tokensDictionary.put(")", ")");
 
         // Control structures
@@ -55,7 +56,7 @@ public class TokenConverter {
         tokensDictionary.put(":", ":");
 
         // Functions and function calls
-        tokensDictionary.put("Calçot", "main");
+        tokensDictionary.put("Calçot", "Calçot");
         tokensDictionary.put("proces", "function");
         tokensDictionary.put("retorna", "return");
         tokensDictionary.put("crida", "call ");
