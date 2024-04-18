@@ -8,7 +8,7 @@ proces        enter         Fibonacci(enter: numero) fer:
     fi 
 
  
-proces Calçot() fer:
+proces void Calçot() fer:
     enter              : num_fibo = 10        ,       i,     resultat ç
     lletres : prova = hola ç
     resultat          =  crida          Fibonacci(num_fibo) ç

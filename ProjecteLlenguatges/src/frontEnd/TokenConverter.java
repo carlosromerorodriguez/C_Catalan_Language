@@ -28,13 +28,12 @@ public class TokenConverter {
         tokensDictionary.put("per", "for");
 
         // Variable types
-        tokensDictionary.put("enter", "vartype");
-        tokensDictionary.put("decimal", "vartype");
-        tokensDictionary.put("lletra", "vartype");
-        tokensDictionary.put("lletres", "vartype");
-        tokensDictionary.put("siono", "vartype");
-        tokensDictionary.put("res", "vartype");
-        //TODO: Token de un nom de variable i de un valor
+        tokensDictionary.put("enter", "var_type");
+        tokensDictionary.put("decimal", "var_type");
+        tokensDictionary.put("lletra", "var_type");
+        tokensDictionary.put("lletres", "var_type");
+        tokensDictionary.put("siono", "var_type");
+        tokensDictionary.put("res", "var_type");
 
         // Operators
         tokensDictionary.put("+", "+");
@@ -60,8 +59,6 @@ public class TokenConverter {
         tokensDictionary.put("proces", "function");
         tokensDictionary.put("retorna", "return");
         tokensDictionary.put("crida", "call ");
-
-        //TODO: Token del nom de la funció
     }
 
     /**

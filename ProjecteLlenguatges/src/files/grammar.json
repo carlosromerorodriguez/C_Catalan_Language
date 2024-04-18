@@ -8,7 +8,7 @@
     ["ε"]
   ],
   "main": [
-    ["FUNCTION", "void", "CALÇOT", "START", "llista_sentencies", "END"]
+    ["FUNCTION", "VOID", "CALÇOT", "START", "llista_sentencies", "END"]
   ],
   "funcio": [
     ["FUNCTION", "VAR_TYPE", "FUNCTION_NAME", "arguments", "START", "llista_sentencies", "END"]
