@@ -27,30 +27,40 @@ public class Parser {
             for (List<String> production : grammar.get(nonTerminal)) {
                 System.out.println("Production: " + production);
 
-                for(String symbol : production){
-                    Set<String> firstSet = this.firstFollow.getFirst().get(symbol);
-
-                    if(firstSet != null) {
-                        for (String terminal : firstSet) {
-                            if (!terminal.equals("ε")) {
-                                System.out.println("Terminal: " + terminal);
-                                row.put(terminal, production);
-                            }
+                // Calcular el conjunto First de toda la producción
+                Set<String> productionFirstSet = new HashSet<>();
+                for (String symbol : production) {
+                    if (first.containsKey(symbol)) {
+                        productionFirstSet.addAll(first.get(symbol));
+                        if (!first.get(symbol).contains("ε")) {
+                            break; // No existen más símbolos a verificar si no hay 'ε'
                         }
+                    } else {
+                        // Es un terminal o una producción que resulta directamente en epsilon
+                        productionFirstSet.add(symbol);
                         break;
                     }
                 }
 
-                if (production.contains("ε")) {
-                    for (String followSymbol : follow.get(nonTerminal)) {
-                        System.out.println("Follow symbol: " + followSymbol);
+                // Añadir la producción para cada terminal en el conjunto First
+                for (String terminal : productionFirstSet) {
+                    if (!terminal.equals("ε")) {
+                        row.put(terminal, production);
+                        System.out.println("Adding to table: " + nonTerminal + " under " + terminal);
+                    }
+                }
+
+                // Si la producción puede derivar en epsilon, agregar a Follow
+                if (productionFirstSet.contains("ε") || production.contains("ε")) {
+                    Set<String> nonTerminalFollowSet = follow.get(nonTerminal);
+                    for (String followSymbol : nonTerminalFollowSet) {
                         row.put(followSymbol, production);
+                        System.out.println("Adding to table: " + nonTerminal + " under " + followSymbol);
                     }
                 }
             }
         }
     }
-
     public void printParseTable() {
         for (String nonTerminal : parseTable.keySet()) {
             System.out.println(nonTerminal + ":");
