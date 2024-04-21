@@ -74,7 +74,7 @@ public class Parser {
         Set<String> terminalSymbols = new HashSet<>(Arrays.asList(
                 "+", "-", "*", "/", "=", ";", ",", ":", "(", ")", "{", "}", "<", ">", "<=", ">=", "!", "==", "!=",
                 "RETORN", "FUNCTION", "START", "END", "LITERAL", "VAR_NAME", "FOR", "DE", "FINS", "VAR_TYPE", "IF",
-                "ELSE", "WHILE", "CALL", "FUNCTION_NAME", "AND", "OR", "CALÇOT", "VOID"
+                "ELSE", "WHILE", "CALL", "FUNCTION_NAME", "AND", "OR", "CALÇOT", "VOID", "FUNCTION_MAIN"
         ));
 
         Stack<Object> stack = new Stack<>();
@@ -89,15 +89,22 @@ public class Parser {
             }
 
             String topSymbol = (String) top;
+            if (topSymbol.equals("ε")) {
+                stack.pop();
+                continue;
+            }
+
             if (tokenIndex >= tokens.size()) {
-                throw new RuntimeException("Error de sintaxi: falta de tokens per processar.");
+                System.out.println("Anàlisi sintàctic finalitzat");
+                return;
             }
 
             Token token = tokens.get(tokenIndex);
-            String tokenName = token.getStringToken().toUpperCase();
+            String tokenName = token.getStringToken().toUpperCase().trim();
 
             System.out.println("TOKEN NAME" + tokenName);
             System.out.println("TOP SYMBOL " + topSymbol);
+
             if (terminalSymbols.contains(topSymbol.trim())) {
                 if (topSymbol.trim().equals(tokenName.trim())) {
                     System.out.println("MATCH " + tokenName);

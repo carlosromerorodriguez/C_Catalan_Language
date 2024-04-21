@@ -11,26 +11,35 @@
     ["FUNCTION_MAIN", "CALÇOT", "( ", ")", "START", ":", "llista_sentencies", "END"]
   ],
   "funcio": [
-    ["FUNCTION", "VAR_TYPE", "FUNCTION_NAME", "arguments", "START", ":", "llista_sentencies", "END"]
+    ["FUNCTION", "VAR_TYPE", "FUNCTION_NAME", "arguments_start", "START", ":", "llista_sentencies", "END"]
+  ],
+  "arguments_start": [
+    ["(", "arguments"]
   ],
   "arguments": [
-    ["VAR_TYPE", ":", "VAR_NAME"],
-    ["VAR_TYPE", ":", "VAR_NAME", ",", "arguments"],
-    ["ε"]
+    ["argument", "arguments_list", ")"],
+    [")"]
+  ],
+  "argument": [
+    ["VAR_TYPE", ":", "VAR_NAME"]
+  ],
+  "arguments_list": [
+    [",", "argument", "arguments_list"],
+    ["END"]
   ],
   "llista_sentencies": [
     ["sentencia", "llista_sentencies_rest"]
   ],
   "llista_sentencies_rest": [
     ["sentencia", "llista_sentencies_rest"],
-    ["ε"]
+    ["END"]
   ],
   "sentencia": [
     ["avaluació", ";"],
     ["condicionals"],
     ["iteratives"],
     ["crida", ";"],
-    ["assignació", ";"],
+    ["llista_assignacions"],
     ["retorn", ";"]
   ],
   "retorn": [
@@ -86,21 +95,25 @@
   "per": [
     ["FOR", "VAR_NAME", "DE", "factor_for", "FINS", "factor_for", "for_mode", "VAR_NAME", "START:", "llista_sentencies", "END"]
   ],
+  "llista_assignacions": [
+    ["assignació", "llista_assignacions_rest"]
+  ],
+  "llista_assignacions_rest": [
+    [";", "assignació", "llista_assignacions_rest"],
+    ["ε"]
+  ],
   "assignació": [
-    ["VAR_TYPE", ":", "VAR_NAME", "assignació_final"],
-    ["VAR_NAME", "assignació_final"]
+    ["declaración", "assignació_común"]
+  ],
+  "declaración": [
+    ["VAR_TYPE", ":", "VAR_NAME"],
+    ["VAR_NAME"]
+  ],
+  "assignació_común": [
+    ["=", "assignació_final", ";"]
   ],
   "assignació_final": [
-    ["=", "següent_token"]
-  ],
-  "següent_token": [
-    ["identificador_expressió"],
-    ["identificador_crida"]
-  ],
-  "identificador_expressió": [
-    ["expressió"]
-  ],
-  "identificador_crida": [
+    ["expressió"],
     ["crida"]
   ],
   "condició": [
@@ -162,7 +175,7 @@
   "terme'": [
     ["*", "factor", "terme'"],
     ["/", "factor", "terme'"],
-    ["ε"]
+    ["END"]
   ],
   "factor": [
     ["VAR_NAME"],

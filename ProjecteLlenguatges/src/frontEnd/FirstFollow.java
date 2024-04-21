@@ -99,84 +99,48 @@ public class FirstFollow {
     }
 
     public void FOLLOW() {
-        // Inicialitzem els conjunts FOLLOW per a cada no terminal
-        for (String noTerminal : grammar.keySet()) {
-            follow.put(noTerminal, new HashSet<>());
+        for (String nonTerminal : grammar.keySet()) {
+            follow.put(nonTerminal, new HashSet<>());
         }
-        // El símbol inicial rep el símbol de finalització de cadena al seu FOLLOW
-        //follow.get("E").add("$");
-        follow.get("sortida").add("$");
+        follow.get("sortida").add("$");  // Assuming 'sortida' is the start symbol
 
-        /* Definim una variable per saber si hi ha hagut canvis en algun conjunt FOLLOW durant l'iteració,
-        * ho fem així perquè el conjunt FOLLOW d'un símbol pot dependre del conjunt FOLLOW d'un altre símbol
-        * i ens cal passar varis cops per la gramàtica per calcular tots els FOLLOWs correctament. */
         boolean changed;
         do {
-            // Inicialitzem changed a false al començament de cada iteració
             changed = false;
-            // Iterem sobre cada no terminal de la gramàtica
-            for (String noTerminal : grammar.keySet()) {
-                // Computem el FOLLOW per cada símbol no terminal
-                // Si la funció compute_FOLLOW retorna true significa que el conjunt FOLLOW d'algun símbol ha canviat
-                changed = compute_FOLLOW(noTerminal) || changed;
-            }
-            // Continuem el bucle mentre hi hagi canvis en els conjunts FOLLOW
-        } while (changed);
-    }
-
-    private boolean compute_FOLLOW(String symbol) {
-        // Flag per rastrejar si el conjunt FOLLOW del símbol actual ha estat actualitzat
-        boolean updated = false;
-
-        // Iterem sobre cada no terminal i les seves regles de producció en la gramàtica
-        for (String noTerminal : grammar.keySet()) {
-            for (List<String> rule : grammar.get(noTerminal)) {
-                for (int i = 0; i < rule.size(); i++) {
-                    // Comprovem si el símbol actual de la regla és el símbol passat com a paràmetre per el que volem calcular el FOLLOW
-                    if (rule.get(i).equals(symbol)) {
-                        // Preparem un conjunt temporal per a calcular els elements a afegir a FOLLOW(symbol)
-                        Set<String> tempFollow = new HashSet<>();
-                        // Comprovem si el símbol és l'últim element de la regla
-                        if (i == rule.size() - 1) {
-                            // Afegim el FOLLOW del cap de la producció al FOLLOW del símbol,
-                            // perquè la producció acaba amb aquest símbol
-                            tempFollow.addAll(follow.get(noTerminal));
-                        } else {
-                            // Calculem el FIRST dels símbols que segueixen el símbol actual en la producció.
-                            Set<String> firstOfNext = computeFirstOfSequence(rule.subList(i + 1, rule.size()));
-                            // Comprovem si FIRST dels símbols seguents conté ε
-                            if (firstOfNext.remove("ε")) {
-                                // Si conté ε, afegim FOLLOW del cap de la producció al FOLLOW del símbol
-                                tempFollow.addAll(follow.get(noTerminal));
+            for (String nonTerminal : grammar.keySet()) {
+                Set<String> followSet = follow.get(nonTerminal);
+                for (List<String> production : grammar.get(nonTerminal)) {
+                    Set<String> trailer = new HashSet<>(followSet);
+                    for (int i = production.size() - 1; i >= 0; i--) {
+                        String symbol = production.get(i);
+                        if (isNonterminal(symbol)) {
+                            if (follow.get(symbol).addAll(trailer)) {
+                                changed = true;
                             }
-                            // Afegim els símbols de FIRST que no són ε al FOLLOW del símbol
-                            tempFollow.addAll(firstOfNext);
-                        }
-                        // Actualitzem el conjunt FOLLOW del símbol si afegim nous elements
-                        if (follow.get(symbol).addAll(tempFollow)) {
-                            updated = true; // Actualitzem el flag
+                            if (first.get(symbol).contains("ε")) {
+                                trailer.addAll(first.get(symbol));
+                                trailer.remove("ε");
+                            } else {
+                                trailer.clear();
+                                trailer.addAll(first.get(symbol));
+                            }
+                        } else {
+                            trailer.clear();
+                            trailer.add(symbol);
                         }
                     }
                 }
             }
-        }
-        // Retornem true si hi ha hagut alguna actualització al conjunt FOLLOW del símbol
-        return updated;
+        } while (changed);
     }
 
-    // Funcio que calcula el conjunt FIRST d'una seqüència de símbols
-    public Set<String> computeFirstOfSequence(List<String> symbols) {
-        Set<String> firstSet = new HashSet<>();
-        // Per cada símbol de la seqüència, calculem el conjunt FIRST i l'afegim al conjunt FIRST de la seqüència
-        for (String symbol : symbols) {
-            firstSet.addAll(compute_FIRST(symbol));
-        }
-        return firstSet;
+    private boolean isNonterminal(String item) {
+        return grammar.containsKey(item);
     }
 
     public void showFOLLOW() {
-        for (String no_terminal : follow.keySet()){
-            System.out.println("FOLLOW(" + no_terminal + ") = " + follow.get(no_terminal));
+        for (String nonTerminal : follow.keySet()) {
+            System.out.println("FOLLOW(" + nonTerminal + ") = " + follow.get(nonTerminal));
         }
     }
 

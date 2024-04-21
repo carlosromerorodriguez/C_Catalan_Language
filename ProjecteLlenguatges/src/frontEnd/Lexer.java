@@ -110,6 +110,10 @@ public class Lexer {
                 } else {
                     tokens.get(i).setStringToken("var_name");
                 }
+            } else if (tokens.get(i).getStringToken().equals("function")) {
+                if(tokens.get(i+1).getStringToken().equals("Calçot")) {
+                    tokens.get(i).setStringToken("function_main");
+                }
             }
         }
     }
