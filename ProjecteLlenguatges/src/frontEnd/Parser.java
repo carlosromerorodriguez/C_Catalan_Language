@@ -37,7 +37,7 @@ public class Parser {
                         }
                     } else {
                         // Es un terminal o una producción que resulta directamente en epsilon
-                        productionFirstSet.add(symbol);
+                        productionFirstSet.add(symbol.trim());
                         break;
                     }
                 }
@@ -45,7 +45,7 @@ public class Parser {
                 // Añadir la producción para cada terminal en el conjunto First
                 for (String terminal : productionFirstSet) {
                     if (!terminal.equals("ε")) {
-                        row.put(terminal, production);
+                        row.put(terminal.trim(), production);
                         System.out.println("Adding to table: " + nonTerminal + " under " + terminal);
                     }
                 }
@@ -54,7 +54,7 @@ public class Parser {
                 if (productionFirstSet.contains("ε") || production.contains("ε")) {
                     Set<String> nonTerminalFollowSet = follow.get(nonTerminal);
                     for (String followSymbol : nonTerminalFollowSet) {
-                        row.put(followSymbol, production);
+                        row.put(followSymbol.trim(), production);
                         System.out.println("Adding to table: " + nonTerminal + " under " + followSymbol);
                     }
                 }
@@ -96,8 +96,11 @@ public class Parser {
             Token token = tokens.get(tokenIndex);
             String tokenName = token.getStringToken().toUpperCase();
 
-            if (terminalSymbols.contains(topSymbol)) {
-                if (topSymbol.equals(tokenName)) {
+            System.out.println("TOKEN NAME" + tokenName);
+            System.out.println("TOP SYMBOL " + topSymbol);
+            if (terminalSymbols.contains(topSymbol.trim())) {
+                if (topSymbol.trim().equals(tokenName.trim())) {
+                    System.out.println("MATCH " + tokenName);
                     stack.pop();
                     tokenIndex++;
                 } else {

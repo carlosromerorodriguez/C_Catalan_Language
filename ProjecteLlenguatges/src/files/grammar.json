@@ -8,10 +8,10 @@
     ["ε"]
   ],
   "main": [
-    ["FUNCTION", "CALÇOT", "( ", ")", "START", "llista_sentencies", "END"]
+    ["FUNCTION", "CALÇOT", "( ", ")", "START", ":", "llista_sentencies", "END"]
   ],
   "funcio": [
-    ["FUNCTION", "VAR_TYPE", "FUNCTION_NAME", "arguments", "START", "llista_sentencies", "END"]
+    ["FUNCTION", "VAR_TYPE", "FUNCTION_NAME", "arguments", "START", ":", "llista_sentencies", "END"]
   ],
   "arguments": [
     ["VAR_TYPE", ":", "VAR_NAME"],

@@ -74,7 +74,12 @@ public class Lexer {
                     } else {
                         // Si el lexeme no reconegut conte ñ o ç mostrem error
                         if (lexeme.contains("ç") || lexeme.contains("ñ")) {
-                            errorHandler.recordError(lexeme + " contains invalid character.", codeLines.get(i).getLine());
+                            if(lexeme.equals("Calçot")) {
+                                String tokenName = tokenConverter.convertLexemeToToken(lexeme);
+                                tokens.add(new Token<String>(tokenName, codeLines.get(i).getLine(), lexeme));
+                            } else {
+                                errorHandler.recordError(lexeme + " contains invalid character.", codeLines.get(i).getLine());
+                            }
                         } else {
                             // Es un nom acceptat mirem si es un function_name o var_name
                             String tokenType = "name";
