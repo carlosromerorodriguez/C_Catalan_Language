@@ -8,7 +8,7 @@
     ["ε"]
   ],
   "main": [
-    ["FUNCTION", "CALÇOT", "( ", ")", "START", ":", "llista_sentencies", "END"]
+    ["FUNCTION_MAIN", "CALÇOT", "( ", ")", "START", ":", "llista_sentencies", "END"]
   ],
   "funcio": [
     ["FUNCTION", "VAR_TYPE", "FUNCTION_NAME", "arguments", "START", ":", "llista_sentencies", "END"]
@@ -19,7 +19,10 @@
     ["ε"]
   ],
   "llista_sentencies": [
-    ["sentencia", "llista_sentencies"],
+    ["sentencia", "llista_sentencies_rest"]
+  ],
+  "llista_sentencies_rest": [
+    ["sentencia", "llista_sentencies_rest"],
     ["ε"]
   ],
   "sentencia": [
@@ -84,11 +87,20 @@
     ["FOR", "VAR_NAME", "DE", "factor_for", "FINS", "factor_for", "for_mode", "VAR_NAME", "START:", "llista_sentencies", "END"]
   ],
   "assignació": [
-    ["VAR_TYPE", ":", "VAR_NAME", "=", "expressió"],
-    ["VAR_TYPE", ":", "VAR_NAME"],
-    ["VAR_NAME", "=", "expressió"],
-    ["VAR_TYPE", ":", "VAR_NAME", "=", "crida"],
-    ["VAR_NAME", "=", "crida"]
+    ["VAR_TYPE", ":", "assignació_var_type"],
+    ["VAR_NAME", "assignació_var_name"]
+  ],
+  "assignació_var_type": [
+    ["VAR_NAME", "assignació_rest"]
+  ],
+  "assignació_var_name": [
+    ["=", "expressió"],
+    ["=", "crida"]
+  ],
+  "assignació_rest": [
+    ["=", "expressió"],
+    ["=", "crida"],
+    ["ε"]
   ],
   "condició": [
     ["oració", "condició'"],
