@@ -5,11 +5,13 @@ import java.util.Map;
 
 
 public class Main {
-
+/*TODO Arreglar:
+    enter: nombre = (((0 +10)  * 11)  +7/1) -10  ç
+*/
     public static void  main(String[] args) {
         TokenConverter tokenConverter = new TokenConverter();
         ErrorHandler errorHandler = new ErrorHandler();
-        PreProcessing preProcessing = new PreProcessing(errorHandler, "src/files/example4.ç");
+        PreProcessing preProcessing = new PreProcessing(errorHandler, "src/files/example3.ç");
         Lexer lexer = new Lexer(errorHandler, preProcessing.readFile(), tokenConverter);
 
         lexer.showTokens();

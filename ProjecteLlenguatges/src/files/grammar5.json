@@ -25,14 +25,14 @@
   ],
   "arguments_list": [
     [",", "argument", "arguments_list"],
-    ["END"]
+    ["ε"]
   ],
   "llista_sentencies": [
     ["sentencia", "llista_sentencies_rest"]
   ],
   "llista_sentencies_rest": [
     ["sentencia", "llista_sentencies_rest"],
-    ["END"]
+    ["ε"]
   ],
   "sentencia": [
     ["avaluació", ";"],

@@ -103,7 +103,7 @@ public class Lexer {
 
         for (int i = 0; i < tokens.size() - 1; i++) {
             if(tokens.get(i).getStringToken().equals("name")) {
-                if(tokens.get(i+1).getStringToken().equals(" ( ")) {
+                if(tokens.get(i+1).getStringToken().trim().equals("(")) {
                     tokens.get(i).setStringToken("function_name");
                 } else if (i > 0 && tokens.get(i-1).getStringToken().equals("=")) {
                     tokens.get(i).setStringToken("literal");

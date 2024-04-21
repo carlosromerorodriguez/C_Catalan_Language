@@ -11,11 +11,20 @@
     ["FUNCTION_MAIN", "CALÇOT", "( ", ")", "START", ":", "llista_sentencies", "END"]
   ],
   "funcio": [
-    ["FUNCTION", "VAR_TYPE", "FUNCTION_NAME", "arguments", "START", ":", "llista_sentencies", "END"]
+    ["FUNCTION", "VAR_TYPE", "FUNCTION_NAME", "arguments_start", "START", ":", "llista_sentencies", "END"]
+  ],
+  "arguments_start": [
+    ["(", "arguments"]
   ],
   "arguments": [
-    ["VAR_TYPE", ":", "VAR_NAME"],
-    ["VAR_TYPE", ":", "VAR_NAME", ",", "arguments"],
+    ["argument", "arguments_list", ")"],
+    [")"]
+  ],
+  "argument": [
+    ["VAR_TYPE", ":", "VAR_NAME"]
+  ],
+  "arguments_list": [
+    [",", "argument", "arguments_list"],
     ["ε"]
   ],
   "llista_sentencies": [
@@ -74,24 +83,25 @@
     ["mentre"]
   ],
   "condicionals": [
-    ["IF", "(", "condicio", ")", "START:", "llista_sentencies", "END", "condicional'"]
+    ["IF", "(", "condició", ")", "START",":", "llista_sentencies", "END", "condicional'"]
   ],
   "condicional'": [
-    ["ELSE", "START:", "llista_sentencies", "END"],
+    ["ELSE", "START", ":", "llista_sentencies", "END"],
     ["ε"]
   ],
   "mentre": [
-    ["WHILE", "(condicio)", "START:", "llista_sentencies", "END"]
+    ["WHILE", "(", "condició", ")", "START", ":", "llista_sentencies", "END"]
   ],
   "per": [
-    ["FOR", "VAR_NAME", "DE", "factor_for", "FINS", "factor_for", "for_mode", "VAR_NAME", "START:", "llista_sentencies", "END"]
+    ["FOR", "VAR_NAME", "DE", "factor_for", "FINS", "factor_for", "for_mode", "VAR_NAME", "START", ":", "llista_sentencies", "END"]
   ],
   "assignació": [
     ["VAR_TYPE", ":", "VAR_NAME", "assignació_final"],
     ["VAR_NAME", "assignació_final"]
   ],
   "assignació_final": [
-    ["=", "següent_token"]
+    ["=", "següent_token"],
+    ["ε"]
   ],
   "següent_token": [
     ["identificador_expressió"],
@@ -141,12 +151,12 @@
     ["ε"]
   ],
   "operador_relacional": [
-    ["<"],
-    [">"],
+    ["LOWER"],
+    ["GREATER"],
     ["=="],
     ["!="],
-    ["<="],
-    [">="]
+    ["LOWER_EQUAL"],
+    ["GREATER_EQUAL"]
   ],
   "expressió": [
     ["terme", "expressió'"]
