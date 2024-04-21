@@ -2,6 +2,7 @@ package frontEnd;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -38,7 +39,7 @@ public class Lexer {
      */
     private void tokenize() {
         String tokenPatterns =
-                "\\b(si|sino|mentre|per|fer|fi|enter|decimal|lletra|lletres|siono|res|Calçot|proces|retorn|crida)\\b\n|" + // Palabras reservadas
+                "\\b(si|sino|mentre|per|fer|fi|enter|decimal|lletra|lletres|siono|res|Calçot|proces|retorn|crida|de|fins)\\b\n|" + // Palabras reservadas
                         "([A-Za-zÀ-ú][A-Za-zÀ-ú0-9_]*)|" + // Identificadores
                         "(-?\\d+(\\.\\d+)?)|" + // Números (decimales y enteros)
                         "(==|!=|<=|>=|\\+|\\-|\\*|/|=|<|>|\\(|\\)|;|,|:)"; // Operadores y símbolos
@@ -103,6 +104,11 @@ public class Lexer {
 
         for (int i = 0; i < tokens.size() - 1; i++) {
             if(tokens.get(i).getStringToken().equals("name")) {
+                String aux_token = tokenConverter.getToken((String) tokens.get(i).getValue());
+                if(!Objects.equals(aux_token, "")){
+                    tokens.get(i).setStringToken(aux_token);
+                    continue;
+                }
                 if(tokens.get(i+1).getStringToken().trim().equals("(")) {
                     tokens.get(i).setStringToken("function_name");
                 } else if (i > 0 && tokens.get(i-1).getStringToken().equals("=")) {

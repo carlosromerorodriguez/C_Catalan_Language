@@ -28,6 +28,11 @@ public class TokenConverter {
         tokensDictionary.put("mentre", "while");
         tokensDictionary.put("per", "for");
 
+        tokensDictionary.put("de", "de");
+        tokensDictionary.put("fins", "fins");
+        tokensDictionary.put("sumant", "sumant");
+        tokensDictionary.put("restant", "restant");
+
         // Variable types
         tokensDictionary.put("enter", "var_type");
         tokensDictionary.put("decimal", "var_type");
@@ -71,5 +76,16 @@ public class TokenConverter {
     public String convertLexemeToToken(String proprietaryLexeme) {
         return tokensDictionary.getOrDefault(proprietaryLexeme, proprietaryLexeme);
     }
+
+    /**
+     * Given a Ç lexeme returns the corresponding token.
+     *
+     * @param proprietaryLexeme the Ç lexeme to convert
+     * @return the token corresponding to the Ç lexeme
+     */
+    public String getToken(String proprietaryLexeme) {
+        return tokensDictionary.getOrDefault(proprietaryLexeme, "");
+    }
+
 
 }

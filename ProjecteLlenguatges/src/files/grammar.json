@@ -93,7 +93,16 @@
     ["WHILE", "(", "condició", ")", "START", ":", "llista_sentencies", "END"]
   ],
   "per": [
-    ["FOR", "VAR_NAME", "DE", "factor_for", "FINS", "factor_for", "for_mode", "VAR_NAME", "START", ":", "llista_sentencies", "END"]
+    ["FOR", "VAR_NAME", "DE", "factor_for", "FINS", "factor_for", "for_mode", "var_for_mode", "START", ":", "llista_sentencies", "END"]
+  ],
+  "var_for_mode": [
+    ["LITERAL"],
+    ["VAR_NAME"],
+    ["ε"]
+  ],
+  "for_mode": [
+    ["SUMANT"],
+    ["RESTANT"]
   ],
   "assignació": [
     ["VAR_TYPE", ":", "VAR_NAME", "assignació_final"],
@@ -104,13 +113,7 @@
     ["ε"]
   ],
   "següent_token": [
-    ["identificador_expressió"],
-    ["identificador_crida"]
-  ],
-  "identificador_expressió": [
-    ["expressió"]
-  ],
-  "identificador_crida": [
+    ["expressió"],
     ["crida"]
   ],
   "condició": [
@@ -128,6 +131,7 @@
   ],
   "oració'": [
     ["operador_relacional", "component", "oració'"],
+    ["component", "oració'"],
     ["ε"]
   ],
   "component": [
