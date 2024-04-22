@@ -3,10 +3,10 @@ package frontEnd;
 import java.util.*;
 
 public class Parser {
-    private final FirstFollow firstFollow;
+    private final TokenConverter tokenConverter;
     private Map<String, Map<String, List<String>>> parseTable;
-    public Parser(FirstFollow firstFollow) {
-        this.firstFollow = firstFollow;
+    public Parser(FirstFollow firstFollow, TokenConverter tokenConverter) {
+        this.tokenConverter = tokenConverter;
         firstFollow.FIRST();
         firstFollow.FOLLOW();
         firstFollow.showFIRST();
@@ -110,7 +110,8 @@ public class Parser {
 
             if (terminalSymbols.contains(topSymbol)) {
                 if (topSymbol.equals(tokenName)) {
-                    printTreeStructure(depth, topSymbol, "\033[32mMATCH (" + token.getLine() + ")\033[0m", "\033[32m");
+                    String tokenOriginalName = this.tokenConverter.getKeyFromToken(tokenName);
+                    printTreeStructure(depth, topSymbol, "\033[32mMATCH (" + token.getLine() + ") " + (Objects.equals(tokenOriginalName, "") ? "" : "-> " + tokenOriginalName)  + "\033[0m", "\033[32m");
 
                     //System.out.printf("%sMATCH (Line: %d) -> %s\n", indent(depth), token.getLine(), tokenName);
                     stack.pop();

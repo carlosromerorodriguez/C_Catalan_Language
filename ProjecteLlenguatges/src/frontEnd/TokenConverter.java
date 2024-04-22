@@ -87,5 +87,12 @@ public class TokenConverter {
         return tokensDictionary.getOrDefault(proprietaryLexeme, "");
     }
 
-
+    public String getKeyFromToken(String token) {
+        for (Map.Entry<String, String> entry : tokensDictionary.entrySet()) {
+            if (entry.getValue().equals(token)) {
+                return entry.getKey();
+            }
+        }
+        return "";
+    }
 }
