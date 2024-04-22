@@ -120,6 +120,7 @@ public class Parser {
                     throw new RuntimeException("No productions found for non-terminal: " + topSymbol);
                 }
                 List<String> production = mappings.get(tokenName);
+                System.out.println("\033[33mSelected production: " + tokenName + "=" + production + "\033[0m");
                 if (production != null) {
                     stack.pop();
                     for (int i = production.size() - 1; i >= 0; i--) {
