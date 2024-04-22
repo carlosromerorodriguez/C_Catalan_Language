@@ -88,7 +88,7 @@ public class Parser {
                 throw new IllegalStateException("Element desconegut al stack");
             }
 
-            String topSymbol = (String) top;
+            String topSymbol = ((String) top).trim();
             if (topSymbol.equals("ε")) {
                 stack.pop();
                 continue;
@@ -102,11 +102,11 @@ public class Parser {
             Token token = tokens.get(tokenIndex);
             String tokenName = token.getStringToken().toUpperCase().trim();
 
-            System.out.println("TOKEN NAME" + tokenName);
+            System.out.println("TOKEN NAME " + tokenName);
             System.out.println("TOP SYMBOL " + topSymbol);
 
-            if (terminalSymbols.contains(topSymbol.trim())) {
-                if (topSymbol.trim().equals(tokenName.trim())) {
+            if (terminalSymbols.contains(topSymbol)) {
+                if (topSymbol.equals(tokenName)) {
                     System.out.println("MATCH " + tokenName);
                     stack.pop();
                     tokenIndex++;
