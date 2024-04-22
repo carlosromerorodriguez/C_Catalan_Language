@@ -9,9 +9,9 @@ public class Parser {
         this.tokenConverter = tokenConverter;
         firstFollow.FIRST();
         firstFollow.FOLLOW();
-        firstFollow.showFIRST();
-        System.out.println("\n\nFOLLOW:");
-        firstFollow.showFOLLOW();
+        //firstFollow.showFIRST();
+        //System.out.println("\n\nFOLLOW:");
+        //firstFollow.showFOLLOW();
         this.buildParseTable(firstFollow.getGrammar(), firstFollow.getFollow(), firstFollow.getFirst());
     }
 

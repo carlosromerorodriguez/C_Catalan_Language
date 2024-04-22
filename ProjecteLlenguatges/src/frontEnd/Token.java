@@ -3,7 +3,7 @@ package frontEnd;
 public class Token<T> {
     private String stringToken;
     private int line;
-    private final T value;
+    private T value;
 
     public Token(String stringToken, int line) {
         this.stringToken = stringToken;
@@ -23,6 +23,10 @@ public class Token<T> {
 
     public void setStringToken(String stringToken) {
         this.stringToken = stringToken;
+    }
+
+    public void setValue(T value) {
+        this.value = value;
     }
 
     public int getLine() {

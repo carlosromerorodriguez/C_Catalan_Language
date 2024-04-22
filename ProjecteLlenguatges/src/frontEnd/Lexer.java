@@ -41,30 +41,29 @@ public class Lexer {
         String tokenPatterns =
                 "\\b(si|sino|mentre|per|fer|fi|enter|decimal|lletra|lletres|siono|res|Calçot|proces|retorn|crida|de|fins)\\b\n|" + // Palabras reservadas
                         "([A-Za-zÀ-ú][A-Za-zÀ-ú0-9_]*)|" + // Identificadores
-                        "(-?\\d+(\\.\\d+)?)|" + // Números (decimales y enteros)
-                        "(==|!=|<=|>=|\\+|\\-|\\*|/|=|<|>|\\(|\\)|;|,|:)"; // Operadores y símbolos
+                        "(\\d+(\\.\\d+)?)|" + // Números (decimales y enteros)
+                        "(!|==|!=|<=|>=|\\+|-|\\*|/|=|<|>|\\(|\\)|;|,|:)"; // Operadores y símbolos
 
         for (int i = 0; i < codeLines.size(); i++) {
             Pattern pattern = Pattern.compile(tokenPatterns);
             Matcher matcher = pattern.matcher(codeLines.get(i).getContentLine());
             String line = codeLines.get(i).getContentLine();
-            String lastToken = "";
 
             int lastMatchEnd = 0; // Iniciar índice para el final del último match
 
             while (matcher.find(lastMatchEnd)) {
                 String lexeme = matcher.group();
 
-                //System.out.println("RAW: "+lexeme);
                 // Verificar si es un número primero
-                if (lexeme.matches("\\d+(\\.\\d+)?([eE][-+]?\\d+)?")) {
+                //if (lexeme.matches("\\d+|\\d-(\\.\\d+)?([eE][-+]?\\d+)?")) {
+                if (lexeme.matches("-?\\d+(\\.\\d+)?")) {
                     //System.out.println("Number: " + lexeme);
                     if (lexeme.contains(".")) {
                         tokens.add(new Token<Float>("literal", codeLines.get(i).getLine(), Float.parseFloat(lexeme)));
                     } else {
                         tokens.add(new Token<Integer>("literal", codeLines.get(i).getLine(), Integer.parseInt(lexeme)));
                     }
-                } else if (lexeme.matches("[+\\-*/=<>!]|==|!=|<=|>=|\\(|\\)|;|,|:")) {
+                } else if (lexeme.matches("[-+*/=<>!]|==|!=|<=|>=|\\(|\\)|;|,|:")) {
                     //System.out.println("Operator: " + lexeme);
                     String tokenName = tokenConverter.convertLexemeToToken(lexeme);
                     tokens.add(new Token<String>(tokenName, codeLines.get(i).getLine(), lexeme));
@@ -89,7 +88,6 @@ public class Lexer {
                     }
                 }
 
-                lastToken = lexeme; // Actualizar el último token procesado
                 lastMatchEnd = matcher.end(); // Actualizar el final del último match para continuar desde aquí
 
                 // Reemplazar solo la primera ocurrencia del lexema procesado en la línea
@@ -102,6 +100,7 @@ public class Lexer {
             }
         }
 
+        ArrayList<Integer> deletedPositions = new ArrayList<>();
         for (int i = 0; i < tokens.size() - 1; i++) {
             if(tokens.get(i).getStringToken().equals("name")) {
                 String aux_token = tokenConverter.getToken((String) tokens.get(i).getValue());
@@ -120,7 +119,35 @@ public class Lexer {
                 if(tokens.get(i+1).getStringToken().equals("Calçot")) {
                     tokens.get(i).setStringToken("function_main");
                 }
+            } else if (tokens.get(i).getStringToken().equals("+") || tokens.get(i).getStringToken().equals("-")) { // Si el token + o -, mirem si forma part d'un literal
+                if(     tokens.get(i-1).getStringToken().equals("(") || tokens.get(i-1).getStringToken().equals("=") ||
+                        tokens.get(i-1).getStringToken().equals("+") || tokens.get(i-1).getStringToken().equals("-") ||
+                        tokens.get(i-1).getStringToken().equals("*") || tokens.get(i-1).getStringToken().equals("/") ||
+                        tokens.get(i-1).getStringToken().equals("==") || tokens.get(i-1).getStringToken().equals("!=") ||
+                        tokens.get(i-1).getStringToken().equals("<") || tokens.get(i-1).getStringToken().equals(">") ||
+                        tokens.get(i-1).getStringToken().equals("<=") || tokens.get(i-1).getStringToken().equals(">=") ||
+                        tokens.get(i-1).getStringToken().equals(","))
+                {
+                    //Si abans hi ha un parentesis obert o un operador el + o - forma part d'un literal
+                    //Ajuntem el + o - amb el seguent token
+                    if(tokens.get(i+1).getStringToken().equals("literal")) {
+                        if(tokens.get(i).getStringToken().equals("+")) {
+                            tokens.get(i+1).setValue(tokens.get(i+1).getValue());
+                        } else {
+                            tokens.get(i+1).setValue(-1 * (float) tokens.get(i+1).getValue());
+                        }
+                    } else { //Es una variable per tant afegim el positiu o negatiu al davant del nom
+                        String aux = tokens.get(i).getStringToken() + tokens.get(i+1).getStringToken();
+                        tokens.get(i+1).setStringToken(aux);
+                        tokens.get(i+1).setValue(tokens.get(i+1).getValue());
+                    }
+                    deletedPositions.add(i);
+                }
             }
+        }
+
+        for (int i = 0; i < deletedPositions.size(); i++) {
+            tokens.remove(deletedPositions.get(i) - i);
         }
     }
 

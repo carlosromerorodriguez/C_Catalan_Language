@@ -5,10 +5,6 @@ import java.util.Map;
 
 
 public class Main {
-/*TODO Arreglar:
-    enter: nombre = (((0 +10)  * 11)  +7/1) -10  ç
-    negat en condicions
-*/
     public static void  main(String[] args) {
         TokenConverter tokenConverter = new TokenConverter();
         ErrorHandler errorHandler = new ErrorHandler();
