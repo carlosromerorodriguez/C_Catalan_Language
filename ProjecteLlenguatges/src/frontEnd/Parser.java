@@ -102,23 +102,19 @@ public class Parser {
             Token token = tokens.get(tokenIndex);
             String tokenName = token.getStringToken().toUpperCase().trim();
 
+            System.out.println("\nTOP SYMBOL " + topSymbol);
             System.out.println("TOKEN NAME " + tokenName);
-            System.out.println("TOP SYMBOL " + topSymbol);
 
             if (terminalSymbols.contains(topSymbol)) {
                 if (topSymbol.equals(tokenName)) {
-                    System.out.println("MATCH " + tokenName);
+                    System.out.printf("\033[32mMATCH (Line: %d) -> %s\033[0m\n", token.getLine(), tokenName);
                     stack.pop();
                     tokenIndex++;
                 } else {
-                    System.out.println("TOP SYMBOL " + topSymbol);
-                    System.out.println("TOKEN NAME " + tokenName);
                     throw new RuntimeException("Error de sintaxi en la línia " + token.getLine() + ": símbol inesperat " + token.getStringToken());
                 }
             } else {  // topSymbol és un no-terminal
-                System.out.println("TOP SYMBOL " + topSymbol);
-                System.out.println(parseTable.get(topSymbol));
-                System.out.println("TokenName " + tokenName);
+                System.out.println("\033[33mNext production: " + parseTable.get(topSymbol) + "\033[0m");
                 Map<String, List<String>> mappings = parseTable.get(topSymbol);
                 if (mappings == null) {
                     throw new RuntimeException("No productions found for non-terminal: " + topSymbol);
