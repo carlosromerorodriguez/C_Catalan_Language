@@ -82,6 +82,8 @@ public class Parser {
         stack.push("sortida");
 
         int tokenIndex = 0;  // Per recórrer la llista de tokens.
+        int depth = 0;
+
         while (!stack.isEmpty()) {
             Object top = stack.peek();
             if (!(top instanceof String)) {
@@ -91,6 +93,7 @@ public class Parser {
             String topSymbol = ((String) top).trim();
             if (topSymbol.equals("ε")) {
                 stack.pop();
+                depth--;
                 continue;
             }
 
@@ -102,29 +105,35 @@ public class Parser {
             Token token = tokens.get(tokenIndex);
             String tokenName = token.getStringToken().toUpperCase().trim();
 
-            System.out.println("\nTOP SYMBOL " + topSymbol);
-            System.out.println("TOKEN NAME " + tokenName);
+            //System.out.println("\nTOP SYMBOL " + topSymbol);
+            //System.out.println("TOKEN NAME " + tokenName);
 
             if (terminalSymbols.contains(topSymbol)) {
                 if (topSymbol.equals(tokenName)) {
-                    System.out.printf("\033[32mMATCH (Line: %d) -> %s\033[0m\n", token.getLine(), tokenName);
+                    printTreeStructure(depth, topSymbol, "\033[32mMATCH (" + token.getLine() + ")\033[0m", "\033[32m");
+
+                    //System.out.printf("%sMATCH (Line: %d) -> %s\n", indent(depth), token.getLine(), tokenName);
                     stack.pop();
                     tokenIndex++;
+                    depth--;
                 } else {
                     throw new RuntimeException("Error de sintaxi en la línia " + token.getLine() + ": símbol inesperat " + token.getStringToken());
                 }
             } else {  // topSymbol és un no-terminal
-                System.out.println("\033[33mNext production: " + parseTable.get(topSymbol) + "\033[0m");
+                //System.out.println("\033[33mNext production: " + parseTable.get(topSymbol) + "\033[0m");
                 Map<String, List<String>> mappings = parseTable.get(topSymbol);
                 if (mappings == null) {
                     throw new RuntimeException("No productions found for non-terminal: " + topSymbol);
                 }
                 List<String> production = mappings.get(tokenName);
-                System.out.println("\033[33mSelected production: " + tokenName + "=" + production + "\033[0m");
+                //System.out.println("\033[33mSelected production: " + tokenName + "=" + production + "\033[0m");
                 if (production != null) {
+                    printTreeStructure(depth, tokenName, production + " (" + token.getLine() + ") ", "\033[33m");
                     stack.pop();
+                    depth--;
                     for (int i = production.size() - 1; i >= 0; i--) {
                         stack.push(production.get(i));
+                        depth++;
                     }
                 } else {
                     throw new RuntimeException("Error de sintaxi: no es pot processar el token " + token.getStringToken());
@@ -132,6 +141,9 @@ public class Parser {
             }
         }
     }
-
-
+    private void printTreeStructure(int depth, String node, String action, String colorCode) {
+        String indent = " ".repeat(depth * 4);
+        String lineLead = indent + (depth > 0 ? "|-- " : "");
+        System.out.println(lineLead + colorCode + node + "\033[0m" + (action.isEmpty() ? "" : " - " + action));
+    }
 }
