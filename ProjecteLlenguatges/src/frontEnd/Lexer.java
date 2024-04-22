@@ -31,7 +31,8 @@ public class Lexer {
         this.tokenConverter = tokenConverter;
         tokenConverter.fillTokensDictionary();
         this.tokens = new ArrayList<>();
-        tokenize();
+        this.tokenize();
+        this.reprocessTokens();
     }
 
     /**
@@ -100,7 +101,6 @@ public class Lexer {
             }
         }
 
-        ArrayList<Integer> deletedPositions = new ArrayList<>();
         for (int i = 0; i < tokens.size() - 1; i++) {
             if(tokens.get(i).getStringToken().equals("name")) {
                 String aux_token = tokenConverter.getToken((String) tokens.get(i).getValue());
@@ -119,27 +119,39 @@ public class Lexer {
                 if(tokens.get(i+1).getStringToken().equals("Calçot")) {
                     tokens.get(i).setStringToken("function_main");
                 }
-            } else if (tokens.get(i).getStringToken().equals("+") || tokens.get(i).getStringToken().equals("-")) { // Si el token + o -, mirem si forma part d'un literal
-                if(     tokens.get(i-1).getStringToken().equals("(") || tokens.get(i-1).getStringToken().equals("=") ||
-                        tokens.get(i-1).getStringToken().equals("+") || tokens.get(i-1).getStringToken().equals("-") ||
-                        tokens.get(i-1).getStringToken().equals("*") || tokens.get(i-1).getStringToken().equals("/") ||
-                        tokens.get(i-1).getStringToken().equals("==") || tokens.get(i-1).getStringToken().equals("!=") ||
-                        tokens.get(i-1).getStringToken().equals("<") || tokens.get(i-1).getStringToken().equals(">") ||
-                        tokens.get(i-1).getStringToken().equals("<=") || tokens.get(i-1).getStringToken().equals(">=") ||
-                        tokens.get(i-1).getStringToken().equals(","))
-                {
+            }
+        }
+    }
+
+    void reprocessTokens() {
+        ArrayList<Integer> deletedPositions = new ArrayList<>();
+        for (int i = 0; i < tokens.size() - 1; i++) {
+            if (tokens.get(i).getStringToken().equals("+") || tokens.get(i).getStringToken().equals("-")) { // Si el token + o -, mirem si forma part d'un literal
+                System.out.println("Variable: " + tokens.get(i + 1).getStringToken());
+
+                if (tokens.get(i - 1).getStringToken().equals("(") || tokens.get(i - 1).getStringToken().equals("=") ||
+                        tokens.get(i - 1).getStringToken().equals("+") || tokens.get(i - 1).getStringToken().equals("-") ||
+                        tokens.get(i - 1).getStringToken().equals("*") || tokens.get(i - 1).getStringToken().equals("/") ||
+                        tokens.get(i - 1).getStringToken().equals("==") || tokens.get(i - 1).getStringToken().equals("!=") ||
+                        tokens.get(i - 1).getStringToken().equals("<") || tokens.get(i - 1).getStringToken().equals(">") ||
+                        tokens.get(i - 1).getStringToken().equals("<=") || tokens.get(i - 1).getStringToken().equals(">=") ||
+                        tokens.get(i - 1).getStringToken().equals(",")) {
                     //Si abans hi ha un parentesis obert o un operador el + o - forma part d'un literal
                     //Ajuntem el + o - amb el seguent token
-                    if(tokens.get(i+1).getStringToken().equals("literal")) {
-                        if(tokens.get(i).getStringToken().equals("+")) {
-                            tokens.get(i+1).setValue(tokens.get(i+1).getValue());
+                    if (tokens.get(i + 1).getStringToken().equals("literal")) {
+                        if (tokens.get(i).getStringToken().equals("+")) {
+                            tokens.get(i + 1).setValue(tokens.get(i + 1).getValue());
                         } else {
-                            tokens.get(i+1).setValue(-1 * (float) tokens.get(i+1).getValue());
+                            if (tokens.get(i + 1).getValue() instanceof Float) {
+                                tokens.get(i + 1).setValue(-1 * (float) tokens.get(i + 1).getValue());
+                            } else {
+                                tokens.get(i + 1).setValue(-1 * (int) tokens.get(i + 1).getValue());
+                            }
                         }
                     } else { //Es una variable per tant afegim el positiu o negatiu al davant del nom
-                        String aux = tokens.get(i).getStringToken() + tokens.get(i+1).getStringToken();
-                        tokens.get(i+1).setStringToken(aux);
-                        tokens.get(i+1).setValue(tokens.get(i+1).getValue());
+                        String aux = tokens.get(i).getStringToken() + tokens.get(i + 1).getStringToken();
+                        tokens.get(i + 1).setStringToken(aux);
+                        tokens.get(i + 1).setValue(tokens.get(i + 1).getValue());
                     }
                     deletedPositions.add(i);
                 }
