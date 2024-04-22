@@ -1,4 +1,4 @@
-proces res Calçot() fer:
+proces Calçot() fer:
 
     enter: nombre = 10 ç		xiuxiueja aquesta és la primeria línia i això és un comentari  
 
@@ -16,7 +16,7 @@ proces res Calçot() fer:
 
     mentre (nombre > nombre2) fer: 
 
-    nombre2 = nombre + 1 ç
+        nombre2 = nombre + 1 ç
 
     fi
 
