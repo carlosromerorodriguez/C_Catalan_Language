@@ -3,10 +3,10 @@ package frontEnd;
 import java.util.*;
 
 public class FirstFollow {
-    private Map<String, List<List<String>>> grammar;
-    private Set<String> terminals;
-    private Map<String, Set<String>> first;
-    private Map<String, Set<String>> follow;
+    private final Map<String, List<List<String>>> grammar;
+    private final Set<String> terminals;
+    private final Map<String, Set<String>> first;
+    private final Map<String, Set<String>> follow;
 
     public FirstFollow(Map<String, List<List<String>>> grammar) {
         this.grammar = grammar;

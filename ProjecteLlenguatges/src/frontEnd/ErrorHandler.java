@@ -4,11 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ErrorHandler {
-    public enum ErrorType {
-
-    }
-
-    private List<Error> errors;
+    private final List<Error> errors;
 
     public ErrorHandler() {
         this.errors = new ArrayList<>();

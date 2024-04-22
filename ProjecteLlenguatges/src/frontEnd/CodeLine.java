@@ -1,9 +1,8 @@
 package frontEnd;
 
 public class CodeLine {
-    private int line;
-    private String contentLine;
-    int a;
+    private final int line;
+    private final String contentLine;
 
     public CodeLine(int line, String contentLine) {
         this.line = line;

@@ -10,15 +10,11 @@ import java.util.regex.Pattern;
  *
  */
 public class Lexer {
-    private ErrorHandler errorHandler;
-
-    private List<CodeLine> codeLines;
-
+    private final ErrorHandler errorHandler;
+    private final List<CodeLine> codeLines;
     private int currentIndex = 0;
-    private List<Token> tokens;
-    private TokenConverter tokenConverter;
-    int a;
-
+    private final List<Token> tokens;
+    private final TokenConverter tokenConverter;
 
     /**
      * Constructor for the Lexer class.
@@ -54,37 +50,38 @@ public class Lexer {
 
             while (matcher.find(lastMatchEnd)) {
                 String lexeme = matcher.group();
+                System.out.println("Lexeme: " + lexeme);
 
                 // Verificar si es un número primero
                 //if (lexeme.matches("\\d+|\\d-(\\.\\d+)?([eE][-+]?\\d+)?")) {
                 if (lexeme.matches("-?\\d+(\\.\\d+)?")) {
                     //System.out.println("Number: " + lexeme);
                     if (lexeme.contains(".")) {
-                        tokens.add(new Token<Float>("literal", codeLines.get(i).getLine(), Float.parseFloat(lexeme)));
+                        tokens.add(new Token<Float>("literal", codeLines.get(i).getLine(), Float.parseFloat(lexeme), lexeme));
                     } else {
-                        tokens.add(new Token<Integer>("literal", codeLines.get(i).getLine(), Integer.parseInt(lexeme)));
+                        tokens.add(new Token<Integer>("literal", codeLines.get(i).getLine(), Integer.parseInt(lexeme), lexeme));
                     }
                 } else if (lexeme.matches("[-+*/=<>!]|==|!=|<=|>=|\\(|\\)|;|,|:")) {
                     //System.out.println("Operator: " + lexeme);
                     String tokenName = tokenConverter.convertLexemeToToken(lexeme);
-                    tokens.add(new Token<String>(tokenName, codeLines.get(i).getLine(), lexeme));
+                    tokens.add(new Token<String>(tokenName, codeLines.get(i).getLine(), lexeme, lexeme));
                 } else {
                     String token = tokenConverter.convertLexemeToToken(lexeme);
                     if (!token.equals(lexeme)) {
-                        tokens.add(new Token<>(token, codeLines.get(i).getLine()));
+                        tokens.add(new Token<>(token, codeLines.get(i).getLine(), null, lexeme));
                     } else {
                         // Si el lexeme no reconegut conte ñ o ç mostrem error
                         if (lexeme.contains("ç") || lexeme.contains("ñ")) {
                             if(lexeme.equals("Calçot")) {
                                 String tokenName = tokenConverter.convertLexemeToToken(lexeme);
-                                tokens.add(new Token<String>(tokenName, codeLines.get(i).getLine(), lexeme));
+                                tokens.add(new Token<String>(tokenName, codeLines.get(i).getLine(), lexeme, lexeme));
                             } else {
                                 errorHandler.recordError(lexeme + " contains invalid character.", codeLines.get(i).getLine());
                             }
                         } else {
                             // Es un nom acceptat mirem si es un function_name o var_name
                             String tokenType = "name";
-                            tokens.add(new Token<String>(tokenType, codeLines.get(i).getLine(), lexeme));
+                            tokens.add(new Token<String>(tokenType, codeLines.get(i).getLine(), lexeme, lexeme));
                         }
                     }
                 }

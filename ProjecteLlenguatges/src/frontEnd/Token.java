@@ -4,6 +4,7 @@ public class Token<T> {
     private String stringToken;
     private int line;
     private T value;
+    private String originalName;
 
     public Token(String stringToken, int line) {
         this.stringToken = stringToken;
@@ -11,10 +12,11 @@ public class Token<T> {
         value = null;
     }
 
-    public Token(String stringToken, int line, T value) {
+    public Token(String stringToken, int line, T value, String originalName) {
         this.stringToken = stringToken;
         this.line = line;
         this.value = value;
+        this.originalName = originalName;
     }
 
     public String getStringToken() {
@@ -41,4 +43,7 @@ public class Token<T> {
         return value;
     }
 
+    public String getOriginalName() {
+        return originalName;
+    }
 }

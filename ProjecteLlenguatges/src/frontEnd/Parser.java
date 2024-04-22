@@ -111,7 +111,7 @@ public class Parser {
             if (terminalSymbols.contains(topSymbol)) {
                 if (topSymbol.equals(tokenName)) {
                     String tokenOriginalName = this.tokenConverter.getKeyFromToken(tokenName);
-                    printTreeStructure(depth, topSymbol, "\033[32mMATCH (" + token.getLine() + ") " + (Objects.equals(tokenOriginalName, "") ? "" : "-> " + tokenOriginalName)  + "\033[0m", "\033[32m");
+                    printTreeStructure(depth, topSymbol, "\033[32mMATCH (" + token.getLine() + ") __" + (token.getOriginalName() == null ? tokenOriginalName : token.getOriginalName())  + "__\033[0m", "\033[32m");
 
                     //System.out.printf("%sMATCH (Line: %d) -> %s\n", indent(depth), token.getLine(), tokenName);
                     stack.pop();
