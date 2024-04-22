@@ -127,8 +127,6 @@ public class Lexer {
         ArrayList<Integer> deletedPositions = new ArrayList<>();
         for (int i = 0; i < tokens.size() - 1; i++) {
             if (tokens.get(i).getStringToken().equals("+") || tokens.get(i).getStringToken().equals("-")) { // Si el token + o -, mirem si forma part d'un literal
-                System.out.println("Variable1: " + tokens.get(i + 1).getStringToken());
-
                 if (tokens.get(i - 1).getStringToken().equals("(") || tokens.get(i - 1).getStringToken().equals("=") ||
                         tokens.get(i - 1).getStringToken().equals("+") || tokens.get(i - 1).getStringToken().equals("-") ||
                         tokens.get(i - 1).getStringToken().equals("*") || tokens.get(i - 1).getStringToken().equals("/") ||
@@ -148,11 +146,12 @@ public class Lexer {
                                 tokens.get(i + 1).setValue(-1 * (int) tokens.get(i + 1).getValue());
                             }
                         }
-                    } else { //Es una variable per tant afegim el positiu o negatiu al davant del nom
+                        deletedPositions.add(i);
+                    } else if (tokens.get(i + 1).getStringToken().equalsIgnoreCase("var_name")) {
                         String aux = tokens.get(i).getStringToken() + tokens.get(i + 1).getStringToken();
                         tokens.get(i + 1).setValue(aux);
+                        deletedPositions.add(i);
                     }
-                    deletedPositions.add(i);
                 }
             }
         }
