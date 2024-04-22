@@ -127,14 +127,14 @@ public class Lexer {
         ArrayList<Integer> deletedPositions = new ArrayList<>();
         for (int i = 0; i < tokens.size() - 1; i++) {
             if (tokens.get(i).getStringToken().equals("+") || tokens.get(i).getStringToken().equals("-")) { // Si el token + o -, mirem si forma part d'un literal
-                System.out.println("Variable: " + tokens.get(i + 1).getStringToken());
+                System.out.println("Variable1: " + tokens.get(i + 1).getStringToken());
 
                 if (tokens.get(i - 1).getStringToken().equals("(") || tokens.get(i - 1).getStringToken().equals("=") ||
                         tokens.get(i - 1).getStringToken().equals("+") || tokens.get(i - 1).getStringToken().equals("-") ||
                         tokens.get(i - 1).getStringToken().equals("*") || tokens.get(i - 1).getStringToken().equals("/") ||
                         tokens.get(i - 1).getStringToken().equals("==") || tokens.get(i - 1).getStringToken().equals("!=") ||
-                        tokens.get(i - 1).getStringToken().equals("<") || tokens.get(i - 1).getStringToken().equals(">") ||
-                        tokens.get(i - 1).getStringToken().equals("<=") || tokens.get(i - 1).getStringToken().equals(">=") ||
+                        tokens.get(i - 1).getStringToken().equalsIgnoreCase("LOWER") || tokens.get(i - 1).getStringToken().equalsIgnoreCase("GREATER") ||
+                        tokens.get(i - 1).getStringToken().equalsIgnoreCase("LOWER_EQUAL") || tokens.get(i - 1).getStringToken().equalsIgnoreCase("GREATER_EQUAL") ||
                         tokens.get(i - 1).getStringToken().equals(",")) {
                     //Si abans hi ha un parentesis obert o un operador el + o - forma part d'un literal
                     //Ajuntem el + o - amb el seguent token
@@ -150,8 +150,7 @@ public class Lexer {
                         }
                     } else { //Es una variable per tant afegim el positiu o negatiu al davant del nom
                         String aux = tokens.get(i).getStringToken() + tokens.get(i + 1).getStringToken();
-                        tokens.get(i + 1).setStringToken(aux);
-                        tokens.get(i + 1).setValue(tokens.get(i + 1).getValue());
+                        tokens.get(i + 1).setValue(aux);
                     }
                     deletedPositions.add(i);
                 }
