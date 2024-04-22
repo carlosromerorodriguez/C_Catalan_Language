@@ -93,7 +93,8 @@ public class PreProcessing {
             String penultimeLine = resultLines.get(resultLines.size() - 1).getContentLine();
             for(Map.Entry<String, String> operand : tokensDictionary.entrySet()) {
                 if (penultimeLine.contains(operand.getKey())) {
-                    penultimeLine.replace(operand.getKey(), operand.getValue());
+                    //penultimeLine.replace(operand.getKey(), operand.getValue());
+                    penultimeLine = penultimeLine.replace(operand.getKey(), operand.getValue());
                 }
             }
 
