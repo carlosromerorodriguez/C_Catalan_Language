@@ -130,7 +130,9 @@ public class Lexer {
                         tokens.get(i - 1).getStringToken().equals("==") || tokens.get(i - 1).getStringToken().equals("!=") ||
                         tokens.get(i - 1).getStringToken().equalsIgnoreCase("LOWER") || tokens.get(i - 1).getStringToken().equalsIgnoreCase("GREATER") ||
                         tokens.get(i - 1).getStringToken().equalsIgnoreCase("LOWER_EQUAL") || tokens.get(i - 1).getStringToken().equalsIgnoreCase("GREATER_EQUAL") ||
-                        tokens.get(i - 1).getStringToken().equals(",")) {
+                        tokens.get(i - 1).getStringToken().equals(",") || tokens.get(i - 1).getStringToken().equalsIgnoreCase("RETORN") ||
+                        tokens.get(i - 1).getStringToken().equals("!"))
+                {
                     //Si abans hi ha un parentesis obert o un operador el + o - forma part d'un literal
                     //Ajuntem el + o - amb el seguent token
                     if (tokens.get(i + 1).getStringToken().equals("literal")) {

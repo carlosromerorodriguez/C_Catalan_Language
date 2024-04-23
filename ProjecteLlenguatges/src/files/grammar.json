@@ -66,17 +66,12 @@
     ["(", "return_expression", ")"]
   ],
   "return_id": [
-    ["FUNCTION_NAME"],
+    ["FUNCTION_NAME","arguments_crida"],
     ["VAR_NAME"],
     ["LITERAL"]
   ],
   "crida": [
-    ["CALL", "FUNCTION_NAME", "arguments_crida"]
-  ],
-  "arguments_crida": [
-    ["avaluació", "arguments_crida"],
-    ["avaluació"],
-    ["ε"]
+    ["CALL", "assignacio_crida"]
   ],
   "iteratives": [
     ["per"],
@@ -114,7 +109,10 @@
   ],
   "següent_token": [
     ["expressió"],
-    ["crida"]
+    ["assignacio_crida"]
+  ],
+  "assignacio_crida": [
+    ["FUNCTION_NAME", "arguments_crida"]
   ],
   "condició": [
     ["oració", "condició'"],
@@ -139,6 +137,17 @@
     ["LITERAL"],
     ["(", "condició", ")"]
   ],
+  "arguments_crida": [
+    ["(","arguments_dins_crida", ")"]
+  ],
+  "arguments_dins_crida": [
+    ["avaluació", "arguments_crida'"],
+    ["ε"]
+  ],
+  "arguments_crida'":[
+    [",","avaluació", "arguments_crida'"],
+    ["ε"]
+],
   "avaluació": [
     ["operació", "avaluació'"]
   ],

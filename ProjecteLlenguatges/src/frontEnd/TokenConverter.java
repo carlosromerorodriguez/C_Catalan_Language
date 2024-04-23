@@ -63,7 +63,7 @@ public class TokenConverter {
         // Functions and function calls
         tokensDictionary.put("Calçot", "Calçot");
         tokensDictionary.put("proces", "function");
-        tokensDictionary.put("retorna", "return");
+        tokensDictionary.put("retorna", "retorn");
         tokensDictionary.put("crida", "call ");
     }
 
