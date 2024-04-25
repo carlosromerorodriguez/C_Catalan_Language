@@ -154,5 +154,34 @@ public class Parser {
         rootNode.printTree(0);
     }
 
+    /*public void createSymbolTable() {
+        SymbolTable symbolTable = new SymbolTable();
+        processNode(rootNode, symbolTable);
+        System.out.println(symbolTable);
+    }*/
+
+    /*public void processNode(Node node, SymbolTable symbolTable) {
+        switch (node.getType()) {
+            case "funcio":
+                handleFunction(node, symbolTable);
+                break;
+            case "argument":
+                handleArgument(node, symbolTable);
+                break;
+            case "assignació":
+                handleAssignment(node, symbolTable);
+                break;
+            case "VAR_NAME":
+                handleVariableUsage(node, symbolTable);
+                break;
+                case"funcio":
+                    break;
+            default:
+                // Processa recursivament els fills de qualsevol altre tipus de node
+                node.getChildren().forEach(child -> processNode(child, symbolTable));
+                break;
+        }*/
+    //}
+
 
 }
