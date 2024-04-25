@@ -1,10 +1,12 @@
 package frontEnd;
 
+import javax.management.NotificationEmitter;
 import java.util.*;
 
 public class Parser {
     private final TokenConverter tokenConverter;
     private Map<String, Map<String, List<String>>> parseTable;
+    private Node rootNode;
     public Parser(FirstFollow firstFollow, TokenConverter tokenConverter) {
         this.tokenConverter = tokenConverter;
         firstFollow.FIRST();
@@ -13,6 +15,7 @@ public class Parser {
         //System.out.println("\n\nFOLLOW:");
         //firstFollow.showFOLLOW();
         this.buildParseTable(firstFollow.getGrammar(), firstFollow.getFollow(), firstFollow.getFirst());
+        rootNode = new Node("sortida");
     }
 
     private void buildParseTable(Map<String, List<List<String>>> grammar, Map<String, Set<String>> follow, Map<String, Set<String>> first) {
@@ -77,20 +80,16 @@ public class Parser {
                 "ELSE", "WHILE", "CALL", "FUNCTION_NAME", "AND", "OR", "CALÇOT", "VOID", "FUNCTION_MAIN", "SUMANT", "RESTANT"
         ));
 
-        Stack<Object> stack = new Stack<>();
-        stack.push("$");  // Símbol de finalització
-        stack.push("sortida");
+        Stack<Node> stack = new Stack<>();
+        stack.push(rootNode);  // Símbol de finalització
 
         int tokenIndex = 0;  // Per recórrer la llista de tokens.
         int depth = 0;
 
         while (!stack.isEmpty()) {
-            Object top = stack.peek();
-            if (!(top instanceof String)) {
-                throw new IllegalStateException("Element desconegut al stack");
-            }
+            Node topNode = stack.peek();
 
-            String topSymbol = ((String) top).trim();
+            String topSymbol = topNode.getType().trim();
             if (topSymbol.equals("ε")) {
                 stack.pop();
                 depth--;
@@ -105,15 +104,15 @@ public class Parser {
             Token token = tokens.get(tokenIndex);
             String tokenName = token.getStringToken().toUpperCase().trim();
 
-            //System.out.println("\nTOP SYMBOL " + topSymbol);
-            //System.out.println("TOKEN NAME " + tokenName);
-
             if (terminalSymbols.contains(topSymbol)) {
                 if (topSymbol.equals(tokenName)) {
+                    if (topSymbol.equals("LITERAL") || topSymbol.equals("VAR_NAME") || topSymbol.equals("FUNCTION_NAME")) {
+                        topNode.setValue(token.getValue());  // Assigna el valor del token al node
+                    }
+
                     String tokenOriginalName = this.tokenConverter.getKeyFromToken(tokenName);
                     printTreeStructure(depth, topSymbol, "\033[32mMATCH (" + token.getLine() + ") __" + (token.getOriginalName() == null ? tokenOriginalName : token.getOriginalName())  + "__\033[0m", "\033[32m");
 
-                    //System.out.printf("%sMATCH (Line: %d) -> %s\n", indent(depth), token.getLine(), tokenName);
                     stack.pop();
                     tokenIndex++;
                     depth--;
@@ -133,7 +132,9 @@ public class Parser {
                     stack.pop();
                     depth--;
                     for (int i = production.size() - 1; i >= 0; i--) {
-                        stack.push(production.get(i));
+                        Node newNode = new Node(production.get(i));
+                        stack.push(newNode);
+                        topNode.addChild(newNode);
                         depth++;
                     }
                 } else {
@@ -142,9 +143,16 @@ public class Parser {
             }
         }
     }
+
     private void printTreeStructure(int depth, String node, String action, String colorCode) {
         String indent = " ".repeat(depth * 4);
         String lineLead = indent + (depth > 0 ? "|-- " : "");
         System.out.println(lineLead + colorCode + node + "\033[0m" + (action.isEmpty() ? "" : " - " + action));
     }
+
+    public void printTree() {
+        rootNode.printTree(0);
+    }
+
+
 }

@@ -106,10 +106,13 @@ public class Lexer {
                     continue;
                 }
                 if(tokens.get(i+1).getStringToken().trim().equals("(")) {
+                    tokens.get(i).setValue(tokens.get(i).getValue());
                     tokens.get(i).setStringToken("function_name");
                 } else if (i > 0 && tokens.get(i-1).getStringToken().equals("=")) {
+                    tokens.get(i).setValue(tokens.get(i).getValue());
                     tokens.get(i).setStringToken("literal");
                 } else {
+                    tokens.get(i).setValue(tokens.get(i).getValue());
                     tokens.get(i).setStringToken("var_name");
                 }
             } else if (tokens.get(i).getStringToken().equals("function")) {
@@ -147,7 +150,7 @@ public class Lexer {
                         }
                         deletedPositions.add(i);
                     } else if (tokens.get(i + 1).getStringToken().equalsIgnoreCase("var_name")) {
-                        String aux = tokens.get(i).getStringToken() + tokens.get(i + 1).getStringToken();
+                        String aux = tokens.get(i).getStringToken() + tokens.get(i + 1).getValue();
                         tokens.get(i + 1).setValue(aux);
                         deletedPositions.add(i);
                     }

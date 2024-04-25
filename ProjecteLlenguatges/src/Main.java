@@ -24,5 +24,6 @@ public class Main {
         Parser parser = new Parser(new FirstFollow(grammar), tokenConverter);
         parser.printParseTable();
         parser.buildParsingTree(lexer.getTokens());
+        parser.printTree();
     }
 }
