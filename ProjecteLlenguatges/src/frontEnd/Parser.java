@@ -7,8 +7,11 @@ public class Parser {
     private final TokenConverter tokenConverter;
     private Map<String, Map<String, List<String>>> parseTable;
     private Node rootNode;
-    public Parser(FirstFollow firstFollow, TokenConverter tokenConverter) {
+    private ErrorHandler errorHandler;
+
+    public Parser(FirstFollow firstFollow, TokenConverter tokenConverter, ErrorHandler errorHandler) {
         this.tokenConverter = tokenConverter;
+        this.errorHandler = errorHandler;
         firstFollow.FIRST();
         firstFollow.FOLLOW();
         //firstFollow.showFIRST();
@@ -117,13 +120,15 @@ public class Parser {
                     tokenIndex++;
                     depth--;
                 } else {
-                    throw new RuntimeException("Error de sintaxi en la línia " + token.getLine() + ": símbol inesperat " + token.getStringToken());
+                    stack.pop();
+                    tokenIndex++;
+                    errorHandler.recordError("Error de sintaxi en la línia " + token.getLine() + ": símbol inesperat " + token.getStringToken() + " Falta el símbol: " + tokenName, token.getLine());
                 }
             } else {  // topSymbol és un no-terminal
                 //System.out.println("\033[33mNext production: " + parseTable.get(topSymbol) + "\033[0m");
                 Map<String, List<String>> mappings = parseTable.get(topSymbol);
                 if (mappings == null) {
-                    throw new RuntimeException("No productions found for non-terminal: " + topSymbol);
+                    errorHandler.recordError("No productions found for non-terminal: " + topSymbol, token.getLine());
                 }
                 List<String> production = mappings.get(tokenName);
                 //System.out.println("\033[33mSelected production: " + tokenName + "=" + production + "\033[0m");
@@ -138,7 +143,8 @@ public class Parser {
                         depth++;
                     }
                 } else {
-                    throw new RuntimeException("Error de sintaxi: no es pot processar el token " + token.getStringToken());
+                    stack.pop();
+                    //errorHandler.recordError("Error de sintaxi: no es pot processar el token " + token.getStringToken(), token.getLine());
                 }
             }
         }

@@ -1,13 +1,12 @@
 package frontEnd;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class ErrorHandler {
-    private final List<Error> errors;
+    private final TreeSet<Error> errors;
 
     public ErrorHandler() {
-        this.errors = new ArrayList<>();
+        this.errors = new TreeSet<>(Comparator.comparingInt(Error::getLine));
     }
 
     public void recordError(String errorMsg, int line){

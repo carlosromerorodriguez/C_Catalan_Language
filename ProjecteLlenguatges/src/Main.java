@@ -5,7 +5,7 @@ import java.util.Map;
 
 
 public class Main {
-    private static final String FILE_PATH = "src/files/example1.ç";
+    private static final String FILE_PATH = "src/files/example2.ç";
     private static final String GRAMMAR_PATH = "src/files/grammar.json";
 
     public static void  main(String[] args) {
@@ -21,9 +21,10 @@ public class Main {
 
         Map<String, List<List<String>>> grammar = preProcessing.loadGrammar(GRAMMAR_PATH);
 
-        Parser parser = new Parser(new FirstFollow(grammar), tokenConverter);
+        Parser parser = new Parser(new FirstFollow(grammar), tokenConverter, errorHandler);
         parser.printParseTable();
         parser.buildParsingTree(lexer.getTokens());
-        parser.printTree();
+        errorHandler.printErrors();
+        //parser.printTree();
     }
 }
