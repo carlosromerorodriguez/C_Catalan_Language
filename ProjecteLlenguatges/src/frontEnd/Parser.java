@@ -130,6 +130,8 @@ public class Parser {
                 if (mappings == null) {
                     errorHandler.recordError("No productions found for non-terminal: " + topSymbol, token.getLine());
                 }
+
+                assert mappings != null;
                 List<String> production = mappings.get(tokenName);
                 //System.out.println("\033[33mSelected production: " + tokenName + "=" + production + "\033[0m");
                 if (production != null) {
