@@ -6,7 +6,7 @@ public class FunctionEntry extends SymbolTableEntry {
     private String returnType;
     private List<VariableEntry> parameters;
 
-    public FunctionEntry(String id, String name, int line, String returnType, List<VariableEntry> parameters) {
+    public FunctionEntry(UUID id, String name, int line, String returnType, List<VariableEntry> parameters) {
         super(id, name, line);
         this.returnType = returnType;
         this.parameters = parameters;
@@ -22,6 +22,10 @@ public class FunctionEntry extends SymbolTableEntry {
 
     public List<VariableEntry> getParameters() {
         return parameters;
+    }
+
+    public void addArgument(VariableEntry argument) {
+        parameters.add(argument);
     }
 
     public void setParameters(List<VariableEntry> parameters) {

@@ -1,0 +1,20 @@
+proces Calçot() fer:
+    lletres:  resultat ç 
+    enter: num1 = -8 ç 
+    enter: num2 = 6 ç 
+
+    si (num1 > num2) fer: 
+        resultat  = "gran” ç 
+    fi 
+
+    sino fer: 
+        si (num1 < num2) fer: 
+            resultat  = "petit” ç 
+        fi 
+
+        sino fer: 
+
+            resultat  = "igual” ç 
+        fi 
+    fi 
+fi

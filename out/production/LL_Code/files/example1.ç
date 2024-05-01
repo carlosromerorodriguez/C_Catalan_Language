@@ -1,0 +1,44 @@
+proces enter Fibonacci(enter: a, enter: b, enter: c) fer:
+    enter: nombre = 10 ç		xiuxiueja aquesta és la primeria línia i això és un comentari
+
+    mentre (nombre > nombre2) fer:
+
+            nombre2 = nombre + 1 ç
+
+    fi
+
+    retorna -a + -b ç
+fi
+
+proces Calçot() fer:
+
+    enter: nombre = 10 ç		xiuxiueja aquesta és la primeria línia i això és un comentari  
+
+    comenta
+
+    Aixo es un comentri
+
+    multilínia
+
+    ficomenta
+
+    xiuxiueja enter: nombreç2 ç
+
+    nombre2 = 10 ç 
+    crida Fibonacci(nombre32, nombre2, nombre4, nombre5) ç
+
+    mentre (nombre > nombre2) fer: 
+
+        nombre2 = nombre + 1 ç
+
+    fi
+
+     per iterador de 10 fins 79 restant nombre fer:
+          si (!-a) fer:
+            enter: nombre = (((0 +10)  * 11)  +7/1) - 10  ç
+            enter: nombre2 = nombre*9 ç
+          fi
+     fi
+
+    retorna -a + -b ç
+fi 

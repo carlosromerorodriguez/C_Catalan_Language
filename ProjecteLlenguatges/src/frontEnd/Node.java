@@ -7,12 +7,14 @@ public class Node {
     private String type;
     private List<Node> children;
     private Node parent;
+    private int line;
     private Object value;
 
-    public Node(String type) {
+    public Node(String type, int line) {
         this.type = type;
         this.children = new ArrayList<>();
         this.parent = null;
+        this.line = line;
     }
 
     public void addChild(Node child) {
@@ -37,5 +39,19 @@ public class Node {
         for (Node child : children) {
             child.printTree(level + 1);
         }
+    }
+
+    public Node getParent() {
+        return this.parent;
+    }
+    public int getLine(){
+        return this.line;
+    }
+    public void setLine(int line) {
+        this.line = line;
+    }
+
+    public Object getValue() {
+        return this.value;
     }
 }

@@ -1,11 +1,13 @@
 package frontEnd.symbolTable;
 
+import java.util.UUID;
+
 public class VariableEntry extends SymbolTableEntry {
     private String type;
     private Object value;
     private Boolean isArgument = false;
 
-    public VariableEntry(String id, String name, int line, String type, Object value, Boolean isArgument) {
+    public VariableEntry(UUID id, String name, int line, String type, Object value, Boolean isArgument) {
         super(id, name, line);
         this.type = type;
         this.value = value;

@@ -1,60 +1,49 @@
 package frontEnd.symbolTable;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Stack;
+
+import java.util.List;
 
 public class SymbolTable {
-    private Stack<Map<String, SymbolTableEntry>> scopeStack;
+    private Scope rootScope;
+    private Scope currentScope;
 
     public SymbolTable() {
-        this.scopeStack = new Stack<>();
-        this.scopeStack.push(new HashMap<>()); // Creem l'àmbit global inicial
+        this.rootScope = new Scope();
+        this.currentScope = rootScope;
     }
 
-    // Entra a un nou àmbit
-    public void enterScope() {
-        scopeStack.push(new HashMap<>());
-    }
 
-    // Surt de l'àmbit actual
-    public void leaveScope() {
-        if (scopeStack.size() > 1) { // Assegura que no eliminem l'àmbit global
-            scopeStack.pop();
+   public Scope getRootScope(){
+        return this.rootScope;
+   }
+
+   public Scope getCurrentScope() {
+        return this.currentScope;
+   }
+
+   public List<Scope> getChildScopes() {
+        return this.currentScope.getChildScopes();
+   }
+
+   public void addScope(){
+        Scope newScope = new Scope(this.currentScope);
+        this.currentScope.addChildScope(newScope);
+        this.currentScope = newScope;
+   }
+
+   public void enterScope(int i){
+        this.currentScope = this.currentScope.getChildScopes().get(i);
+   }
+
+   public void leaveScope(){
+        if (this.currentScope != this.rootScope) {
+            this.currentScope = this.currentScope.getParentScope();
         }
-    }
+   }
 
-    // Afegeix una entrada a l'àmbit actual
-    public void addEntry(SymbolTableEntry entry) {
-        if (entry == null || entry.getName() == null) {
-            throw new IllegalArgumentException("Symbol entry or name cannot be null.");
-        }
-        scopeStack.peek().put(entry.getName(), entry);
-    }
+   public void addSymbolEntry(SymbolTableEntry newEntry){
+        this.currentScope.addEntry(newEntry);
+   }
 
-    // Obté una entrada buscant des de l'àmbit actual cap als àmbits més globals
-    public SymbolTableEntry getEntry(String name) {
-        for (int i = scopeStack.size() - 1; i >= 0; i--) {
-            Map<String, SymbolTableEntry> currentScope = scopeStack.get(i);
-            if (currentScope.containsKey(name)) {
-                return currentScope.get(name);
-            }
-        }
-        return null; // No s'ha trobat en cap àmbit
-    }
-
-    // Elimina una entrada de l'àmbit actual (opcional)
-    public void removeEntry(String name) {
-        if (scopeStack.peek().containsKey(name)) {
-            scopeStack.peek().remove(name);
-        }
-    }
-
-    @Override
-    public String toString() {
-        return "SymbolTable{" +
-                "scopeStack=" + scopeStack +
-                '}';
-    }
 }
 

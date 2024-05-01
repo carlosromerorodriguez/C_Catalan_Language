@@ -1,6 +1,8 @@
 package frontEnd;
 
-import javax.management.NotificationEmitter;
+import frontEnd.symbolTable.*;
+
+
 import java.util.*;
 
 public class Parser {
@@ -8,6 +10,7 @@ public class Parser {
     private Map<String, Map<String, List<String>>> parseTable;
     private Node rootNode;
     private ErrorHandler errorHandler;
+    SymbolTable symbolTable;
 
     public Parser(FirstFollow firstFollow, TokenConverter tokenConverter, ErrorHandler errorHandler) {
         this.tokenConverter = tokenConverter;
@@ -19,6 +22,7 @@ public class Parser {
         //firstFollow.showFOLLOW();
         this.buildParseTable(firstFollow.getGrammar(), firstFollow.getFollow(), firstFollow.getFirst());
         rootNode = new Node("sortida");
+        symbolTable = new SymbolTable();
     }
 
     private void buildParseTable(Map<String, List<List<String>>> grammar, Map<String, Set<String>> follow, Map<String, Set<String>> first) {
@@ -110,7 +114,11 @@ public class Parser {
             if (terminalSymbols.contains(topSymbol)) {
                 if (topSymbol.equals(tokenName)) {
                     if (topSymbol.equals("LITERAL") || topSymbol.equals("VAR_NAME") || topSymbol.equals("FUNCTION_NAME")) {
-                        topNode.setValue(token.getValue());  // Assigna el valor del token al node
+                        topNode.setValue(token.getValue());
+                        topNode.setLine(token.getLine());
+                    } else if (topSymbol.equals("VAR_TYPE")) {
+                        topNode.setValue(token.getOriginalName());
+                        topNode.setLine(token.getLine());
                     }
 
                     String tokenOriginalName = this.tokenConverter.getKeyFromToken(tokenName);
@@ -139,7 +147,7 @@ public class Parser {
                     stack.pop();
                     depth--;
                     for (int i = production.size() - 1; i >= 0; i--) {
-                        Node newNode = new Node(production.get(i));
+                        Node newNode = new Node(production.get(i), 0);
                         stack.push(newNode);
                         topNode.addChild(newNode);
                         depth++;
@@ -162,34 +170,120 @@ public class Parser {
         rootNode.printTree(0);
     }
 
-    /*public void createSymbolTable() {
-        SymbolTable symbolTable = new SymbolTable();
-        processNode(rootNode, symbolTable);
+    public void createSymbolTable() {
+        processNode(rootNode);
         System.out.println(symbolTable);
-    }*/
+    }
 
-    /*public void processNode(Node node, SymbolTable symbolTable) {
-        switch (node.getType()) {
-            case "funcio":
-                handleFunction(node, symbolTable);
+    public void processNode(Node node) {
+        switch (node.getType().toUpperCase()) {
+            case "FUNCIO":
+                //scope nou
+                handleFunction(node);
                 break;
-            case "argument":
-                handleArgument(node, symbolTable);
+            case "IF", "ELSE", "WHILE", "FOR":
+                //scope nou
+                symbolTable.addScope(); // Crea y entra a un nuevo ámbito para el 'if'
+
+                node.getChildren().forEach(this::processNode);
                 break;
-            case "assignació":
-                handleAssignment(node, symbolTable);
+            case "ARGUMENT":
+                handleArgument(node);
+                break;
+            case "ASSIGNACIÓ":
+                handleAssignment(node);
+                break;
+            case "RETURN":
+                handleReturn(node);
                 break;
             case "VAR_NAME":
-                handleVariableUsage(node, symbolTable);
+                handleVariableUsage(node);
                 break;
-                case"funcio":
-                    break;
+            case "END":
+                symbolTable.leaveScope();
             default:
-                // Processa recursivament els fills de qualsevol altre tipus de node
-                node.getChildren().forEach(child -> processNode(child, symbolTable));
+                // Processem recursivament els fills de qualsevol altre tipus de node
+                node.getChildren().forEach(this::processNode);
                 break;
-        }*/
-    //}
+        }
+    }
+
+    private void handleFunction(Node node) {
+        String functionName = (String) node.getValue(); //Agafem el nom de la funcio
+        String returnType = (String) node.getParent().getValue(); //Agafem el tipus de retorn de la funcio
+        int line = node.getLine(); // Agafem la linia on es troba
+
+        SymbolTableEntry functionEntry = new FunctionEntry(UUID.randomUUID(), functionName, line, returnType, node.getValue() != null ? new ArrayList<>().add(node.getValue()) : new ArrayList<>());
+
+        symbolTable.addScope();
+        symbolTable.addSymbolEntry(functionEntry);
+
+        node.getChildren().forEach(this::processNode);
+    }
+
+    private void handleArgument(Node node) {
+        String name = (String) node.getValue();
+        String type = (String) node.getParent().getParent().getValue();
+
+        //Agafem el necessari del argument
+        VariableEntry variableEntry = new VariableEntry(UUID.randomUUID(), name, node.getLine(), type, null, true);
+
+        symbolTable.getCurrentScope().getFunctionEntry().addArgument(variableEntry);
+
+        // Processar els fills del nou argument
+        node.getChildren().forEach(this::processNode);
+    }
+
+    private void handleAssignment(Node node) {
+        // Assumim que el primer fill del node és la variable a la qual s'assigna el valor
+        Node variableNode = node.getChildren().getFirst();
+        String variableName = (String) variableNode.getValue();
+        int variableLine = variableNode.getLine();
+
+        // Assumim que el segon fill és l'expressió del valor
+        Node valueNode = node.getChildren().get(1);
+
+        // Avaluem l'expressió (aquesta part pot ser complexa depenent dels tipus d'expressions permesos)
+        Object value = evaluateExpression(valueNode);
+
+        // Cerquem l'entrada de la variable a l'abast actual
+        VariableEntry variableEntry = (VariableEntry) symbolTable.lookup(variableName);
+
+        if (variableEntry == null) {
+            // Si la variable no existeix, la podríem voler declarar en aquest punt o llançar un error
+            // Això depèn de si el teu llenguatge permet declaracions implícites
+            variableEntry = new VariableEntry(UUID.randomUUID(), variableName, variableLine, "UNKNOWN_TYPE", null, false);
+            symbolTable.getCurrentScope().addSymbolEntry(variableEntry);
+        }
+
+        // Actualitzem el valor de la variable
+        variableEntry.setValue(value);
+
+        // Continuem amb la resta de fills del node assignació, si n'hi ha més
+        for (int i = 2; i < node.getChildren().size(); i++) {
+            processNode(node.getChildren().get(i));
+        }
+    }
+
+    private Object evaluateExpression(Node exprNode) {
+        // Aquesta funció ha d'avaluar l'expressió. Aquest exemple és molt simplificat.
+        // Depenent del tipus de l'expressió, potser necessites processar operadors, literals, crides a funcions, etc.
+        if (exprNode.getType().equals("LITERAL")) {
+            return exprNode.getValue(); // Retornar el literal
+        } else if (exprNode.getType().equals("ARITHMETIC_EXPRESSION")) {
+            // Aquí es gestionarien les expressions aritmètiques
+        }
+        // Afegir més casos segons els tipus d'expressió
+        return null; // Retornar un valor per defecte o gestionar el cas
+    }
+
+    private void handleVariableUsage(Node node) {
+        SymbolTable variableSymbolTable = new SymbolTable();
+        symbolTable.addSubtable(variableSymbolTable);
+
+        // Processar els fills de la variable en ús
+        node.getChildren().forEach(this::processNode);
+    }
 
 
 }

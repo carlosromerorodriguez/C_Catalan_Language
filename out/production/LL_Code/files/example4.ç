@@ -1,0 +1,13 @@
+proces Calçot() fer:
+    siono: més_gran ç
+    enter: nombre1 = 6 ç
+    enter: nombre2 = -6 ç
+
+    si (nombre1 > nombre2) fer:
+        més_gran = cert ç
+    fi
+
+    sino fer:
+        més_gran = fals ç
+    fi
+fi
