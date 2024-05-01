@@ -235,46 +235,40 @@ public class Parser {
     }
 
     private void handleAssignment(Node node) {
-        // Assumim que el primer fill del node és la variable a la qual s'assigna el valor
-        Node variableNode = node.getChildren().getFirst();
-        String variableName = (String) variableNode.getValue();
-        int variableLine = variableNode.getLine();
-
-        // Assumim que el segon fill és l'expressió del valor
-        Node valueNode = node.getChildren().get(1);
-
-        // Avaluem l'expressió (aquesta part pot ser complexa depenent dels tipus d'expressions permesos)
-        Object value = evaluateExpression(valueNode);
-
-        // Cerquem l'entrada de la variable a l'abast actual
-        VariableEntry variableEntry = (VariableEntry) symbolTable.lookup(variableName);
-
-        if (variableEntry == null) {
-            // Si la variable no existeix, la podríem voler declarar en aquest punt o llançar un error
-            // Això depèn de si el teu llenguatge permet declaracions implícites
-            variableEntry = new VariableEntry(UUID.randomUUID(), variableName, variableLine, "UNKNOWN_TYPE", null, false);
-            symbolTable.getCurrentScope().addSymbolEntry(variableEntry);
-        }
-
-        // Actualitzem el valor de la variable
-        variableEntry.setValue(value);
-
-        // Continuem amb la resta de fills del node assignació, si n'hi ha més
-        for (int i = 2; i < node.getChildren().size(); i++) {
-            processNode(node.getChildren().get(i));
+        if (node.getChildren().size() == 4 && node.getChildren().get(0).getType().equals("VAR_TYPE")) {
+            // Cas: ["VAR_TYPE", ":", "VAR_NAME", "assignació_final"]
+            String varType = (String) node.getChildren().get(0).getValue();
+            String varName = (String) node.getChildren().get(2).getValue();
+            Node assignFinal = node.getChildren().get(3);
+            handleAssignmentFinal(varType, varName, assignFinal);
+        } else if (node.getChildren().size() == 2) {
+            // Cas: ["VAR_NAME", "assignació_final"]
+            String varName = (String) node.getChildren().get(0).getValue();
+            Node assignFinal = node.getChildren().get(1);
+            handleAssignmentFinal(null, varName, assignFinal); // No type provided
         }
     }
 
-    private Object evaluateExpression(Node exprNode) {
-        // Aquesta funció ha d'avaluar l'expressió. Aquest exemple és molt simplificat.
-        // Depenent del tipus de l'expressió, potser necessites processar operadors, literals, crides a funcions, etc.
-        if (exprNode.getType().equals("LITERAL")) {
-            return exprNode.getValue(); // Retornar el literal
-        } else if (exprNode.getType().equals("ARITHMETIC_EXPRESSION")) {
-            // Aquí es gestionarien les expressions aritmètiques
+    private void handleAssignmentFinal(String varType, String varName, Node assignFinal) {
+        if (assignFinal.getChildren().size() == 2 && assignFinal.getChildren().get(0).getType().equals("=")) {
+            // Cas: ["=", "següent_token"]
+            Node nextToken = assignFinal.getChildren().get(1);
+            Object value = evaluateNextToken(nextToken);
+            // Assume the variable has been declared or declare it here if your language allows
+            updateVariable(varType, varName, value);
+        } else if (assignFinal.getType().equals("ε")) {
+            // Cas: ["ε"]
+            declareVariable(varType, varName); // Declare without assignment
         }
-        // Afegir més casos segons els tipus d'expressió
-        return null; // Retornar un valor per defecte o gestionar el cas
+    }
+
+    private Object evaluateNextToken(Node nextToken) {
+        if (nextToken.getType().equals("expressió")) {
+            return evaluateExpression(nextToken);
+        } else if (nextToken.getType().equals("assignacio_crida")) {
+            return handleFunctionCall(nextToken);
+        }
+        return null;
     }
 
     private void handleVariableUsage(Node node) {
