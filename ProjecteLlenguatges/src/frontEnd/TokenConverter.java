@@ -17,8 +17,8 @@ public class TokenConverter {
      */
     public void fillTokensDictionary() {
         // Basic tokens
-        tokensDictionary.put("fer", " start ");
-        tokensDictionary.put("fi", " end ");
+        tokensDictionary.put("fer", "start");
+        tokensDictionary.put("fi", "end");
         tokensDictionary.put("(", "(");
         tokensDictionary.put(")", ")");
 

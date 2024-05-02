@@ -22,7 +22,7 @@ proces Calçot() fer:
 
     ficomenta
 
-    xiuxiueja enter: nombreç2 ç
+    xiuxiueja enter: nombre2 ç
 
     nombre2 = 10 ç 
     crida Fibonacci(nombre32, nombre2, nombre4, nombre5) ç

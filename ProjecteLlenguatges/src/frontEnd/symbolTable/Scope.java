@@ -1,14 +1,17 @@
 package frontEnd.symbolTable;
 
+import frontEnd.Node;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class Scope {
-    private Map<String, SymbolTableEntry> symbolTable;
+    private HashMap<String, SymbolTableEntry> symbolTable;
     private Scope parentScope; // Àmbit pare (opcional)
     private List<Scope> childScopes;
+    private Node rootNode;
 
     public Scope() {
         this.symbolTable = new HashMap<>();
@@ -63,5 +66,29 @@ public class Scope {
             }
         }
         return null;
+    }
+
+    public Node getCurrentNode() {
+        return this.rootNode;
+    }
+
+    public Node getRootNode() {
+        return this.rootNode;
+    }
+
+    public void setRootNode(Node newNode) {
+        this.rootNode = newNode;
+    }
+
+    public Map<String, SymbolTableEntry> getSymbolTable() {
+        return symbolTable;
+    }
+
+    public void setSymbolTable(Map<String, SymbolTableEntry> symbolTable) {
+         this.symbolTable = new HashMap<>(symbolTable);
+    }
+
+    public SymbolTableEntry lookup(String name) {
+        return symbolTable.getOrDefault(name, null);
     }
 }

@@ -1,20 +1,22 @@
 proces        enter         Fibonacci(enter: numero) fer:
+
     si     (10  > numero i  numero2 diferent 10) fer:
             a =     numero ç
     fi
+
     sino fer:
            si (a) fer:
             enter: nombre = (((0 +10)  * 11)  +7/1) - 10  ç
             enter: nombre2 = nombre*9 ç
             fi
     fi
-    mentre ( a<10) fer:
+
+    mentre ( a < 10) fer:
         enter: a ç
         a = 20 ç
-     fi
-
-
+    fi
 fi
+
 proces Calçot ( ) fer:
     siono: end = fals ç 
     enter: nombre = 0 ç
@@ -24,6 +26,6 @@ proces Calçot ( ) fer:
           si (a) fer:
             enter: nombre = (((0 +10)  * 11)  +7/1) - 10  ç
             enter: nombre2 = nombre*9 ç
-            fi
+          fi
     fi
 fi

@@ -5,7 +5,7 @@ proces Calçot() fer:
 
     si (num1 > num2) fer: 
         resultat  = "gran” ç 
-    fi 
+    fi
 
     sino fer: 
         si (num1 < num2) fer: 

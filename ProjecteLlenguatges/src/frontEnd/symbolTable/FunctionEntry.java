@@ -1,6 +1,7 @@
 package frontEnd.symbolTable;
 
 import java.util.List;
+import java.util.UUID;
 
 public class FunctionEntry extends SymbolTableEntry {
     private String returnType;

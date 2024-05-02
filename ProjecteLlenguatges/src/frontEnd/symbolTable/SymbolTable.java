@@ -2,6 +2,7 @@ package frontEnd.symbolTable;
 
 
 import java.util.List;
+import java.util.Map;
 
 public class SymbolTable {
     private Scope rootScope;
@@ -26,8 +27,10 @@ public class SymbolTable {
    }
 
    public void addScope(){
+        Map<String, SymbolTableEntry> symbolTable = this.currentScope.getSymbolTable();
         Scope newScope = new Scope(this.currentScope);
         this.currentScope.addChildScope(newScope);
+        this.currentScope.setSymbolTable(symbolTable);
         this.currentScope = newScope;
    }
 

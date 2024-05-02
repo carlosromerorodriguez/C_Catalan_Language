@@ -2,7 +2,6 @@ package frontEnd;
 
 import frontEnd.symbolTable.*;
 
-
 import java.util.*;
 
 public class Parser {
@@ -11,6 +10,8 @@ public class Parser {
     private Node rootNode;
     private ErrorHandler errorHandler;
     SymbolTable symbolTable;
+    private String context = "";
+    private Boolean isFirstToken = false;
 
     public Parser(FirstFollow firstFollow, TokenConverter tokenConverter, ErrorHandler errorHandler) {
         this.tokenConverter = tokenConverter;
@@ -21,14 +22,14 @@ public class Parser {
         //System.out.println("\n\nFOLLOW:");
         //firstFollow.showFOLLOW();
         this.buildParseTable(firstFollow.getGrammar(), firstFollow.getFollow(), firstFollow.getFirst());
-        rootNode = new Node("sortida");
+        rootNode = new Node("sortida", 0);
         symbolTable = new SymbolTable();
     }
 
     private void buildParseTable(Map<String, List<List<String>>> grammar, Map<String, Set<String>> follow, Map<String, Set<String>> first) {
         parseTable = new HashMap<>();
-
         System.out.println("\n\nBuilding parse table");
+
         for (String nonTerminal : grammar.keySet()) {
             Map<String, List<String>> row = new HashMap<>();
             parseTable.put(nonTerminal, row);
@@ -74,6 +75,7 @@ public class Parser {
     public void printParseTable() {
         for (String nonTerminal : parseTable.keySet()) {
             System.out.println(nonTerminal + ":");
+
             for (String terminal : parseTable.get(nonTerminal).keySet()) {
                 System.out.println("\t" + terminal + ": " + parseTable.get(nonTerminal).get(terminal));
             }
@@ -95,8 +97,8 @@ public class Parser {
 
         while (!stack.isEmpty()) {
             Node topNode = stack.peek();
-
             String topSymbol = topNode.getType().trim();
+
             if (topSymbol.equals("ε")) {
                 stack.pop();
                 depth--;
@@ -113,12 +115,18 @@ public class Parser {
 
             if (terminalSymbols.contains(topSymbol)) {
                 if (topSymbol.equals(tokenName)) {
+                    //processTopSymbol(topNode, tokenName, token);
                     if (topSymbol.equals("LITERAL") || topSymbol.equals("VAR_NAME") || topSymbol.equals("FUNCTION_NAME")) {
                         topNode.setValue(token.getValue());
                         topNode.setLine(token.getLine());
                     } else if (topSymbol.equals("VAR_TYPE")) {
                         topNode.setValue(token.getOriginalName());
                         topNode.setLine(token.getLine());
+                    }
+
+                    if(isFirstToken && topSymbol.equals("VAR_NAME")) {
+                        isFirstToken = false;
+                        context = "declaració";
                     }
 
                     String tokenOriginalName = this.tokenConverter.getKeyFromToken(tokenName);
@@ -137,27 +145,85 @@ public class Parser {
                 Map<String, List<String>> mappings = parseTable.get(topSymbol);
                 if (mappings == null) {
                     errorHandler.recordError("No productions found for non-terminal: " + topSymbol, token.getLine());
-                }
-
-                assert mappings != null;
-                List<String> production = mappings.get(tokenName);
-                //System.out.println("\033[33mSelected production: " + tokenName + "=" + production + "\033[0m");
-                if (production != null) {
-                    printTreeStructure(depth, tokenName, production + " (" + token.getLine() + ") ", "\033[33m");
-                    stack.pop();
-                    depth--;
-                    for (int i = production.size() - 1; i >= 0; i--) {
-                        Node newNode = new Node(production.get(i), 0);
-                        stack.push(newNode);
-                        topNode.addChild(newNode);
-                        depth++;
-                    }
                 } else {
-                    stack.pop();
-                    //errorHandler.recordError("Error de sintaxi: no es pot processar el token " + token.getStringToken(), token.getLine());
+                    assert mappings != null;
+                    List<String> production = mappings.get(tokenName);
+                    //System.out.println("\033[33mSelected production: " + tokenName + "=" + production + "\033[0m");
+                    if (production != null) {
+                        printTreeStructure(depth, tokenName, production + " (" + token.getLine() + ") ", "\033[33m");
+                        stack.pop();
+                        depth--;
+                        for (int i = production.size() - 1; i >= 0; i--) {
+                            Node newNode = new Node(production.get(i), 0);
+                            checkContext(production.get(i));
+                            System.out.println("New node: " + production.get(i) + " - " + token.getLine()  );
+                            stack.push(newNode);
+                            depth++;
+                        }
+                    } else {
+                        stack.pop();
+                        //errorHandler.recordError("Error de sintaxi: no es pot processar el token " + token.getStringToken(), token.getLine());
+                    }
                 }
             }
         }
+    }
+
+    private void checkContext(String production) {
+        if (production.trim().equals("arguments")|| production.trim().equals("assignació") || production.trim().equals("return")) {
+            isFirstToken = true;
+            this.context = production;
+        } else if(production.trim().equals(";")) {
+            this.context = "";
+        }
+    }
+
+    private void evaluateSemanticRules(Node newNode, List<String> production) {
+
+    }
+
+    public void processTopSymbol(Node topNode, String tokenName, Token token) {
+        if (tokenName.equals("LITERAL") || tokenName.equals("VAR_NAME") || tokenName.equals("FUNCTION_NAME")) {
+            topNode.setValue(token.getValue());
+            topNode.setLine(token.getLine());
+        } else if (tokenName.equals("VAR_TYPE")) {
+            topNode.setValue(token.getOriginalName());
+            topNode.setLine(token.getLine());
+        }
+
+        // Mires si es IF, FUNCTION, ELSE, WHILE
+        if (requiresNewScope(tokenName)) {
+            // Si es crees nou scope i poses com a root el node actual
+            enterScope(topNode);
+        } else if (tokenName.equals("END")) {
+            // Si es END analitzem semanticament l'arbre del scope actual
+            analizeSemantic(symbolTable.getCurrentScope());
+
+            // Sortim del scope actual
+            symbolTable.leaveScope();
+        } else {
+            // Si no es un nou scope, afegeixes el node com a fill del root del scope actual
+            symbolTable.getCurrentScope().getRootNode().addChild(topNode);
+        }
+
+        // Handle the symbolTable scope
+        processNode(topNode);
+    }
+
+    private void analizeSemantic(Scope currentScope) {
+
+    }
+
+    private void enterScope(Node newNode) {
+        symbolTable.addScope();
+        symbolTable.getCurrentScope().setRootNode(newNode);
+        System.out.println("Entering new scope: " + newNode.getType());
+    }
+
+    private boolean requiresNewScope(String tokenName) {
+        // Aquesta funció determina si el tipus de node requereix un nou àmbit
+        // Per exemple, 'FUNCTION', 'IF', 'FOR', 'WHILE' poden iniciar nous àmbits
+        return tokenName.equals("FUNCTION") || tokenName.equals("FOR") || tokenName.equals("IF") || tokenName.equals("WHILE");
     }
 
     private void printTreeStructure(int depth, String node, String action, String colorCode) {
@@ -181,30 +247,10 @@ public class Parser {
                 //scope nou
                 handleFunction(node);
                 break;
-            case "IF", "ELSE", "WHILE", "FOR":
-                //scope nou
-                symbolTable.addScope(); // Crea y entra a un nuevo ámbito para el 'if'
-
-                node.getChildren().forEach(this::processNode);
-                break;
-            case "ARGUMENT":
-                handleArgument(node);
-                break;
-            case "ASSIGNACIÓ":
-                handleAssignment(node);
-                break;
-            case "RETURN":
-                handleReturn(node);
-                break;
             case "VAR_NAME":
-                handleVariableUsage(node);
+                //Mirem el context
                 break;
-            case "END":
-                symbolTable.leaveScope();
-            default:
-                // Processem recursivament els fills de qualsevol altre tipus de node
-                node.getChildren().forEach(this::processNode);
-                break;
+            //Contexts: arguments, assignació i return
         }
     }
 
@@ -213,71 +259,8 @@ public class Parser {
         String returnType = (String) node.getParent().getValue(); //Agafem el tipus de retorn de la funcio
         int line = node.getLine(); // Agafem la linia on es troba
 
-        SymbolTableEntry functionEntry = new FunctionEntry(UUID.randomUUID(), functionName, line, returnType, node.getValue() != null ? new ArrayList<>().add(node.getValue()) : new ArrayList<>());
+        SymbolTableEntry functionEntry = null;/*new FunctionEntry(UUID.randomUUID(), functionName, line, returnType, node.getValue() != null ? new ArrayList<>().add(node.getValue()) : new ArrayList<>());*/
 
-        symbolTable.addScope();
         symbolTable.addSymbolEntry(functionEntry);
-
-        node.getChildren().forEach(this::processNode);
     }
-
-    private void handleArgument(Node node) {
-        String name = (String) node.getValue();
-        String type = (String) node.getParent().getParent().getValue();
-
-        //Agafem el necessari del argument
-        VariableEntry variableEntry = new VariableEntry(UUID.randomUUID(), name, node.getLine(), type, null, true);
-
-        symbolTable.getCurrentScope().getFunctionEntry().addArgument(variableEntry);
-
-        // Processar els fills del nou argument
-        node.getChildren().forEach(this::processNode);
-    }
-
-    private void handleAssignment(Node node) {
-        if (node.getChildren().size() == 4 && node.getChildren().get(0).getType().equals("VAR_TYPE")) {
-            // Cas: ["VAR_TYPE", ":", "VAR_NAME", "assignació_final"]
-            String varType = (String) node.getChildren().get(0).getValue();
-            String varName = (String) node.getChildren().get(2).getValue();
-            Node assignFinal = node.getChildren().get(3);
-            handleAssignmentFinal(varType, varName, assignFinal);
-        } else if (node.getChildren().size() == 2) {
-            // Cas: ["VAR_NAME", "assignació_final"]
-            String varName = (String) node.getChildren().get(0).getValue();
-            Node assignFinal = node.getChildren().get(1);
-            handleAssignmentFinal(null, varName, assignFinal); // No type provided
-        }
-    }
-
-    private void handleAssignmentFinal(String varType, String varName, Node assignFinal) {
-        if (assignFinal.getChildren().size() == 2 && assignFinal.getChildren().get(0).getType().equals("=")) {
-            // Cas: ["=", "següent_token"]
-            Node nextToken = assignFinal.getChildren().get(1);
-            Object value = evaluateNextToken(nextToken);
-            // Assume the variable has been declared or declare it here if your language allows
-            updateVariable(varType, varName, value);
-        } else if (assignFinal.getType().equals("ε")) {
-            // Cas: ["ε"]
-            declareVariable(varType, varName); // Declare without assignment
-        }
-    }
-
-    private Object evaluateNextToken(Node nextToken) {
-        if (nextToken.getType().equals("expressió")) {
-            return evaluateExpression(nextToken);
-        } else if (nextToken.getType().equals("assignacio_crida")) {
-            return handleFunctionCall(nextToken);
-        }
-        return null;
-    }
-
-    private void handleVariableUsage(Node node) {
-        SymbolTable variableSymbolTable = new SymbolTable();
-        symbolTable.addSubtable(variableSymbolTable);
-
-        // Processar els fills de la variable en ús
-        node.getChildren().forEach(this::processNode);
-    }
-
-
 }
