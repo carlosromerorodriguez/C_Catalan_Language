@@ -1,4 +1,5 @@
 proces        enter         Fibonacci(enter: numero) fer:
+    enter: a ç
 
     si     (10  > numero i  numero2 diferent 10) fer:
             a =     numero ç
@@ -12,9 +13,10 @@ proces        enter         Fibonacci(enter: numero) fer:
     fi
 
     mentre ( a < 10) fer:
-        enter: a ç
         a = 20 ç
     fi
+
+    retorna a ç
 fi
 
 proces Calçot ( ) fer:

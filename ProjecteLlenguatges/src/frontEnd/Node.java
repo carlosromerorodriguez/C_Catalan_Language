@@ -54,4 +54,8 @@ public class Node {
     public Object getValue() {
         return this.value;
     }
+
+    public void setParent(Node topNode) {
+        this.parent = topNode;
+    }
 }

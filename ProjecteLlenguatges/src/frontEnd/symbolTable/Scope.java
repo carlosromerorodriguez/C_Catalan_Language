@@ -9,7 +9,7 @@ import java.util.Map;
 
 public class Scope {
     private HashMap<String, SymbolTableEntry> symbolTable;
-    private Scope parentScope; // Àmbit pare (opcional)
+    private Scope parentScope; // Àmbit pare
     private List<Scope> childScopes;
     private Node rootNode;
 
@@ -59,10 +59,9 @@ public class Scope {
     }
 
     public FunctionEntry getFunctionEntry(){
-        for (Map.Entry<String, SymbolTableEntry> entry : symbolTable.entrySet()){
-            SymbolTableEntry value = entry.getValue();
-            if(value instanceof FunctionEntry){
-                return (FunctionEntry) value;
+        for(Map.Entry<String, SymbolTableEntry> entry : this.symbolTable.entrySet()){
+            if(entry.getValue() instanceof FunctionEntry){
+                return (FunctionEntry) entry.getValue();
             }
         }
         return null;
@@ -84,11 +83,17 @@ public class Scope {
         return symbolTable;
     }
 
-    public void setSymbolTable(Map<String, SymbolTableEntry> symbolTable) {
-         this.symbolTable = new HashMap<>(symbolTable);
+    public void setSymbolTable() {
+         this.symbolTable = new HashMap<>();
     }
 
     public SymbolTableEntry lookup(String name) {
-        return symbolTable.getOrDefault(name, null);
+        if (symbolTable.containsKey(name)) {
+            return symbolTable.get(name);
+        } else if (parentScope != null) {
+            return parentScope.lookup(name);
+        } else {
+            return null;
+        }
     }
 }

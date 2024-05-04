@@ -1,17 +1,21 @@
 package frontEnd.symbolTable;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 public class VariableEntry extends SymbolTableEntry {
     private String type;
-    private Object value;
-    private Boolean isArgument = false;
+    private List<Object> expression;
+    private final Boolean isArgument;
+    private Boolean expressionAlreadyAssigned;
 
-    public VariableEntry(UUID id, String name, int line, String type, Object value, Boolean isArgument) {
+    public VariableEntry(UUID id, String name, int line, String type, Boolean isArgument) {
         super(id, name, line);
         this.type = type;
-        this.value = value;
+        expression = new ArrayList<>();
         this.isArgument = isArgument;
+        expressionAlreadyAssigned = false;
     }
 
     public String getType() {
@@ -22,21 +26,20 @@ public class VariableEntry extends SymbolTableEntry {
         this.type = type;
     }
 
-    public Object getValue() {
-        return value;
+    public List<Object> getExpression() {
+        return expression;
     }
 
-    public void setValue(Object value) {
-        this.value = value;
+    public void setExpressionAlreadyAssigned(Boolean expressionAlreadyAssigned) {
+        this.expressionAlreadyAssigned = expressionAlreadyAssigned;
     }
 
-    @Override
-    public String toString() {
-        return "VariableEntry{" +
-                "name='" + getName() + '\'' +
-                ", type='" + type + '\'' +
-                ", value=" + value +
-                '}';
+    public void appendExpressionValue(Object value) {
+        if(expressionAlreadyAssigned){
+            expression = new ArrayList<>();
+            expressionAlreadyAssigned = false;
+        }
+        this.expression.add(value);
     }
 }
 
