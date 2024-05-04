@@ -46,6 +46,5 @@ public class SymbolTable {
    public void addSymbolEntry(SymbolTableEntry newEntry){
         this.currentScope.addEntry(newEntry);
    }
-
 }
 

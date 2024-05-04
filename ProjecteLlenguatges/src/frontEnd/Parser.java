@@ -12,6 +12,14 @@ public class Parser {
     SymbolTable symbolTable;
     private String context = "";
     private Boolean isFirstToken = false;
+    private String typeDeclaration = "";
+    private String lastTopSymbol = "";
+    private String currentTopSymbol = "";
+    private String currentVarname = ""; // Per saber a quina variable s'ha de guardar l'expressió
+    private Boolean equalSeen = false;
+    private Boolean retornSeen = false;
+    private String functionType = "";
+    private int tokenCounter = 0;
 
     public Parser(FirstFollow firstFollow, TokenConverter tokenConverter, ErrorHandler errorHandler) {
         this.tokenConverter = tokenConverter;
@@ -159,7 +167,6 @@ public class Parser {
                 if (mappings == null) {
                     errorHandler.recordError("No productions found for non-terminal: " + topSymbol, token.getLine());
                 } else {
-                    assert mappings != null;
                     List<String> production = mappings.get(tokenName);
                     //System.out.println("\033[33mSelected production: " + tokenName + "=" + production + "\033[0m");
                     if (production != null) {
@@ -183,10 +190,16 @@ public class Parser {
     }
 
     private void checkContext(String production) {
-        if (production.trim().equals("arguments")|| production.trim().equals("assignació") || production.trim().equals("return")) {
-            isFirstToken = true;
+        if (production.trim().equals("arguments")|| production.trim().equals("assignació") || production.trim().equals("retorn")) {
+            this.isFirstToken = true;
             this.context = production;
-        } else if(production.trim().equals(";")) {
+            this.typeDeclaration = "";
+        } else if (production.trim().equals("FUNCTION")) {
+            this.tokenCounter = 0;
+            this.context = production;
+            this.functionType = "";
+        } else if(production.trim().equals(";") || production.trim().equals("END")) {
+            this.isFirstToken = false;
             this.context = "";
             this.typeDeclaration = "";
             this.equalSeen = false;

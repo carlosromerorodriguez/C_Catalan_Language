@@ -25,6 +25,7 @@ public abstract class SymbolTableEntry {
         this.name = name;
     }
 
+
     @Override
     public String toString() {
         return "SymbolTableEntry{name='" + name + "', scope='" + id + "', line='" + line + "'}";

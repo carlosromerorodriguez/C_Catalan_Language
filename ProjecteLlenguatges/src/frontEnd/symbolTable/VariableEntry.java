@@ -26,6 +26,14 @@ public class VariableEntry extends SymbolTableEntry {
         this.type = type;
     }
 
+    public Boolean getIsArgument() {
+        return isArgument;
+    }
+
+    public void setExpression(List<Object> expression){
+        this.expression = expression;
+    }
+
     public List<Object> getExpression() {
         return expression;
     }
