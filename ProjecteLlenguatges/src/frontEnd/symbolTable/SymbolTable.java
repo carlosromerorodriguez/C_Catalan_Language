@@ -29,8 +29,8 @@ public class SymbolTable {
    public void addScope(){
         Scope newScope = new Scope(this.currentScope);
         this.currentScope.addChildScope(newScope);
-        this.currentScope.setSymbolTable();
         this.currentScope = newScope;
+        this.currentScope.setSymbolTable();
    }
 
    public void enterScope(int i){

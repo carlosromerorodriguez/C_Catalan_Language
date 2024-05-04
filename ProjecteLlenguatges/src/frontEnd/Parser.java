@@ -20,6 +20,7 @@ public class Parser {
     private Boolean retornSeen = false;
     private String functionType = "";
     private int tokenCounter = 0;
+    private Boolean canChangeContext = true;
 
     public Parser(FirstFollow firstFollow, TokenConverter tokenConverter, ErrorHandler errorHandler) {
         this.tokenConverter = tokenConverter;
@@ -125,13 +126,22 @@ public class Parser {
                 if (topSymbol.equals(tokenName)) {
                     lastTopSymbol = currentTopSymbol;
                     currentTopSymbol = topSymbol;
-                    //System.out.println(context);
+
                     if (topSymbol.equals("LITERAL") || topSymbol.equals("VAR_NAME") || topSymbol.equals("FUNCTION_NAME")) {
                         topNode.setValue(token.getValue());
                         topNode.setLine(token.getLine());
                     } else if (topSymbol.equals("VAR_TYPE")) {
                         topNode.setValue(token.getOriginalName());
                         topNode.setLine(token.getLine());
+                    }
+
+                    if(topSymbol.equals(";") || topSymbol.equals("END")) {
+                        isFirstToken = false;
+                        context = "";
+                        typeDeclaration = "";
+                        equalSeen = false;
+                        retornSeen = false;
+                        canChangeContext = true;
                     }
 
                     if(context.equals("FUNCTION")) {
@@ -168,6 +178,7 @@ public class Parser {
                     errorHandler.recordError("No productions found for non-terminal: " + topSymbol, token.getLine());
                 } else {
                     List<String> production = mappings.get(tokenName);
+                    System.out.println(production);
                     //System.out.println("\033[33mSelected production: " + tokenName + "=" + production + "\033[0m");
                     if (production != null) {
                         printTreeStructure(depth, tokenName, production + " (" + token.getLine() + ") ", "\033[33m");
@@ -189,22 +200,28 @@ public class Parser {
         }
     }
 
+    //EN enter: b = 12, a = 12 + b; a la , canvia de declaració a assignació i s'hauria de guardar el context i no canviar-lo
     private void checkContext(String production) {
         if (production.trim().equals("arguments")|| production.trim().equals("assignació") || production.trim().equals("retorn")) {
-            this.isFirstToken = true;
-            this.context = production;
-            this.typeDeclaration = "";
+            if(canChangeContext) {
+                canChangeContext = false;
+                this.isFirstToken = true;
+                this.context = production;
+                this.typeDeclaration = "";
+            }
+
         } else if (production.trim().equals("FUNCTION")) {
             this.tokenCounter = 0;
             this.context = production;
             this.functionType = "";
-        } else if(production.trim().equals(";") || production.trim().equals("END")) {
-            this.isFirstToken = false;
-            this.context = "";
-            this.typeDeclaration = "";
-            this.equalSeen = false;
-            this.retornSeen = false;
-        }
+        } //else if(production.trim().equals(";") || production.trim().equals("END")) {
+//            this.isFirstToken = false;
+//            this.context = "";
+//            this.typeDeclaration = "";
+//            this.equalSeen = false;
+//            this.retornSeen = false;
+//            this.canChangeContext = true;
+//        }
     }
 
     private void evaluateSemanticRules(Node newNode, List<String> production) {
@@ -226,16 +243,19 @@ public class Parser {
             // Si es crees nou scope i poses com a root el node actual
             System.out.println("Entering new Scope");
             enterScope(topNode);
+            System.out.println(symbolTable.getCurrentScope().getParentScope());
         } else if (tokenName.equals("END")) {
             // Si es END analitzem semanticament l'arbre del scope actual
             //analizeSemantic(symbolTable.getCurrentScope());
 
             // Sortim del scope actual
             symbolTable.leaveScope();
-            retornSeen = false;
+            System.out.println(symbolTable.getCurrentScope());
+            retornSeen = false; 
             equalSeen = false;
         } else {
-            // Si no es un nou scope, afegeixes el node com a fill del root del scope actual
+            // Si no es un nou scope, afegeixim el node com a fill del root del scope actual
+            System.out.println(symbolTable.getCurrentScope());
             symbolTable.getCurrentScope().getRootNode().addChild(topNode);
         }
 
@@ -250,14 +270,12 @@ public class Parser {
     private void enterScope(Node newNode) {
         symbolTable.addScope();
         symbolTable.getCurrentScope().setRootNode(newNode);
-        System.out.println("Entering new scope: " + newNode.getType());
-        System.out.println("SCOPE:" + symbolTable.getCurrentScope());
     }
 
     private boolean requiresNewScope(String tokenName) {
         // Aquesta funció determina si el tipus de node requereix un nou àmbit
         // Per exemple, 'FUNCTION', 'IF', 'FOR', 'WHILE' poden iniciar nous àmbits
-        return tokenName.equals("FUNCTION") || tokenName.equals("FOR") || tokenName.equals("IF") || tokenName.equals("WHILE");
+        return tokenName.equals("FUNCTION_MAIN") || tokenName.equals("FUNCTION") || tokenName.equals("FOR") || tokenName.equals("IF") || tokenName.equals("WHILE");
     }
 
     private void printTreeStructure(int depth, String node, String action, String colorCode) {
@@ -276,6 +294,7 @@ public class Parser {
     }
 
     public void processNode(Node node) {
+        System.out.println(context);
         switch (node.getType().toUpperCase()) {
             case "FUNCTION_NAME":
                 //scope nou
@@ -294,12 +313,15 @@ public class Parser {
                     // Guardar el valor de l'expressió a la variable currentVarname
                     VariableEntry currentVar = (VariableEntry) symbolTable.getCurrentScope().lookup(currentVarname);
                     System.out.println("Current var: " + currentVar);
-                    currentVar.appendExpressionValue(node.getValue());
+                    if(node.getValue() != null) currentVar.appendExpressionValue(node.getValue());
+                    else if(!node.getType().equals(",")) currentVar.appendExpressionValue(node.getType());
+
                 }
                 if (retornSeen) {
                     // Guardem el que trobem al retornValue de la functionEntry del scope actual
                     System.out.println("SCOPE: " + symbolTable.getCurrentScope());
-                    symbolTable.getCurrentScope().getFunctionEntry().appendReturnValue(node.getValue());
+                    if(node.getValue() != null) symbolTable.getCurrentScope().getFunctionEntry().appendReturnValue(node.getValue());
+                    else if(!node.getType().equals("RETORN")) symbolTable.getCurrentScope().getFunctionEntry().appendReturnValue(node.getType());
                 }
                 break;
         }
@@ -320,9 +342,19 @@ public class Parser {
             case "arguments" -> handleVarnameInArguments(node);
             case "assignació" -> handleVarnameInAssignation(node);
             case "declaració" -> handleVarnameInDeclaration(node);
+            case "retorn" -> handleVarnameInRetorn(node);
         }
     }
 
+    private void handleVarnameInRetorn(Node node) {
+        // Si la varname no es troba a la taula de simbols -> ERROR
+        if(symbolTable.getCurrentScope().lookup((String)node.getValue()) == null){
+            errorHandler.recordError("Error: La variable del retorn no existe", node.getLine());
+            return;
+        }
+        // Guardem el que trobem al retornValue de la functionEntry del scope actual
+        if(node.getValue() != null) symbolTable.getCurrentScope().getFunctionEntry().appendReturnValue(node.getValue());
+    }
 
     private void handleVarnameInAssignation(Node node) {
         VariableEntry variableEntry = (VariableEntry) symbolTable.getCurrentScope().lookup((String)node.getValue());
@@ -368,7 +400,7 @@ public class Parser {
         currentVar.appendExpressionValue(node.getValue());
     }
 
-
+    // Poder hauriem d'afegir l'entrada de la funcio al scope actual i al pare
     private void handleFunction(Node node) {
         if(equalSeen) {
             // Comprovar si existeix la funcio a la taula de simbols del scope actual
@@ -396,9 +428,9 @@ public class Parser {
 
         SymbolTableEntry functionEntry = new FunctionEntry(UUID.randomUUID(), functionName, line, functionType, new ArrayList<>());
 
+        /* Afegim l'entrada de la funció al scope actual i al pare */
         symbolTable.addSymbolEntry(functionEntry);
-        System.out.println("SCOPE: " + symbolTable.getCurrentScope());
-        System.out.println("Added function entry: " + functionEntry);
+        symbolTable.getCurrentScope().getParentScope().addEntry(functionEntry);
     }
 }
 

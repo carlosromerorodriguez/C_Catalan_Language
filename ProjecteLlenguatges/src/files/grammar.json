@@ -100,19 +100,19 @@
     ["RESTANT"]
   ],
   "assignació": [
-    ["VAR_TYPE", ":", "VAR_NAME", "assignació_final"],
-    ["VAR_NAME", "assignació_final"]
+    ["VAR_TYPE", ":", "VAR_NAME", "assignació_final", "continuació_assignació"],
+    ["VAR_NAME", "assignació_final", "continuació_assignació"]
+  ],
+  "continuació_assignació": [
+    [",", "VAR_NAME", "assignació_final", "continuació_assignació"],
+    ["ε"]
   ],
   "assignació_final": [
     ["=", "següent_token"],
     ["ε"]
   ],
   "següent_token": [
-    ["expressió"],
-    ["assignacio_crida"]
-  ],
-  "assignacio_crida": [
-    ["FUNCTION_NAME", "arguments_crida"]
+    ["expressió"]
   ],
   "condició": [
     ["oració", "condició'"],
@@ -147,7 +147,7 @@
   "arguments_crida'":[
     [",","avaluació", "arguments_crida'"],
     ["ε"]
-],
+  ],
   "avaluació": [
     ["operació", "avaluació'"]
   ],
@@ -190,7 +190,11 @@
   "factor": [
     ["VAR_NAME"],
     ["LITERAL"],
-    ["(", "expressió", ")"]
+    ["(", "expressió", ")"],
+    ["assignacio_crida"]
+  ],
+  "assignacio_crida": [
+    ["FUNCTION_NAME", "arguments_crida"]
   ],
   "factor_for": [
     ["VAR_NAME"],

@@ -39,7 +39,7 @@
     ["condicionals"],
     ["iteratives"],
     ["crida", ";"],
-    ["llista_assignacions"],
+    ["assignació", ";"],
     ["retorn", ";"]
   ],
   "retorn": [
@@ -66,55 +66,53 @@
     ["(", "return_expression", ")"]
   ],
   "return_id": [
-    ["FUNCTION_NAME"],
+    ["FUNCTION_NAME","arguments_crida"],
     ["VAR_NAME"],
     ["LITERAL"]
   ],
   "crida": [
-    ["CALL", "FUNCTION_NAME", "arguments_crida"]
-  ],
-  "arguments_crida": [
-    ["avaluació", "arguments_crida"],
-    ["avaluació"],
-    ["ε"]
+    ["CALL", "assignacio_crida"]
   ],
   "iteratives": [
     ["per"],
     ["mentre"]
   ],
   "condicionals": [
-    ["IF", "(", "condicio", ")", "START:", "llista_sentencies", "END", "condicional'"]
+    ["IF", "(", "condició", ")", "START",":", "llista_sentencies", "END", "condicional'"]
   ],
   "condicional'": [
-    ["ELSE", "START:", "llista_sentencies", "END"],
+    ["ELSE", "START", ":", "llista_sentencies", "END"],
     ["ε"]
   ],
   "mentre": [
-    ["WHILE", "(condicio)", "START:", "llista_sentencies", "END"]
+    ["WHILE", "(", "condició", ")", "START", ":", "llista_sentencies", "END"]
   ],
   "per": [
-    ["FOR", "VAR_NAME", "DE", "factor_for", "FINS", "factor_for", "for_mode", "VAR_NAME", "START:", "llista_sentencies", "END"]
+    ["FOR", "VAR_NAME", "DE", "factor_for", "FINS", "factor_for", "for_mode", "var_for_mode", "START", ":", "llista_sentencies", "END"]
   ],
-  "llista_assignacions": [
-    ["assignació", "llista_assignacions_rest"]
-  ],
-  "llista_assignacions_rest": [
-    [";", "assignació", "llista_assignacions_rest"],
+  "var_for_mode": [
+    ["LITERAL"],
+    ["VAR_NAME"],
     ["ε"]
   ],
+  "for_mode": [
+    ["SUMANT"],
+    ["RESTANT"]
+  ],
   "assignació": [
-    ["declaración", "assignació_común"]
+    ["VAR_TYPE", ":", "VAR_NAME", "assignació_final", "continuació_assignació"],
+    ["VAR_NAME", "assignació_final", "continuació_assignació"]
   ],
-  "declaración": [
-    ["VAR_TYPE", ":", "VAR_NAME"],
-    ["VAR_NAME"]
-  ],
-  "assignació_común": [
-    ["=", "assignació_final", ";"]
+  "continuació_assignació": [
+    [",", "VAR_NAME", "assignació_final", "continuació_assignació"],
+    ["ε"]
   ],
   "assignació_final": [
-    ["expressió"],
-    ["crida"]
+    ["=", "següent_token"],
+    ["ε"]
+  ],
+  "següent_token": [
+    ["expressió"]
   ],
   "condició": [
     ["oració", "condició'"],
@@ -131,12 +129,24 @@
   ],
   "oració'": [
     ["operador_relacional", "component", "oració'"],
+    ["component", "oració'"],
     ["ε"]
   ],
   "component": [
     ["VAR_NAME"],
     ["LITERAL"],
     ["(", "condició", ")"]
+  ],
+  "arguments_crida": [
+    ["(","arguments_dins_crida", ")"]
+  ],
+  "arguments_dins_crida": [
+    ["avaluació", "arguments_crida'"],
+    ["ε"]
+  ],
+  "arguments_crida'":[
+    [",","avaluació", "arguments_crida'"],
+    ["ε"]
   ],
   "avaluació": [
     ["operació", "avaluació'"]
@@ -154,12 +164,12 @@
     ["ε"]
   ],
   "operador_relacional": [
-    ["<"],
-    [">"],
+    ["LOWER"],
+    ["GREATER"],
     ["=="],
     ["!="],
-    ["<="],
-    [">="]
+    ["LOWER_EQUAL"],
+    ["GREATER_EQUAL"]
   ],
   "expressió": [
     ["terme", "expressió'"]
@@ -175,12 +185,16 @@
   "terme'": [
     ["*", "factor", "terme'"],
     ["/", "factor", "terme'"],
-    ["END"]
+    ["ε"]
   ],
   "factor": [
     ["VAR_NAME"],
     ["LITERAL"],
-    ["(", "expressió", ")"]
+    ["(", "expressió", ")"],
+    ["assignacio_crida"]
+  ],
+  "assignacio_crida": [
+    ["FUNCTION_NAME", "arguments_crida"]
   ],
   "factor_for": [
     ["VAR_NAME"],
