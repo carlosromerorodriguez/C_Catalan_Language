@@ -5,7 +5,7 @@ import java.util.Map;
 
 
 public class Main {
-    private static final String FILE_PATH = "src/files/example5.ç";
+    private static final String FILE_PATH = "src/files/example7.ç";
     private static final String GRAMMAR_PATH = "src/files/grammar.json";
 
     public static void  main(String[] args) {

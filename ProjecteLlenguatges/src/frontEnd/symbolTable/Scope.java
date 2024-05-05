@@ -12,11 +12,13 @@ public class Scope {
     private Scope parentScope; // Àmbit pare
     private List<Scope> childScopes;
     private Node rootNode;
+    private Boolean isMainScope;
 
     public Scope() {
         this.symbolTable = new HashMap<>();
         this.parentScope = null;
         this.childScopes = new ArrayList<>();
+        this.isMainScope = false;
     }
 
     public Scope(Scope parentScope) {
@@ -95,5 +97,18 @@ public class Scope {
         } else {
             return null;
         }
+    }
+
+    public void setIsMainScope(Boolean isMainScope) {
+        this.isMainScope = isMainScope;
+    }
+    public Boolean isConditionalScope() {
+        //Si te un coditionalEntry a la taula de simbols es un scope condicional
+        for(Map.Entry<String, SymbolTableEntry> entry : this.symbolTable.entrySet()){
+            if(entry.getValue() instanceof ConditionalEntry){
+                return true;
+            }
+        }
+        return false;
     }
 }

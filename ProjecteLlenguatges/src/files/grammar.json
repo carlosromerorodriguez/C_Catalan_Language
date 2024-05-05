@@ -11,7 +11,7 @@
     ["FUNCTION_MAIN", "CALÇOT", "( ", ")", "START", ":", "llista_sentencies", "END"]
   ],
   "funcio": [
-    ["FUNCTION", "VAR_TYPE", "FUNCTION_NAME", "arguments_start", "START", ":", "llista_sentencies", "retorn" ,"END"]
+    ["FUNCTION", "VAR_TYPE", "FUNCTION_NAME", "arguments_start", "START", ":", "llista_sentencies", "retorn", "END"]
   ],
   "arguments_start": [
     ["(", "arguments"]

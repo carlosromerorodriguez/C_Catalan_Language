@@ -36,7 +36,7 @@ public class Lexer {
      */
     private void tokenize() {
         String tokenPatterns =
-                "\\b(si|sino|mentre|per|fer|fi|enter|decimal|lletra|lletres|siono|res|Calçot|proces|retorn|crida|de|fins)\\b\n|" + // Palabras reservadas
+                "\\b(si|cert|fals|sino|mentre|per|fer|fi|enter|decimal|lletra|lletres|siono|res|Calçot|proces|retorn|crida|de|fins)\\b\n|" + // Palabras reservadas
                         "([A-Za-zÀ-ú][A-Za-zÀ-ú0-9_]*)|" + // Identificadores
                         "(\\d+(\\.\\d+)?)|" + // Números (decimales y enteros)
                         "(!|==|!=|<=|>=|\\+|-|\\*|/|=|<|>|\\(|\\)|;|,|:)"; // Operadores y símbolos
@@ -80,8 +80,13 @@ public class Lexer {
                             }
                         } else {
                             // Es un nom acceptat mirem si es un function_name o var_name
-                            String tokenType = "name";
-                            tokens.add(new Token<String>(tokenType, codeLines.get(i).getLine(), lexeme, lexeme));
+                            if (lexeme.equals("cert") || lexeme.equals("fals")) {
+                                Boolean value = lexeme.equals("cert");
+                                tokens.add(new Token<Boolean>("literal", codeLines.get(i).getLine(), value, lexeme));
+                            } else {
+                                String tokenType = "name";
+                                tokens.add(new Token<String>(tokenType, codeLines.get(i).getLine(), lexeme, lexeme));
+                            }
                         }
                     }
                 }

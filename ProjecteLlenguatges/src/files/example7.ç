@@ -3,6 +3,22 @@ proces enter Fibonacci() fer:
     nombre2 = 5 ç
     enter: a = 4, b = 5 ç
 
+    si (a >= 1) fer:
+        enter: c = nombre2 ç
+    fi
+
+    mentre (a < 10) fer:
+        a = a + 1 ç
+    fi
+
+    siono: ok = fals ç
+    per iterador de 10 fins 79 restant nombre fer:
+        si (!ok) fer:
+            enter: nombre = (((0 +10)  * 11)  +7/1) - 10  ç
+            enter: nombre3 = nombre * 9 ç
+        fi
+    fi
+
     enter: test = Fibonacci() + -1, test2 = 4 ç
 
     retorna nombre2 + Fibonacci() - 4 ç

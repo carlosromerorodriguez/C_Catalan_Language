@@ -9,7 +9,8 @@ import java.util.UUID;
 public class FunctionEntry extends SymbolTableEntry {
     private String returnType;
     private List<VariableEntry> parameters;
-    private List<Object> returnValue;
+    private final List<Object> returnValue;
+
     public FunctionEntry(UUID id, String name, int line, String returnType, List<VariableEntry> parameters) {
         super(id, name, line);
         this.returnType = returnType;
