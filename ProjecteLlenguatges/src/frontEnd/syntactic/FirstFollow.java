@@ -13,7 +13,9 @@ public class FirstFollow {
         terminals = new HashSet<>();
         first = new HashMap<>();
         follow = new HashMap<>();
-        initializeTerminals();
+        this.initializeTerminals();
+        this.calculateFirsts();
+        this.calculateFollows();
     }
 
     private void initializeTerminals() {
@@ -21,22 +23,21 @@ public class FirstFollow {
         String[] terminalSymbols = {"+", "-", "*", "/", "=", ";", ",", ":", "(", ")", "{", "}", "GREATER", "LOWER", "LOWER_EQUAL", "GREATER_EQUAL", "!", "==", "!=", "RETORN", "FUNCTION", "START", "END", "LITERAL", "VAR_NAME", "FOR", "DE", "FINS", "VAR_TYPE", "IF", "ELSE", "WHILE", "CALL", "FUNCTION_NAME", "AND", "OR", "CALÇOT", "VOID", "FUNCTION_MAIN", "SUMANT", "RESTANT"};
         //String[] terminalSymbols = {"+", "*", "(", ")", "id"};
         //String[] terminalSymbols = {"+", "*", "(", ")", "id", "const"};
-
         terminals.addAll(Arrays.asList(terminalSymbols));
     }
 
-    public void FIRST() {
+    public void calculateFirsts() {
         for (String noTerminal : grammar.keySet()){
             // Inicialitza el conjunt FIRST pel símbol no terminal
             first.put(noTerminal, new HashSet<>());
         }
         // Itera sobre cada símbol de la gramàtica
         for (String no_terminal : grammar.keySet()){
-            first.put(no_terminal, compute_FIRST(no_terminal));
+            first.put(no_terminal, computeFirst(no_terminal));
         }
     }
 
-    private Set<String> compute_FIRST(String symbol) {
+    private Set<String> computeFirst(String symbol) {
         // Si el símbol és un terminal, el seu conjunt FIRST conté només ell mateix
         if (terminals.contains(symbol)){
             Set<String> symbol_list = new HashSet<>();
@@ -69,7 +70,7 @@ public class FirstFollow {
             // Si el primer símbol és un no terminal, calculem el conjunt FIRST per a aquest símbol
             else{
                 // Calculem el conjunt FIRST per al primer símbol de la regla i l'afegim al conjunt FIRST del símbol
-                first_set.addAll(compute_FIRST(first_symbol));
+                first_set.addAll(this.computeFirst(first_symbol));
                 // Si el conjunt FIRST del primer símbol conté ε, considerem els següents símbols de la regla
                 if (first.get(first_symbol).contains("ε")){
                     // Si hi ha més d'un símbol a la regla, calculem el conjunt FIRST per a la resta de símbols
@@ -82,7 +83,7 @@ public class FirstFollow {
                         }
                         // Si el següent símbol produeix ε, afegim el conjunt FIRST al conjunt FIRST del símbol
                         else{
-                            first_set.addAll(compute_FIRST(next_symbol));
+                            first_set.addAll(this.computeFirst(next_symbol));
                         }
                     }
                 }
@@ -98,7 +99,7 @@ public class FirstFollow {
         }
     }
 
-    public void FOLLOW() {
+    public void calculateFollows() {
         for (String nonTerminal : grammar.keySet()) {
             follow.put(nonTerminal, new HashSet<>());
         }
@@ -113,7 +114,7 @@ public class FirstFollow {
                     Set<String> trailer = new HashSet<>(followSet);
                     for (int i = production.size() - 1; i >= 0; i--) {
                         String symbol = production.get(i);
-                        if (isNonterminal(symbol)) {
+                        if (isNonTerminal(symbol)) {
                             if (follow.get(symbol).addAll(trailer)) {
                                 changed = true;
                             }
@@ -134,7 +135,7 @@ public class FirstFollow {
         } while (changed);
     }
 
-    private boolean isNonterminal(String item) {
+    private boolean isNonTerminal(String item) {
         return grammar.containsKey(item);
     }
 

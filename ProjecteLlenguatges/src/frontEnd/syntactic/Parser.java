@@ -16,9 +16,9 @@ import java.util.*;
 
 public class Parser {
     private final TokenConverter tokenConverter;
-    private Map<String, Map<String, List<String>>> parseTable;
-    private Node rootNode;
-    private ErrorHandler errorHandler;
+    private final Map<String, Map<String, List<String>>> parseTable;
+    private final Node rootNode;
+    private final ErrorHandler errorHandler;
     SymbolTable symbolTable;
     private String context = "";
     private Boolean isFirstToken = false;
@@ -37,23 +37,19 @@ public class Parser {
     public Parser(FirstFollow firstFollow, TokenConverter tokenConverter, ErrorHandler errorHandler) {
         this.tokenConverter = tokenConverter;
         this.errorHandler = errorHandler;
-        firstFollow.FIRST();
-        firstFollow.FOLLOW();
-        //firstFollow.showFIRST();
-        //System.out.println("\n\nFOLLOW:");
-        //firstFollow.showFOLLOW();
-        this.buildParseTable(firstFollow.getGrammar(), firstFollow.getFollow(), firstFollow.getFirst());
-        rootNode = new Node("sortida", 0);
-        symbolTable = new SymbolTable();
+        this.rootNode = new Node("sortida", 0);
+        this.symbolTable = new SymbolTable();
+        this.parseTable = new HashMap<>();
+
+        this.buildParsingTable(firstFollow.getGrammar(), firstFollow.getFollow(), firstFollow.getFirst());
     }
 
-    private void buildParseTable(Map<String, List<List<String>>> grammar, Map<String, Set<String>> follow, Map<String, Set<String>> first) {
-        parseTable = new HashMap<>();
-        System.out.println("\n\nBuilding parse table");
+    private void buildParsingTable(Map<String, List<List<String>>> grammar, Map<String, Set<String>> follow, Map<String, Set<String>> first) {
+        System.out.println("\n\nBuilding parsing table");
 
         for (String nonTerminal : grammar.keySet()) {
             Map<String, List<String>> row = new HashMap<>();
-            parseTable.put(nonTerminal, row);
+            this.parseTable.put(nonTerminal, row);
 
             System.out.println("\nAnalysing non-terminal: " + nonTerminal);
             for (List<String> production : grammar.get(nonTerminal)) {
