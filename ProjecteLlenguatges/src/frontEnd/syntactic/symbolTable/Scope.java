@@ -1,6 +1,6 @@
-package frontEnd.symbolTable;
+package frontEnd.syntactic.symbolTable;
 
-import frontEnd.Node;
+import frontEnd.syntactic.Node;
 
 import java.util.ArrayList;
 import java.util.HashMap;

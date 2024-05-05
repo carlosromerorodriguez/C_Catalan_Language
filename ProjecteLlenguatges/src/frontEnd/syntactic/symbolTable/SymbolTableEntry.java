@@ -1,4 +1,4 @@
-package frontEnd.symbolTable;
+package frontEnd.syntactic.symbolTable;
 
 import java.util.UUID;
 

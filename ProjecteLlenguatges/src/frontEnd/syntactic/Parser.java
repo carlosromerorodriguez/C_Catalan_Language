@@ -5,9 +5,12 @@
 // - En el PER guarda coses de mes
 // - Control d'errors
 
-package frontEnd;
+package frontEnd.syntactic;
 
-import frontEnd.symbolTable.*;
+import frontEnd.global.ErrorHandler;
+import frontEnd.lexic.Token;
+import frontEnd.lexic.TokenConverter;
+import frontEnd.syntactic.symbolTable.*;
 
 import java.util.*;
 
@@ -216,7 +219,6 @@ public class Parser {
                 }
             }
         }
-        return;
     }
 
     private void checkContext(String production) {

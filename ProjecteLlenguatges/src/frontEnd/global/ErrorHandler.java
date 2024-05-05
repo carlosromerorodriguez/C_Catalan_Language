@@ -1,4 +1,4 @@
-package frontEnd;
+package frontEnd.global;
 
 import java.util.*;
 

@@ -1,4 +1,4 @@
-package frontEnd;
+package frontEnd.lexic;
 
 import java.util.HashMap;
 import java.util.Map;

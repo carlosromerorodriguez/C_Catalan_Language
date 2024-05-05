@@ -1,4 +1,4 @@
-package frontEnd;
+package frontEnd.global;
 
 public class Error {
     private final String errorMsg;

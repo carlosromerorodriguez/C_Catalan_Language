@@ -1,8 +1,7 @@
-package frontEnd.symbolTable;
+package frontEnd.syntactic.symbolTable;
 
 
 import java.util.List;
-import java.util.Map;
 
 public class SymbolTable {
     private Scope rootScope;

@@ -1,4 +1,4 @@
-package frontEnd;
+package frontEnd.syntactic;
 
 import java.util.*;
 

@@ -1,4 +1,4 @@
-package frontEnd;
+package frontEnd.lexic;
 
 public class Token<T> {
     private String stringToken;

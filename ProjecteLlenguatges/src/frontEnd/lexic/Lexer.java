@@ -1,4 +1,9 @@
-package frontEnd;
+package frontEnd.lexic;
+
+import frontEnd.global.ErrorHandler;
+import frontEnd.lexic.CodeLine;
+import frontEnd.lexic.Token;
+import frontEnd.lexic.TokenConverter;
 
 import java.util.ArrayList;
 import java.util.List;

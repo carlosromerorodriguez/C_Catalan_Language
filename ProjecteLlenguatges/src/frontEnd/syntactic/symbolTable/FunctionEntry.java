@@ -1,6 +1,4 @@
-package frontEnd.symbolTable;
-
-import frontEnd.Node;
+package frontEnd.syntactic.symbolTable;
 
 import java.util.ArrayList;
 import java.util.List;

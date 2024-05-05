@@ -1,7 +1,12 @@
-import frontEnd.*;
+import frontEnd.global.ErrorHandler;
+import frontEnd.lexic.CodeLine;
+import frontEnd.lexic.Lexer;
+import frontEnd.lexic.PreProcessing;
+import frontEnd.lexic.TokenConverter;
+import frontEnd.syntactic.FirstFollow;
+import frontEnd.syntactic.Parser;
 
 import java.util.List;
-import java.util.Map;
 
 
 public class Main {
@@ -27,9 +32,9 @@ public class Main {
         // 5. Clase para cargar la gramática y construir la tabla de análisis sintáctico
         FirstFollow inputFirstFollow = new FirstFollow(preProcessing.loadGrammar(GRAMMAR_PATH));
         Parser parser = new Parser(inputFirstFollow, tokenConverter, errorHandler);
-        parser.printParseTable();
+            //parser.printParseTable();
         parser.buildParsingTree(lexer.getTokens());
-        //parser.printTree();
+            //parser.printTree();
 
         errorHandler.printErrors();
     }

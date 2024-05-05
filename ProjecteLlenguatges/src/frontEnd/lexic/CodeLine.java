@@ -1,4 +1,4 @@
-package frontEnd;
+package frontEnd.lexic;
 
 public class CodeLine {
     private final int line;
