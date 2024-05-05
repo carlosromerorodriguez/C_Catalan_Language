@@ -2,7 +2,8 @@ package frontEnd;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -10,214 +11,233 @@ import java.util.regex.Pattern;
  *
  */
 public class Lexer {
+    private final String tokenPattern =
+            "\\b(si|cert|fals|sino|mentre|per|fer|fi|enter|decimal|lletra|lletres|siono|res|Calçot|proces|retorn|crida|de|fins)\\b\n|" + // Palabras reservadas
+            "([A-Za-zÀ-ú][A-Za-zÀ-ú0-9_]*)|" + // Identificadores
+            "(\\d+(\\.\\d+)?)|" + // Números (decimales y enteros)
+            "(!|==|!=|<=|>=|\\+|-|\\*|/|=|<|>|\\(|\\)|;|,|:)"; // Operadores y símbolos
     private final ErrorHandler errorHandler;
     private final List<CodeLine> codeLines;
-    private int currentIndex = 0;
     private final List<Token> tokens;
     private final TokenConverter tokenConverter;
+    private int currentIndex;
 
     /**
      * Constructor for the Lexer class.
      * @param codeLines The source code to be tokenized.
      * @param tokenConverter converter of tokens
      */
-    public Lexer(ErrorHandler errorHandler, List<CodeLine> codeLines, TokenConverter tokenConverter) {
+    public Lexer(TokenConverter tokenConverter, ErrorHandler errorHandler, List<CodeLine> codeLines) {
         this.errorHandler = errorHandler;
         this.codeLines = codeLines;
-        this.tokenConverter = tokenConverter;
-        tokenConverter.fillTokensDictionary();
         this.tokens = new ArrayList<>();
-        this.tokenize();
-        this.reprocessTokens();
+        this.tokenConverter = tokenConverter;
+        this.currentIndex = 0;
+
+        this.tokenize();         // Convierte el código fuente en tokens
+        this.reClassifyTokens(); // Reclasifica los tokens para asignarles su tipo específico
+        this.reProcessTokens();  // Procesa los tokens para unir los operadores + y - con los literales
     }
 
     /**
      * Tokenizes the source code.
      */
+
+
     private void tokenize() {
-        String tokenPatterns =
-                "\\b(si|cert|fals|sino|mentre|per|fer|fi|enter|decimal|lletra|lletres|siono|res|Calçot|proces|retorn|crida|de|fins)\\b\n|" + // Palabras reservadas
-                        "([A-Za-zÀ-ú][A-Za-zÀ-ú0-9_]*)|" + // Identificadores
-                        "(\\d+(\\.\\d+)?)|" + // Números (decimales y enteros)
-                        "(!|==|!=|<=|>=|\\+|-|\\*|/|=|<|>|\\(|\\)|;|,|:)"; // Operadores y símbolos
+        Pattern pattern = Pattern.compile(this.tokenPattern);
 
-        for (int i = 0; i < codeLines.size(); i++) {
-            Pattern pattern = Pattern.compile(tokenPatterns);
-            Matcher matcher = pattern.matcher(codeLines.get(i).getContentLine());
-            String line = codeLines.get(i).getContentLine();
+        for (CodeLine codeLine : this.codeLines) {
+            Matcher matcher = pattern.matcher(codeLine.getContentLine());
 
-            int lastMatchEnd = 0; // Iniciar índice para el final del último match
+            String line = codeLine.getContentLine();
+            int lastMatchEnd = 0; // Índice que indica el final del último match
 
             while (matcher.find(lastMatchEnd)) {
                 String lexeme = matcher.group();
-                System.out.println("Lexeme: " + lexeme);
+                String token = this.tokenConverter.convertLexemeToToken(lexeme);
 
                 // Verificar si es un número primero
-                //if (lexeme.matches("\\d+|\\d-(\\.\\d+)?([eE][-+]?\\d+)?")) {
                 if (lexeme.matches("-?\\d+(\\.\\d+)?")) {
-                    //System.out.println("Number: " + lexeme);
-                    if (lexeme.contains(".")) {
-                        tokens.add(new Token<Float>("literal", codeLines.get(i).getLine(), Float.parseFloat(lexeme), lexeme));
-                    } else {
-                        tokens.add(new Token<Integer>("literal", codeLines.get(i).getLine(), Integer.parseInt(lexeme), lexeme));
-                    }
-                } else if (lexeme.matches("[-+*/=<>!]|==|!=|<=|>=|\\(|\\)|;|,|:")) {
-                    //System.out.println("Operator: " + lexeme);
-                    String tokenName = tokenConverter.convertLexemeToToken(lexeme);
-                    tokens.add(new Token<String>(tokenName, codeLines.get(i).getLine(), lexeme, lexeme));
-                } else {
-                    String token = tokenConverter.convertLexemeToToken(lexeme);
+                    checkIsFloatOrInteger(lexeme, codeLine);
+                }
+                // Se verifica si es un operador o un símbolo
+                else if (lexeme.matches("[-+*/=<>!]|==|!=|<=|>=|\\(|\\)|;|,|:")) {
+                    this.tokens.add(new Token<String>(token, codeLine.getLine(), lexeme, lexeme));
+                }
+                // Se verifica si es un booleano
+                else if (lexeme.equals("cert") || lexeme.equals("fals")) {
+                    Boolean value = lexeme.equals("cert");
+                    this.tokens.add(new Token<Boolean>("literal", codeLine.getLine(), value, lexeme));
+                }
+                // Si no es un número, operador, símbolo o booleano, se verifica si es una palabra reservada
+                else {
+                    // Si el token no es igual al lexema, se agrega un token con el lexema
                     if (!token.equals(lexeme)) {
-                        tokens.add(new Token<>(token, codeLines.get(i).getLine(), null, lexeme));
+                        this.tokens.add(new Token<>(token, codeLine.getLine(), null, lexeme));
                     } else {
-                        // Si el lexeme no reconegut conte ñ o ç mostrem error
+                        // Si el lexeme contiene carácteres prohibidos en nuestro lenguaje
                         if (lexeme.contains("ç") || lexeme.contains("ñ")) {
-                            if(lexeme.equals("Calçot")) {
-                                String tokenName = tokenConverter.convertLexemeToToken(lexeme);
-                                tokens.add(new Token<String>(tokenName, codeLines.get(i).getLine(), lexeme, lexeme));
-                            } else {
-                                errorHandler.recordError(lexeme + " contains invalid character.", codeLines.get(i).getLine());
-                            }
-                        } else {
-                            // Es un nom acceptat mirem si es un function_name o var_name
-                            if (lexeme.equals("cert") || lexeme.equals("fals")) {
-                                Boolean value = lexeme.equals("cert");
-                                tokens.add(new Token<Boolean>("literal", codeLines.get(i).getLine(), value, lexeme));
-                            } else {
-                                String tokenType = "name";
-                                tokens.add(new Token<String>(tokenType, codeLines.get(i).getLine(), lexeme, lexeme));
-                            }
+                            checkIsPermittedLexeme(lexeme, token, codeLine);
+                        }
+                        // Es un lexema aceptado en nuestro lenguaje
+                        else {
+                            // Es un FUNCTION_NAME o VAR_NAME
+                            this.tokens.add(new Token<String>("name", codeLine.getLine(), lexeme, lexeme));
                         }
                     }
                 }
 
-                lastMatchEnd = matcher.end(); // Actualizar el final del último match para continuar desde aquí
-
-                // Reemplazar solo la primera ocurrencia del lexema procesado en la línea
+                lastMatchEnd = matcher.end();
                 line = line.replaceFirst(Pattern.quote(lexeme), "");
             }
 
-            if(!line.trim().isEmpty()) { //Si encara queden coses a la linia ens guardem l'error
-                //Guardem l'error amb la linia
-                errorHandler.recordError(line + " is not a statement.", codeLines.get(i).getLine());
-            }
-        }
-
-        for (int i = 0; i < tokens.size() - 1; i++) {
-            if(tokens.get(i).getStringToken().equals("name")) {
-                String aux_token = tokenConverter.getToken((String) tokens.get(i).getValue());
-                if(!Objects.equals(aux_token, "")){
-                    tokens.get(i).setStringToken(aux_token);
-                    continue;
-                }
-                if(tokens.get(i+1).getStringToken().trim().equals("(")) {
-                    tokens.get(i).setValue(tokens.get(i).getValue());
-                    tokens.get(i).setStringToken("function_name");
-                } else if (i > 0 && tokens.get(i-1).getStringToken().equals("=")) {
-                    tokens.get(i).setValue(tokens.get(i).getValue());
-                    tokens.get(i).setStringToken("literal");
-                } else {
-                    tokens.get(i).setValue(tokens.get(i).getValue());
-                    tokens.get(i).setStringToken("var_name");
-                }
-            } else if (tokens.get(i).getStringToken().equals("function")) {
-                if(tokens.get(i+1).getStringToken().equals("Calçot")) {
-                    tokens.get(i).setStringToken("function_main");
-                }
+            //Si encara queden coses a la linia ens guardem l'error
+            if (!line.trim().isEmpty()) {
+                errorHandler.recordError(line + " is not a statement.", codeLine.getLine());
             }
         }
     }
 
-    void reprocessTokens() {
+    private void reClassifyTokens() {
+        for (int i = 0; i < tokens.size() - 1; i++) {
+            Token token = tokens.get(i);
+            String tokenType = token.getStringToken();
+
+            if ("name".equals(tokenType)) {
+                classifyNameToken(token, i);
+            } else if ("function".equals(tokenType)) {
+                classifyFunctionToken(token, i);
+            }
+        }
+    }
+
+    private void classifyNameToken(Token token, int index) {
+        String auxToken = tokenConverter.getToken((String) token.getValue());
+        if (!auxToken.isEmpty()) {
+            token.setStringToken(auxToken);
+            return;
+        }
+
+        // No hay cambio en el valor, entonces no es necesario asignarlo de nuevo
+        if ((index < tokens.size() - 1) && "(".equals(tokens.get(index + 1).getStringToken().trim())) {
+            token.setStringToken("function_name");
+        } else if ((index > 0) && "=".equals(tokens.get(index - 1).getStringToken())) {
+            token.setStringToken("literal");
+        } else {
+            token.setStringToken("var_name");
+        }
+    }
+
+    private void classifyFunctionToken(Token token, int index) {
+        if ((index < tokens.size() - 1) && "Calçot".equals(tokens.get(index + 1).getStringToken())) {
+            token.setStringToken("function_main");
+        }
+    }
+
+    private void checkIsPermittedLexeme(String lexeme, String token, CodeLine codeLine) {
+        if (lexeme.equals("Calçot")) {
+            tokens.add(new Token<String>(token, codeLine.getLine(), lexeme, lexeme));
+        } else {
+            errorHandler.recordError(lexeme + " contains invalid character.", codeLine.getLine());
+        }
+    }
+
+    private void checkIsFloatOrInteger(String lexeme, CodeLine codeLine) {
+        if (lexeme.contains(".")) {
+            this.tokens.add(new Token<Float>("literal", codeLine.getLine(), Float.parseFloat(lexeme), lexeme));
+        } else {
+            this.tokens.add(new Token<Integer>("literal", codeLine.getLine(), Integer.parseInt(lexeme), lexeme));
+        }
+    }
+
+    void reProcessTokens() {
         ArrayList<Integer> deletedPositions = new ArrayList<>();
         for (int i = 0; i < tokens.size() - 1; i++) {
-            if (tokens.get(i).getStringToken().equals("+") || tokens.get(i).getStringToken().equals("-")) { // Si el token + o -, mirem si forma part d'un literal
-                if (tokens.get(i - 1).getStringToken().equals("(") || tokens.get(i - 1).getStringToken().equals("=") ||
-                        tokens.get(i - 1).getStringToken().equals("+") || tokens.get(i - 1).getStringToken().equals("-") ||
-                        tokens.get(i - 1).getStringToken().equals("*") || tokens.get(i - 1).getStringToken().equals("/") ||
-                        tokens.get(i - 1).getStringToken().equals("==") || tokens.get(i - 1).getStringToken().equals("!=") ||
-                        tokens.get(i - 1).getStringToken().equalsIgnoreCase("LOWER") || tokens.get(i - 1).getStringToken().equalsIgnoreCase("GREATER") ||
-                        tokens.get(i - 1).getStringToken().equalsIgnoreCase("LOWER_EQUAL") || tokens.get(i - 1).getStringToken().equalsIgnoreCase("GREATER_EQUAL") ||
-                        tokens.get(i - 1).getStringToken().equals(",") || tokens.get(i - 1).getStringToken().equalsIgnoreCase("RETORN") ||
-                        tokens.get(i - 1).getStringToken().equals("!"))
-                {
-                    //Si abans hi ha un parentesis obert o un operador el + o - forma part d'un literal
-                    //Ajuntem el + o - amb el seguent token
-                    if (tokens.get(i + 1).getStringToken().equals("literal")) {
-                        if (tokens.get(i).getStringToken().equals("+")) {
-                            tokens.get(i + 1).setValue(tokens.get(i + 1).getValue());
-                        } else {
-                            if (tokens.get(i + 1).getValue() instanceof Float) {
-                                tokens.get(i + 1).setValue(-1 * (float) tokens.get(i + 1).getValue());
-                            } else {
-                                tokens.get(i + 1).setValue(-1 * (int) tokens.get(i + 1).getValue());
-                            }
-                        }
-                        deletedPositions.add(i);
-                    } else if (tokens.get(i + 1).getStringToken().equalsIgnoreCase("var_name")) {
-                        String aux = tokens.get(i).getStringToken() + tokens.get(i + 1).getValue();
-                        tokens.get(i + 1).setValue(aux);
-                        deletedPositions.add(i);
-                    }
+            if (isPlusOrMinus(tokens.get(i))) {
+                if (isUnaryOperatorContext(tokens.get(i - 1))) {
+                    handleUnaryOperator(i, deletedPositions);
                 }
             }
         }
 
+        removeDeletedTokens(deletedPositions);
+    }
+
+    private boolean isPlusOrMinus(Token token) {
+        return token.getStringToken().equals("+") || token.getStringToken().equals("-");
+    }
+
+    private boolean isUnaryOperatorContext(Token prevToken) {
+        String prevTokenStr = prevToken.getStringToken();
+        return prevTokenStr.matches("\\(|=|\\+|-|\\*|/|==|!=|,|!") ||
+                prevTokenStr.equalsIgnoreCase("LOWER") ||
+                prevTokenStr.equalsIgnoreCase("GREATER") ||
+                prevTokenStr.equalsIgnoreCase("LOWER_EQUAL") ||
+                prevTokenStr.equalsIgnoreCase("GREATER_EQUAL") ||
+                prevTokenStr.equalsIgnoreCase("RETORN");
+    }
+
+    private void handleUnaryOperator(int index, ArrayList<Integer> deletedPositions) {
+        Token nextToken = tokens.get(index + 1);
+        if (nextToken.getStringToken().equals("literal")) {
+            processLiteralToken(index, nextToken);
+            deletedPositions.add(index);
+        } else if (nextToken.getStringToken().equalsIgnoreCase("var_name")) {
+            String combinedValue = tokens.get(index).getStringToken() + nextToken.getValue();
+            nextToken.setValue(combinedValue);
+            deletedPositions.add(index);
+        }
+    }
+
+    private void processLiteralToken(int index, Token nextToken) {
+        if (tokens.get(index).getStringToken().equals("+")) {
+            nextToken.setValue(nextToken.getValue()); // Es redundante, pero se deja para claridad
+        } else {
+            // Apply negative sign to the numeric value
+            if (nextToken.getValue() instanceof Float) {
+                nextToken.setValue(-1 * (Float) nextToken.getValue());
+            } else {
+                nextToken.setValue(-1 * (Integer) nextToken.getValue());
+            }
+        }
+    }
+
+    private void removeDeletedTokens(ArrayList<Integer> deletedPositions) {
         for (int i = 0; i < deletedPositions.size(); i++) {
             tokens.remove(deletedPositions.get(i) - i);
         }
     }
 
     public void showTokens() {
+        String ANSI_RESET = "\u001B[0m";
+        String ANSI_GREEN = "\u001B[32m";
+        String ANSI_YELLOW = "\u001B[33m";
+        String ANSI_PURPLE = "\u001B[35m";
+
+        Map<Integer, List<String>> tokensByLine = new TreeMap<>();
         for (Token token : tokens) {
-            System.out.println("Token: "+token.getStringToken()+" in line: "+token.getLine()+" value: " + (token.getValue() == null ? "" : token.getValue()));
+            int line = token.getLine();
+            String tokenDisplay = " [" + ANSI_PURPLE + token.getStringToken() + ANSI_RESET +
+                    (token.getValue() == null ? "]" : ANSI_GREEN + " , " + token.getValue() + ANSI_RESET + "]");
+
+            if (!tokensByLine.containsKey(line)) {
+                tokensByLine.put(line, new ArrayList<>());
+            }
+            tokensByLine.get(line).add(tokenDisplay);
+        }
+
+        // Se Imprimen los tokens línea por línea
+        for (Map.Entry<Integer, List<String>> entry : tokensByLine.entrySet()) {
+            System.out.print(ANSI_YELLOW + "(" + entry.getKey() + ")" + ANSI_RESET);
+            for (String tokenStr : entry.getValue()) {
+                System.out.print(tokenStr);
+            }
+            System.out.println();
         }
     }
 
     public List<Token> getTokens() {
         return tokens;
     }
-
-    /**
-     * Gets the next token.
-     */
-    public Token nextToken() {
-        if (currentIndex < tokens.size()) {
-            return tokens.get(currentIndex++);
-        }
-        return null;
-    }
-
-    /**
-     * Peeks the next token.
-     */
-    public Token peekToken() {
-        if (currentIndex < tokens.size()) {
-            return tokens.get(currentIndex);
-        }
-        return null;
-    }
-
-    /**
-     * Gets the current token.
-     */
-    public Token currentToken() {
-        if (currentIndex > 0 && currentIndex <= tokens.size()) {
-            return tokens.get(currentIndex - 1);
-        }
-        return null;
-    }
 }
-
-/* REGEX:
-OPTION1:
-String tokenPatterns =
-                "(\\b(si|sino|mentre|per|fer:|fi|enter:|decimal:|lletra:|lletres:|siono:|res|Calçot|proces|retorn|crida)\\b)|" + // Palabras reservadas
-                        "([A-Za-zÀ-ú_][A-Za-zÀ-ú0-9]*)|" + // Identificadores
-                        "(-?\\d+(\\.\\d+)?)|" + // Números (decimales y enteros)
-                        "(==|!=|<=|>=|\\+|\\-|\\*|/|=|<|>|\\(|\\)|;|,)"; // Operadores y símbolos
-
-
-OPTION2:
-
- */

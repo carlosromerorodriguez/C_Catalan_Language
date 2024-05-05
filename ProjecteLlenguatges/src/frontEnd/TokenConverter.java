@@ -6,10 +6,9 @@ import java.util.Map;
 public class TokenConverter {
     private final Map<String, String> tokensDictionary;
 
-
     public TokenConverter() {
         tokensDictionary = new HashMap<>();
-        fillTokensDictionary();
+        this.fillTokensDictionary();
     }
 
     /**

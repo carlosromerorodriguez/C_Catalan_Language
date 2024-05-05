@@ -4,28 +4,31 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.List;
-import java.util.Scanner;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 public class PreProcessing {
     private final String filePath;
-    private ErrorHandler errorHandler;
-    private HashMap<String, String> tokensDictionary = new HashMap<>();
+    private final ErrorHandler errorHandler;
+    private final HashMap<String, String> tokensDictionary;
     int a;
 
-    private void CreateMap() {
+    public PreProcessing(ErrorHandler errorHandler, String filePath) {
+        this.filePath = filePath;
+        this.errorHandler = errorHandler;
+        this.tokensDictionary = new HashMap<>();
+        this.addSpacesToSomeTokens();
+    }
+
+    private void addSpacesToSomeTokens() {
         // Operators
         this.tokensDictionary.put("(", " ( ");
         this.tokensDictionary.put(")", " ) ");
@@ -40,18 +43,26 @@ public class PreProcessing {
         this.tokensDictionary.put(":", " : ");
     }
 
-    public PreProcessing(ErrorHandler errorHandler, String filePath) {
-        this.filePath = filePath;
-        this.errorHandler = errorHandler;
-        CreateMap();
+    private List<CodeLine> readAllLines() throws IOException {
+        List<CodeLine> codeLines = new ArrayList<>();
+
+        try (Stream<String> lines = Files.lines(Paths.get(this.filePath))) {
+            int lineNumber = 1;
+            for (String content : lines.toList()) {
+                codeLines.add(new CodeLine(lineNumber++, content));
+            }
+        }
+
+        return codeLines;
     }
 
     public List<CodeLine> readFile() {
-        List<CodeLine> codeLines = new ArrayList<>();
+        List<CodeLine> codeLines;
         try {
             codeLines = this.readAllLines();
         } catch (IOException e) {
             errorHandler.recordError("File not found", 0);
+            return new ArrayList<>();
         }
 
         List<CodeLine> resultLines = new ArrayList<>();
@@ -93,46 +104,24 @@ public class PreProcessing {
             String penultimeLine = resultLines.get(resultLines.size() - 1).getContentLine();
             for(Map.Entry<String, String> operand : tokensDictionary.entrySet()) {
                 if (penultimeLine.contains(operand.getKey())) {
-                    //penultimeLine.replace(operand.getKey(), operand.getValue());
                     penultimeLine = penultimeLine.replace(operand.getKey(), operand.getValue());
                 }
             }
-
         }
 
         return resultLines;
     }
+
     public Map<String, List<List<String>>> loadGrammar(String path){
         Gson gson = new GsonBuilder().create();
         Map<String, List<List<String>>> productions = new HashMap<>();
         try (FileReader reader = new FileReader(path)) {
             Type mapType = new TypeToken<Map<String, List<List<String>>>>() {}.getType();
             productions = gson.fromJson(reader, mapType);
-            for (Map.Entry<String, List<List<String>>> entry : productions.entrySet()) {
-                System.out.println("Name: " + entry.getKey());
-                System.out.println("Estructura:");
-                for (List<String> lista : entry.getValue()) {
-                    System.out.println(lista);
-                }
-                System.out.println();
-            }
         } catch (IOException e) {
-            e.printStackTrace();
+            this.errorHandler.recordError("Grammar file not found", 0);
         }
         return productions;
-    }
-
-    private List<CodeLine> readAllLines() throws IOException {
-        List<CodeLine> codeLines = new ArrayList<>();
-
-        try (Stream<String> lines = Files.lines(Paths.get(this.filePath))) {
-            int lineNumber = 1;
-            for (String content : lines.toList()) {
-                codeLines.add(new CodeLine(lineNumber++, content));
-            }
-        }
-
-        return codeLines;
     }
 }
 
