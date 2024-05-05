@@ -1,7 +1,9 @@
 //TODO:
 // - S'ha d'afegir diverses expresions a una variable ja que es poden donar una en un if i una en un else
+//   per el tema del boolean expressionAlreadyAssigned a VariableEntry
 // - Else peta
 // - En el PER guarda coses de mes
+// - Control d'errors
 
 package frontEnd;
 
