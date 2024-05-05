@@ -198,6 +198,7 @@ public class Parser {
                 }
             }
         }
+        return;
     }
 
     //EN enter: b = 12, a = 12 + b; a la , canvia de declaració a assignació i s'hauria de guardar el context i no canviar-lo

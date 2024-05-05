@@ -42,8 +42,8 @@ public class Scope {
         }
     }
 
-    public void addChildScope(Scope parentScope) {
-        childScopes.add(new Scope(parentScope));
+    public void addChildScope(Scope new_scope) {
+        childScopes.add(new_scope);
     }
 
     public List<Scope> getChildScopes() {
