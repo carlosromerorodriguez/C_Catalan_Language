@@ -6,6 +6,9 @@ proces enter Fibonacci() fer:
     si (a >= 1) fer:
         enter: c = nombre2 ç
     fi
+    sino fer:
+        enter: e = 0 ç
+    fi
 
     mentre (a < 10) fer:
         a = a + 1 ç

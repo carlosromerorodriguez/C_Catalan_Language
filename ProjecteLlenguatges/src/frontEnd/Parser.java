@@ -204,6 +204,7 @@ public class Parser {
                         for (int i = production.size() - 1; i >= 0; i--) {
                             Node newNode = new Node(production.get(i), 0);
                             checkContext(production.get(i));
+                            System.out.println("New node: " + production.get(i));
                             newNode.setParent(topNode);
                             stack.push(newNode);
                             depth++;
@@ -231,7 +232,7 @@ public class Parser {
             this.tokenCounter = 0;
             this.context = production;
             this.functionType = "";
-        } else if(production.trim().equals("condicionals") || production.trim().equals("iteratives")) {
+        } else if(production.trim().equals("condicionals") || production.trim().equals("iteratives") || production.equals("ELSE")) {
             canChangeContext = true;
             this.isFirstToken = true;
             this.context = "condicional";
@@ -292,7 +293,7 @@ public class Parser {
     private boolean requiresNewScope(String tokenName) {
         // Aquesta funció determina si el tipus de node requereix un nou àmbit
         // Per exemple, 'FUNCTION', 'IF', 'FOR', 'WHILE' poden iniciar nous àmbits
-        return tokenName.equals("FUNCTION_MAIN") || tokenName.equals("FUNCTION") || tokenName.equals("FOR") || tokenName.equals("IF") || tokenName.equals("WHILE");
+        return tokenName.equals("FUNCTION_MAIN") || tokenName.equals("FUNCTION") || tokenName.equals("FOR") || tokenName.equals("IF") || tokenName.equals("WHILE") || tokenName.equals("ELSE");
     }
 
     private void printTreeStructure(int depth, String node, String action, String colorCode) {
