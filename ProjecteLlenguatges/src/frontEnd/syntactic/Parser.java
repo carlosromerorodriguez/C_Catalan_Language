@@ -345,6 +345,11 @@ public class Parser {
                 if (equalSeen) {
                     // Guardar el valor de l'expressió a la variable currentVarname
                     VariableEntry currentVar = (VariableEntry) symbolTable.getCurrentScope().lookup(currentVarname);
+                    if (!symbolTable.getCurrentScope().entryExists(currentVarname)) {
+                        symbolTable.getCurrentScope().addEntry(currentVar);
+                        currentVar = (VariableEntry) symbolTable.getCurrentScope().lookup(currentVarname); // Agafem la variable del scope actual
+                    }
+
                     if (currentVar == null) {
                         errorHandler.recordError("Error: La variable de la asignación no existe", node.getLine());
                         return;
@@ -441,6 +446,7 @@ public class Parser {
         }
     }
 
+    //TODO: Comprovar si existeix nomes al Scope actual, sino afegir la copia del scope pare
     private void handleVarnameInAssignation(Node node) {
         VariableEntry variableEntry = (VariableEntry) symbolTable.getCurrentScope().lookup((String)node.getValue());
         // Si la varname no es troba a la taula de simbols -> ERROR

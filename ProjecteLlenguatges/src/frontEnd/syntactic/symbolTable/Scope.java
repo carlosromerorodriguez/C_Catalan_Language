@@ -95,9 +95,9 @@ public class Scope {
         } else if (parentScope != null) {
             // Fem una copia del que retorna el pare per no afectar la referencia
             SymbolTableEntry parentEntry = parentScope.lookup(name);
-            /*if (parentEntry instanceof VariableEntry parentVariableEntry) {
+            if (parentEntry instanceof VariableEntry parentVariableEntry) {
                 return new VariableEntry(parentVariableEntry.getId(), parentVariableEntry.getName(), parentVariableEntry.getLine(), parentVariableEntry.getType(), parentVariableEntry.getIsArgument());
-            }*/
+            }
 
             return parentEntry; //Creem una copia del que retorna el pare
         } else {
@@ -108,13 +108,8 @@ public class Scope {
     public void setIsMainScope(Boolean isMainScope) {
         this.isMainScope = isMainScope;
     }
-    public Boolean isConditionalScope() {
-        //Si te un coditionalEntry a la taula de simbols es un scope condicional
-        for(Map.Entry<String, SymbolTableEntry> entry : this.symbolTable.entrySet()){
-            if(entry.getValue() instanceof ConditionalEntry){
-                return true;
-            }
-        }
-        return false;
+
+    public Boolean entryExists(String name) {
+        return symbolTable.containsKey(name);
     }
 }
