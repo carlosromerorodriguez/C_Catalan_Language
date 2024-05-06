@@ -28,7 +28,6 @@ public class Parser {
     private Boolean equalSeen = false;
     private Boolean retornSeen = false;
     private String functionType = "";
-    private int tokenCounter = 0;
     private Boolean canChangeContext = true;
     private Boolean insideCondition = false;
     private String currentConditional = "";
@@ -160,6 +159,7 @@ public class Parser {
                             context = "declaració";
                             typeDeclaration = (String) topNode.getValue(); // Guardem tipus de variable
                         }
+                        functionType = (String) topNode.getValue();
                         break;
                     case ";", "END":
                         // Reseteamos el contexto
@@ -184,14 +184,6 @@ public class Parser {
 
                     default:
                         break;
-                }
-
-                if(context.equals("FUNCTION")) {
-                    tokenCounter++;
-                    if(tokenCounter == 2) {
-                        functionType = (String) topNode.getValue();
-                        tokenCounter = 0;
-                    }
                 }
 
                 printTreeStructure(depth, topSymbol, "\033[32mMATCH (" + token.getLine() + ") __" + (token.getOriginalName() == null ? this.tokenConverter.getKeyFromToken(tokenName) : token.getOriginalName())  + "__\033[0m", "\033[32m");
@@ -247,7 +239,6 @@ public class Parser {
                 }
             }
         } else if (production.trim().equals("FUNCTION")) {
-            this.tokenCounter = 0;
             this.context = production;
             this.functionType = "";
         } else if(production.trim().equals("condicionals") || production.trim().equals("iteratives") || production.equals("ELSE")) {
