@@ -49,5 +49,6 @@ public class VariableEntry extends SymbolTableEntry {
         }
         this.expression.add(value);
     }
+
 }
 

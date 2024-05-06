@@ -93,7 +93,14 @@ public class Scope {
         if (symbolTable.containsKey(name)) {
             return symbolTable.get(name);
         } else if (parentScope != null) {
-            return parentScope.lookup(name);
+            // Fem una copia del que retorna el pare per no afectar la referencia
+            SymbolTableEntry parentEntry = parentScope.lookup(name);
+            if (parentEntry instanceof VariableEntry parentVariableEntry) {
+                /* Creem la copia si es una variable per no afectar la referencia */
+                return new VariableEntry(parentVariableEntry.getId(), parentVariableEntry.getName(), parentVariableEntry.getLine(), parentVariableEntry.getType(), parentVariableEntry.getIsArgument());
+            }
+
+            return parentEntry; //Creem una copia del que retorna el pare
         } else {
             return null;
         }

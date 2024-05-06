@@ -178,8 +178,8 @@ public class Parser {
                             insideCondition = false;
                             currentConditional = "";
                             isInArguments = false;
-                            argumentsInFunctionSentence = false; // Ja no ens podem trobar arguments en la crida a una funció en una assignació/retorn
                         }
+                        argumentsInFunctionSentence = false;
                         break;
 
                     default:
@@ -356,7 +356,8 @@ public class Parser {
                     VariableEntry currentVar = (VariableEntry) symbolTable.getCurrentScope().lookup(currentVarname);
                     System.out.println("Current var: " + currentVar);
                     if(node.getValue() != null) currentVar.appendExpressionValue(node.getValue());
-                    else if(!argumentsInFunctionSentence && !node.getType().equals(",")) currentVar.appendExpressionValue(node.getType());
+                    else if(argumentsInFunctionSentence) currentVar.appendExpressionValue(node.getType());
+                    else if(!node.getType().equals(",")) currentVar.appendExpressionValue(node.getType());
 
                 }
                 if (retornSeen) {
@@ -384,7 +385,7 @@ public class Parser {
     }
 
     private void handleVarname(Node node) {
-        if(lastTopSymbol.equals(",") || lastTopSymbol.equals(";") || lastTopSymbol.equals("START") || lastTopSymbol.equals("END") || lastTopSymbol.equals(":")) { //Si l'ultim top symbol
+        if((!argumentsInFunctionSentence && lastTopSymbol.equals(",")) || lastTopSymbol.equals(";") || lastTopSymbol.equals("START") || lastTopSymbol.equals("END") || lastTopSymbol.equals(":")) { //Si l'ultim top symbol
             VariableEntry lastVar = (VariableEntry) symbolTable.getCurrentScope().lookup(currentVarname);
             if(lastVar != null) lastVar.setExpressionAlreadyAssigned(true);
 
@@ -403,6 +404,18 @@ public class Parser {
             }
             // Guardem el que trobem al retornValue de la functionEntry del scope actual
             if(node.getValue() != null) symbolTable.getCurrentScope().getFunctionEntry().appendReturnValue(node.getValue());
+        }
+
+        if(argumentsInFunctionSentence) {
+            // Si la varname no es troba a la taula de simbols -> ERROR
+            if(symbolTable.getCurrentScope().lookup((String)node.getValue()) == null){
+                errorHandler.recordError("Error: La variable de la crida a la funció no existe", node.getLine());
+                return;
+            }
+            // Guardem el que trobem a la llista d'arguments de la functionEntry del scope actual
+            VariableEntry currentVar = (VariableEntry) symbolTable.getCurrentScope().lookup(currentVarname);
+            currentVar.appendExpressionValue(node.getValue());
+            return;
         }
 
         switch (context) {
@@ -451,7 +464,7 @@ public class Parser {
         FunctionEntry functionEntry = symbolTable.getCurrentScope().getFunctionEntry();
 
         // Afegim el varname a la llista d'arguments de la funció
-        VariableEntry symbolTableEntry = new VariableEntry(UUID.randomUUID(), (String) node.getValue(), node.getLine(), lastVarTypeSeenInArguments, false);
+        VariableEntry symbolTableEntry = new VariableEntry(UUID.randomUUID(), (String) node.getValue(), node.getLine(), lastVarTypeSeenInArguments, true);
         functionEntry.addArgument(symbolTableEntry);
     }
 

@@ -25,6 +25,9 @@ public abstract class SymbolTableEntry {
         this.name = name;
     }
 
+    public int getLine() {
+        return line;
+    }
 
     @Override
     public String toString() {
