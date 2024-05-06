@@ -1,4 +1,4 @@
-proces enter Fibonacci() fer:
+proces enter Fibonacci(enter: abs, enter: abs2) fer:
     enter: nombre2 = 10 ç		xiuxiueja aquesta és la primeria línia i això és un comentari
     nombre2 = 5 ç
     enter: a = 4, b = 5 ç
@@ -22,9 +22,9 @@ proces enter Fibonacci() fer:
         fi
     fi
 
-    enter: test = Fibonacci() + -1, test2 = 4 ç
+    enter: test = Fibonacci(a, b) + -1, test2 = 4 ç
 
-    retorna nombre2 + Fibonacci() - 4 ç
+    retorna nombre2 + Fibonacci(a, b) - 4 ç
 fi
 
 proces Calçot() fer:

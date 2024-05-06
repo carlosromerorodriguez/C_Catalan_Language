@@ -1,8 +1,7 @@
 //TODO:
 // - S'ha d'afegir diverses expresions a una variable ja que es poden donar una en un if i una en un else
 //   per el tema del boolean expressionAlreadyAssigned a VariableEntry
-// - Else peta
-// - En el PER guarda coses de mes
+// - Arguments de funcions
 // - Control d'errors
 
 package frontEnd.syntactic;
@@ -33,6 +32,9 @@ public class Parser {
     private Boolean canChangeContext = true;
     private Boolean insideCondition = false;
     private String currentConditional = "";
+    private String lastVarTypeSeenInArguments = "";
+    private Boolean isInArguments = false;
+    private Boolean argumentsInFunctionSentence = false;
 
     public Parser(FirstFollow firstFollow, TokenConverter tokenConverter, ErrorHandler errorHandler) {
         this.tokenConverter = tokenConverter;
@@ -143,6 +145,10 @@ public class Parser {
                         topNode.setLine(token.getLine());
                     }
 
+                    if(context.equals("arguments") && topSymbol.equals("VAR_TYPE")) {
+                        lastVarTypeSeenInArguments = (String) topNode.getValue();
+                    }
+
                     if(topSymbol.equals(";") || topSymbol.equals("END")) { // Resetejem context
                         isFirstToken = false;
                         context = "";
@@ -158,6 +164,8 @@ public class Parser {
                     if(topSymbol.equals(")") && context.equals("condicional")) {
                         insideCondition = false;
                         currentConditional = "";
+                        isInArguments = false;
+                        argumentsInFunctionSentence = false; // Ja no ens podem trobar arguments en la crida a una funció en una assignació/retorn
                     }
 
                     if(context.equals("FUNCTION")) {
@@ -168,7 +176,7 @@ public class Parser {
                         }
                     }
 
-                    if(isFirstToken && topSymbol.equals("VAR_TYPE")) {
+                    if(isFirstToken && topSymbol.equals("VAR_TYPE") && !context.equals("arguments")) {
                         isFirstToken = false;
                         context = "declaració";
                         typeDeclaration = (String) topNode.getValue(); // Guardem tipus de variable
@@ -218,14 +226,20 @@ public class Parser {
     }
 
     private void checkContext(String production) {
-        if (production.trim().equals("arguments")|| production.trim().equals("assignació") || production.trim().equals("retorn")) {
-            if(canChangeContext) {
-                canChangeContext = false;
+        if (production.trim().equals("arguments") || production.trim().equals("assignació") || production.trim().equals("retorn")) {
+            if(production.trim().equals("arguments") || isInArguments) {
+                canChangeContext = true;
                 this.isFirstToken = true;
                 this.context = production;
                 this.typeDeclaration = "";
+            } else {
+                if (canChangeContext) {
+                    canChangeContext = false;
+                    this.isFirstToken = true;
+                    this.context = production;
+                    this.typeDeclaration = "";
+                }
             }
-
         } else if (production.trim().equals("FUNCTION")) {
             this.tokenCounter = 0;
             this.context = production;
@@ -336,7 +350,7 @@ public class Parser {
                     VariableEntry currentVar = (VariableEntry) symbolTable.getCurrentScope().lookup(currentVarname);
                     System.out.println("Current var: " + currentVar);
                     if(node.getValue() != null) currentVar.appendExpressionValue(node.getValue());
-                    else if(!node.getType().equals(",")) currentVar.appendExpressionValue(node.getType());
+                    else if(!argumentsInFunctionSentence && !node.getType().equals(",")) currentVar.appendExpressionValue(node.getType());
 
                 }
                 if (retornSeen) {
@@ -348,7 +362,7 @@ public class Parser {
                 if (insideCondition) {
                      ConditionalEntry currentConditionalEntry = (ConditionalEntry) symbolTable.getCurrentScope().lookup(currentConditional);
                      if(node.getValue() != null) currentConditionalEntry.addCondition(node.getValue());
-                     else if(!node.getType().equals("(")) currentConditionalEntry.addCondition(node.getType());
+                     else if(!node.getType().equals("(") && !node.getType().equals(":") && !node.getType().equals("START")) currentConditionalEntry.addCondition(node.getType());
                 }
                 break;
         }
@@ -427,14 +441,12 @@ public class Parser {
 
 
     private void handleVarnameInArguments(Node node) {
-        // Si la varname es troba a la taula de simbols -> Afegir-la com a argument de la funció creant de nou la variable entry amb un id diferent i afegint a true el isArgument
-        if (symbolTable.getCurrentScope().lookup((String) node.getValue()) != null){
-            VariableEntry symbolTableEntry = new VariableEntry(UUID.randomUUID(), (String) node.getValue(), node.getLine(), typeDeclaration, true);
-            symbolTable.addSymbolEntry(symbolTableEntry);
-            symbolTable.getCurrentScope().getFunctionEntry().addArgument(symbolTableEntry);
-        } else if (symbolTable.getCurrentScope().lookup((String) node.getValue()) == null){ // Si la varname no es troba a la taula de símbols (hauria d'estar a la del pare) -> ERROR
-            errorHandler.recordError("Error: La variable del argumento no existe", node.getLine());
-        }
+        // Busquem la function_entry del scope actual i no del pare
+        FunctionEntry functionEntry = symbolTable.getCurrentScope().getFunctionEntry();
+
+        // Afegim el varname a la llista d'arguments de la funció
+        VariableEntry symbolTableEntry = new VariableEntry(UUID.randomUUID(), (String) node.getValue(), node.getLine(), lastVarTypeSeenInArguments, false);
+        functionEntry.addArgument(symbolTableEntry);
     }
 
     private void handleVarnameInDeclaration(Node node) {
@@ -464,6 +476,8 @@ public class Parser {
                 return;
             }
 
+            argumentsInFunctionSentence = true; //Marquem que ens podem trobar arguments quan es crida una funció a una assignació
+
             VariableEntry currentVar = (VariableEntry) symbolTable.getCurrentScope().lookup(currentVarname);
             currentVar.appendExpressionValue(node.getValue());
             return;
@@ -473,6 +487,8 @@ public class Parser {
                 errorHandler.recordError("Error: La funció no ha estat previament declarada: ", node.getLine());
                 return;
             }
+
+            argumentsInFunctionSentence = true; //Marquem que ens podem trobar arguments quan es crida una funció a un retorn
 
             symbolTable.getCurrentScope().getFunctionEntry().appendReturnValue(node.getValue());
             return;
