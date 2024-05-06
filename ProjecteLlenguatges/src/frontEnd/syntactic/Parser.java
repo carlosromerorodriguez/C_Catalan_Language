@@ -354,6 +354,10 @@ public class Parser {
                 if (equalSeen) {
                     // Guardar el valor de l'expressió a la variable currentVarname
                     VariableEntry currentVar = (VariableEntry) symbolTable.getCurrentScope().lookup(currentVarname);
+                    if (currentVar == null) {
+                        errorHandler.recordError("Error: La variable de la asignación no existe", node.getLine());
+                        return;
+                    }
                     System.out.println("Current var: " + currentVar);
                     if(node.getValue() != null) currentVar.appendExpressionValue(node.getValue());
                     else if(argumentsInFunctionSentence) currentVar.appendExpressionValue(node.getType());
@@ -414,6 +418,12 @@ public class Parser {
             }
             // Guardem el que trobem a la llista d'arguments de la functionEntry del scope actual
             VariableEntry currentVar = (VariableEntry) symbolTable.getCurrentScope().lookup(currentVarname);
+
+            if (currentVar == null) {
+                errorHandler.recordError("Error: La variable de la crida a la funció no existe", node.getLine());
+                return;
+            }
+
             currentVar.appendExpressionValue(node.getValue());
             return;
         }
@@ -450,6 +460,10 @@ public class Parser {
         if(equalSeen){ //Si ja hem vist l'igual, vol dir que el varname trobat forma part de l'expressió del currentVarname
             //Guardem la variable al valor de l'expressió de currentVarname
             VariableEntry currentVar = (VariableEntry) symbolTable.getCurrentScope().lookup(currentVarname);
+            if(currentVar == null){
+                errorHandler.recordError("Error: La variable de la asignación no existe", node.getLine());
+                return;
+            }
             currentVar.appendExpressionValue(node.getValue());
         } else { //Si no hem vist l'igual, vol dir que el varname trobat es el que s'ha d'assignar
             currentVarname = (String) node.getValue();
@@ -483,6 +497,10 @@ public class Parser {
 
         // Si la varname ja es troba a la taula de simbols l'afegim a l'expressió de currentVarname
         VariableEntry currentVar = (VariableEntry) symbolTable.getCurrentScope().lookup(currentVarname);
+        if (currentVar == null) {
+            errorHandler.recordError("Error: La variable de la asignación no existe", node.getLine());
+            return;
+        }
         currentVar.appendExpressionValue(node.getValue());
     }
 
@@ -498,6 +516,10 @@ public class Parser {
             argumentsInFunctionSentence = true; //Marquem que ens podem trobar arguments quan es crida una funció a una assignació
 
             VariableEntry currentVar = (VariableEntry) symbolTable.getCurrentScope().lookup(currentVarname);
+            if (currentVar == null) {
+                errorHandler.recordError("Error: La variable de la asignación no existe", node.getLine());
+                return;
+            }
             currentVar.appendExpressionValue(node.getValue());
             return;
         } else if (retornSeen) {
