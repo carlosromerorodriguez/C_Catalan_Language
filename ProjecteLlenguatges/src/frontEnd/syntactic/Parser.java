@@ -115,41 +115,54 @@ public class Parser {
         int depth = 0;
 
         while (!stack.isEmpty()) {
-            Node topNode = stack.peek();
-            String topSymbol = topNode.getType().trim();
+            if (tokenIndex >= tokens.size()) {
+                System.out.println("Anàlisi sintàctic finalitzat");
+                return;
+            }
 
+            Node topNode = stack.peek();
+
+            String topSymbol = topNode.getType().trim();
             if (topSymbol.equals("ε")) {
                 stack.pop();
                 depth--;
                 continue;
             }
 
-            if (tokenIndex >= tokens.size()) {
-                System.out.println("Anàlisi sintàctic finalitzat");
-                return;
-            }
-
             Token token = tokens.get(tokenIndex);
             String tokenName = token.getStringToken().toUpperCase().trim();
 
             if (terminalSymbols.contains(topSymbol)) {
-                if (topSymbol.equals(tokenName)) {
-                    lastTopSymbol = currentTopSymbol;
-                    currentTopSymbol = topSymbol;
+                if (!topSymbol.equals(tokenName)) {
+                    errorHandler.recordError("Error de sintaxi en la línia " + token.getLine() + ": símbol inesperat " + token.getStringToken() + " Falta el símbol: " + tokenName, token.getLine());
+                    stack.pop();
+                    tokenIndex++;
+                    continue;
+                }
 
-                    if (topSymbol.equals("LITERAL") || topSymbol.equals("VAR_NAME") || topSymbol.equals("FUNCTION_NAME")) {
+                lastTopSymbol = currentTopSymbol;
+                currentTopSymbol = topSymbol;
+
+                switch (topSymbol) {
+                    case "LITERAL", "VAR_NAME", "FUNCTION_NAME":
                         topNode.setValue(token.getValue());
                         topNode.setLine(token.getLine());
-                    } else if (topSymbol.equals("VAR_TYPE")) {
+                        break;
+                    case "VAR_TYPE":
                         topNode.setValue(token.getOriginalName());
                         topNode.setLine(token.getLine());
-                    }
 
-                    if(context.equals("arguments") && topSymbol.equals("VAR_TYPE")) {
-                        lastVarTypeSeenInArguments = (String) topNode.getValue();
-                    }
-
-                    if(topSymbol.equals(";") || topSymbol.equals("END")) { // Resetejem context
+                        if (context.equals("arguments")) {
+                            lastVarTypeSeenInArguments = (String) topNode.getValue();
+                        }
+                        if (isFirstToken && !context.equals("arguments")) {
+                            isFirstToken = false;
+                            context = "declaració";
+                            typeDeclaration = (String) topNode.getValue(); // Guardem tipus de variable
+                        }
+                        break;
+                    case ";", "END":
+                        // Reseteamos el contexto
                         isFirstToken = false;
                         context = "";
                         typeDeclaration = "";
@@ -158,43 +171,36 @@ public class Parser {
                         canChangeContext = true;
                         currentConditional = "";
                         insideCondition = false;
-                    }
-
-                    // Si es tanca la condició
-                    if(topSymbol.equals(")") && context.equals("condicional")) {
-                        insideCondition = false;
-                        currentConditional = "";
-                        isInArguments = false;
-                        argumentsInFunctionSentence = false; // Ja no ens podem trobar arguments en la crida a una funció en una assignació/retorn
-                    }
-
-                    if(context.equals("FUNCTION")) {
-                        tokenCounter++;
-                        if(tokenCounter == 2) {
-                            functionType = (String) topNode.getValue();
-                            tokenCounter = 0;
+                        break;
+                    case ")":
+                        // Si se cierra la condición
+                        if (context.equals("condicional")) {
+                            insideCondition = false;
+                            currentConditional = "";
+                            isInArguments = false;
+                            argumentsInFunctionSentence = false; // Ja no ens podem trobar arguments en la crida a una funció en una assignació/retorn
                         }
-                    }
+                        break;
 
-                    if(isFirstToken && topSymbol.equals("VAR_TYPE") && !context.equals("arguments")) {
-                        isFirstToken = false;
-                        context = "declaració";
-                        typeDeclaration = (String) topNode.getValue(); // Guardem tipus de variable
-                    }
-
-                    processTopSymbol(topNode, tokenName, token);
-
-                    String tokenOriginalName = this.tokenConverter.getKeyFromToken(tokenName);
-                    printTreeStructure(depth, topSymbol, "\033[32mMATCH (" + token.getLine() + ") __" + (token.getOriginalName() == null ? tokenOriginalName : token.getOriginalName())  + "__\033[0m", "\033[32m");
-
-                    stack.pop();
-                    tokenIndex++;
-                    depth--;
-                } else {
-                    stack.pop();
-                    tokenIndex++;
-                    errorHandler.recordError("Error de sintaxi en la línia " + token.getLine() + ": símbol inesperat " + token.getStringToken() + " Falta el símbol: " + tokenName, token.getLine());
+                    default:
+                        break;
                 }
+
+                if(context.equals("FUNCTION")) {
+                    tokenCounter++;
+                    if(tokenCounter == 2) {
+                        functionType = (String) topNode.getValue();
+                        tokenCounter = 0;
+                    }
+                }
+
+                printTreeStructure(depth, topSymbol, "\033[32mMATCH (" + token.getLine() + ") __" + (token.getOriginalName() == null ? this.tokenConverter.getKeyFromToken(tokenName) : token.getOriginalName())  + "__\033[0m", "\033[32m");
+
+                // Se procesa el símbolo terminal y se saca de la pila
+                processTopSymbol(topNode, tokenName, token);
+                stack.pop();
+                tokenIndex++;
+                depth--;
             } else {  // topSymbol és un no-terminal
                 //System.out.println("\033[33mNext production: " + parseTable.get(topSymbol) + "\033[0m");
                 Map<String, List<String>> mappings = parseTable.get(topSymbol);
