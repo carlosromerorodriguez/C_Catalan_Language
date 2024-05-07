@@ -2,20 +2,17 @@ package frontEnd.syntactic.symbolTable;
 
 import frontEnd.syntactic.Node;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class Scope {
-    private HashMap<String, SymbolTableEntry> symbolTable;
+    private Map<String, SymbolTableEntry> symbolTable;
     private Scope parentScope; // Àmbit pare
     private List<Scope> childScopes;
     private Node rootNode;
     private Boolean isMainScope;
 
     public Scope() {
-        this.symbolTable = new HashMap<>();
+        this.symbolTable = new LinkedHashMap<>();
         this.parentScope = null;
         this.childScopes = new ArrayList<>();
         this.isMainScope = false;
@@ -111,5 +108,15 @@ public class Scope {
 
     public Boolean entryExists(String name) {
         return symbolTable.containsKey(name);
+    }
+
+
+    public String toString(int depth){
+        StringBuilder output = new StringBuilder();
+        for(Map.Entry<String, SymbolTableEntry> entry : this.symbolTable.entrySet()){
+            output.append(entry.getValue().toString(depth)).append("\n");
+        }
+        output.append("\n");
+        return output.toString();
     }
 }

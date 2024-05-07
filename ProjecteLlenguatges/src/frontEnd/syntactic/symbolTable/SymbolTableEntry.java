@@ -29,9 +29,9 @@ public abstract class SymbolTableEntry {
         return line;
     }
 
-    @Override
-    public String toString() {
-        return "SymbolTableEntry{name='" + name + "', scope='" + id + "', line='" + line + "'}";
+    public String toString(int depth) {
+        return null;
     }
+
 }
 

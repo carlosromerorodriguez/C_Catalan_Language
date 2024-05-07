@@ -16,6 +16,7 @@ public class FirstFollow {
         this.initializeTerminals();
         this.calculateFirsts();
         this.calculateFollows();
+
     }
 
     private void initializeTerminals() {

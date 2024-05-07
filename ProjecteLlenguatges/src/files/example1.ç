@@ -25,7 +25,7 @@ proces Calçot() fer:
     xiuxiueja enter: nombre2 ç
 
     nombre2 = 10 ç 
-    crida Fibonacci(nombre32, nombre2, nombre4, nombre5) ç
+    Fibonacci(nombre32, nombre2, nombre4, nombre5) ç
 
     mentre (nombre > nombre2) fer: 
 

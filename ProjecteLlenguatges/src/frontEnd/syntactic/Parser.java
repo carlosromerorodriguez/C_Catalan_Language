@@ -18,6 +18,8 @@ public class Parser {
     private final Map<String, Map<String, List<String>>> parseTable;
     private final Node rootNode;
     private final ErrorHandler errorHandler;
+    private final Map<String, Set<String>> first;
+    private final Map<String, Set<String>> follow;
     SymbolTable symbolTable;
     private ParserControlVariables parserControlVariables;
 
@@ -29,6 +31,8 @@ public class Parser {
         this.symbolTable.setAllTree(rootNode);
         this.parseTable = new HashMap<>();
         this.parserControlVariables = new ParserControlVariables();
+        this.first = firstFollow.getFirst();
+        this.follow = firstFollow.getFollow();
 
         this.buildParsingTable(firstFollow.getGrammar(), firstFollow.getFollow(), firstFollow.getFirst());
     }
