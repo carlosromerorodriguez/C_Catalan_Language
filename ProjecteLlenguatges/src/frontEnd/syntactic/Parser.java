@@ -26,6 +26,7 @@ public class Parser {
         this.errorHandler = errorHandler;
         this.rootNode = new Node("sortida", 0);
         this.symbolTable = new SymbolTable();
+        this.symbolTable.setAllTree(rootNode);
         this.parseTable = new HashMap<>();
         this.parserControlVariables = new ParserControlVariables();
 
@@ -95,7 +96,7 @@ public class Parser {
         ));
 
         Stack<Node> stack = new Stack<>();
-        stack.push(rootNode);  // Símbol de finalització
+        stack.push(symbolTable.getAllTree());  // Símbol de finalització
 
         int tokenIndex = 0;  // Per recórrer la llista de tokens.
         int depth = 0;
@@ -186,6 +187,9 @@ public class Parser {
                 if (mappings == null) {
                     errorHandler.recordError("No productions found for non-terminal: " + topSymbol, token.getLine());
                 } else {
+                    //Actualitzem lastTopNode
+                    parserControlVariables.lastTopNode = parserControlVariables.currentTopNode;
+                    parserControlVariables.currentTopNode = topNode;
                     List<String> production = mappings.get(tokenName);
                     System.out.println(production);
                     //System.out.println("\033[33mSelected production: " + tokenName + "=" + production + "\033[0m");
@@ -197,10 +201,20 @@ public class Parser {
                             Node newNode = new Node(production.get(i), 0);
                             checkContext(production.get(i));
                             System.out.println("New node: " + production.get(i));
-                            newNode.setParent(topNode);
+                            topNode.addChild(newNode);
                             stack.push(newNode);
                             depth++;
                         }
+                        //Afegir al scope actual
+                        if(symbolTable.getCurrentScope().getRootNode() != null) symbolTable.getCurrentScope().getRootNode().addChild(topNode);
+                        //symbolTable.getAllTree().addChild(topNode);
+                        if(parserControlVariables.lastTopNode != null){
+                            if(!parserControlVariables.lastTopNode.getChildren().contains(topNode)) parserControlVariables.lastTopNode.addChild(topNode);
+                        }
+                        else symbolTable.setAllTree(topNode);
+
+                        parserControlVariables.lastTopNode = parserControlVariables.currentTopNode;
+                        parserControlVariables.currentTopNode = topNode;
                     } else {
                         stack.pop();
                         //errorHandler.recordError("Error de sintaxi: no es pot processar el token " + token.getStringToken(), token.getLine());
@@ -208,6 +222,7 @@ public class Parser {
                 }
             }
         }
+        return;
     }
 
     private void checkContext(String production) {
@@ -251,6 +266,10 @@ public class Parser {
             topNode.setValue(token.getOriginalName());
             topNode.setLine(token.getLine());
         }
+
+        //Comprovar si el lastTopNode conte el topNode a afegir
+        if(!parserControlVariables.lastTopNode.getChildren().contains(topNode)) parserControlVariables.lastTopNode.addChild(topNode);
+        //symbolTable.getCurrentScope().getRootNode().addChild(topNode);
 
         // Mires si es IF, FUNCTION, ELSE, WHILE
         if (requiresNewScope(tokenName)) {
@@ -299,7 +318,13 @@ public class Parser {
     }
 
     public void printTree() {
-        rootNode.printTree(0);
+        System.out.println("TREE:");
+        symbolTable.getAllTree().printTree(0);
+        System.out.println("\n\n");
+        /*for(Scope scope: symbolTable.getCurrentScope().getChildScopes()) {
+            System.out.println("\nChild tree:\n");
+            scope.getRootNode().printTree(0);
+        }*/
     }
 
     public void createSymbolTable() {
@@ -530,5 +555,31 @@ public class Parser {
         symbolTable.addSymbolEntry(functionEntry);
         symbolTable.getCurrentScope().getParentScope().addEntry(functionEntry);
     }
+
+    public void verifyTree() {
+        HashSet<Node> visited = new HashSet<>();
+        Queue<Node> queue = new LinkedList<>();
+        queue.add(symbolTable.getAllTree());
+
+        while (!queue.isEmpty()) {
+            Node current = queue.poll();
+            if (visited.contains(current)) {
+                System.out.println("Duplicate or cyclic reference detected at node: " + current.getType());
+                continue;
+            }
+            visited.add(current);
+            queue.addAll(current.getChildren());
+        }
+    }
+
+    public void optimizeTree() {
+        symbolTable.getAllTree().optimize();
+    }
+
+
+    public SymbolTable getSymbolTable(){
+        return symbolTable;
+    }
+
 }
 

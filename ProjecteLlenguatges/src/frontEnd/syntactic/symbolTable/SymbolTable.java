@@ -1,11 +1,15 @@
 package frontEnd.syntactic.symbolTable;
 
 
+import frontEnd.syntactic.Node;
+
+import java.util.HashSet;
 import java.util.List;
 
 public class SymbolTable {
     private Scope rootScope;
     private Scope currentScope;
+    private Node allTree;
 
     public SymbolTable() {
         this.rootScope = new Scope();
@@ -42,7 +46,15 @@ public class SymbolTable {
         }
    }
 
-   public void addSymbolEntry(SymbolTableEntry newEntry){
+    public void setAllTree(Node allTree) {
+        this.allTree = allTree;
+    }
+
+    public Node getAllTree() {
+        return allTree;
+    }
+
+    public void addSymbolEntry(SymbolTableEntry newEntry){
         this.currentScope.addEntry(newEntry);
    }
 }

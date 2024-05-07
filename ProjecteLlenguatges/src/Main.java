@@ -34,8 +34,10 @@ public class Main {
         Parser parser = new Parser(inputFirstFollow, tokenConverter, errorHandler);
             //parser.printParseTable();
         parser.buildParsingTree(lexer.getTokens());
-            //parser.printTree();
+        parser.optimizeTree();
+        parser.printTree();
 
         errorHandler.printErrors();
     }
+
 }
