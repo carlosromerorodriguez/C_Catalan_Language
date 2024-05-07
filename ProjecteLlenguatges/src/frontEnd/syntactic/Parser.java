@@ -531,5 +531,8 @@ public class Parser {
         symbolTable.addSymbolEntry(functionEntry);
         symbolTable.getCurrentScope().getParentScope().addEntry(functionEntry);
     }
+    public SymbolTable getSymbolTable(){
+        return symbolTable;
+    }
 }
 

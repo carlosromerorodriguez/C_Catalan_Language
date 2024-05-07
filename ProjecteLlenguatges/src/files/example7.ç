@@ -16,6 +16,7 @@ proces enter Fibonacci(enter: abs, enter: abs2) fer:
     fi
 
     siono: ok = fals ç
+    enter: iterador ç
     per iterador de 10 fins 79 restant nombre2 fer:
         si (!ok) fer:
             enter: nombre = (((0 +10)  * 11)  +7/1) - 10  ç

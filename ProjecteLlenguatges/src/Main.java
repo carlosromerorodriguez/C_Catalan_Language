@@ -1,3 +1,4 @@
+import backEnd.TAC;
 import frontEnd.global.ErrorHandler;
 import frontEnd.lexic.CodeLine;
 import frontEnd.lexic.Lexer;
@@ -36,6 +37,9 @@ public class Main {
         parser.buildParsingTree(lexer.getTokens());
             //parser.printTree();
 
+        TAC tac = new TAC(parser.getSymbolTable());
+        tac.buildTAC();
         errorHandler.printErrors();
+
     }
 }
