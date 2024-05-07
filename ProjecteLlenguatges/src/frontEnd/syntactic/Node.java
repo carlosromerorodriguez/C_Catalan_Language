@@ -90,6 +90,9 @@ public class Node {
                if(!child.getType().equals("ε")) {
                    toRemove.add(child);
                }
+               /*if(doesntBelongToProduction(child.getType())) {
+                   toRemove.add(child);
+               }*/
            }
            children.removeAll(toRemove);
        } else {
@@ -98,4 +101,8 @@ public class Node {
            }
        }
     }
+
+    /*private Boolean doesntBelongToProduction(String type) {
+
+    }*/
 }

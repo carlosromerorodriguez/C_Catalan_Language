@@ -38,9 +38,9 @@ public class Main {
         parser.optimizeTree();
         parser.printTree();
 
-        TAC tac = new TAC(parser.getSymbolTable());
+        /*TAC tac = new TAC(parser.getSymbolTable());
         tac.buildTAC();
-        errorHandler.printErrors();
+        errorHandler.printErrors();*/
 
     }
 
