@@ -49,11 +49,18 @@ public class VariableEntry extends SymbolTableEntry {
         }
         this.expression.add(value);
     }
-
     @Override
-    public String toString() {
-        return "VariableEntry{\n\tname='" + super.getName() +"\n\ttipus= "+ type + "'\n\tline='" + super.getLine() + "'\n\texpression='" + expression + "'\n\tisArgument='" + isArgument + "'}\n";
+    public String toString(int depth) {
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("VariableEntry{\n");
+        stringBuilder.append(" ".repeat(depth*2)).append("name='").append(super.getName()).append("\n");
+        stringBuilder.append(" ".repeat(depth*2)).append("type='").append(type).append("\n");
+        stringBuilder.append(" ".repeat(depth*2)).append("line='").append(super.getLine()).append("\n");
+        stringBuilder.append(" ".repeat(depth*2)).append("expression='").append(expression).append("\n");
+        stringBuilder.append(" ".repeat(depth*2)).append("isArgument='").append(isArgument).append("\n");
+        return stringBuilder.toString();
     }
+
 
 }
 

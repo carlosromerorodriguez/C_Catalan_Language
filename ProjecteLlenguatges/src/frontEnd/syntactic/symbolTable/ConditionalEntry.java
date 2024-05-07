@@ -26,7 +26,14 @@ public class ConditionalEntry extends SymbolTableEntry{
         return condition;
     }
     @Override
-    public String toString() {
-        return "VariableEntry{\n\tname='" + super.getName() +"\n\ttipus= "+ type + "'\n\tline='" + super.getLine() + "'\n\tcondition='" + condition + "'}\n";
+    public String toString(int depth) {
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("ConditionalEntry{\n");
+        stringBuilder.append(" ".repeat(depth)).append("name='").append(super.getName()).append("\n");
+        stringBuilder.append(" ".repeat(depth)).append("type='").append(type).append("\n");
+        stringBuilder.append(" ".repeat(depth)).append("line='").append(super.getLine()).append("\n");
+       // stringBuilder.append("\t".repeat(depth*2)).append("condition='").append(condition).append("\n");
+        return stringBuilder.toString();
     }
+
 }

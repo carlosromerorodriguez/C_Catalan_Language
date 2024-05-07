@@ -29,6 +29,9 @@ public abstract class SymbolTableEntry {
         return line;
     }
 
+    public String toString(int depth) {
+        return null;
+    }
 
 }
 

@@ -22,7 +22,7 @@ public class TAC {
 
     private void addTacs(Scope scope, int depth){
         for (Scope TacScope: scope.getChildScopes()){
-            System.out.println("\t".repeat(depth*5) + "-" + TacScope);
+            System.out.println("--".repeat((depth*5)+1) + TacScope.toString((depth*5)+1));
             addTacs(TacScope, depth + 1);
         }
     }

@@ -2,20 +2,17 @@ package frontEnd.syntactic.symbolTable;
 
 import frontEnd.syntactic.Node;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class Scope {
-    private HashMap<String, SymbolTableEntry> symbolTable;
+    private Map<String, SymbolTableEntry> symbolTable;
     private Scope parentScope; // Àmbit pare
     private List<Scope> childScopes;
     private Node rootNode;
     private Boolean isMainScope;
 
     public Scope() {
-        this.symbolTable = new HashMap<>();
+        this.symbolTable = new LinkedHashMap<>();
         this.parentScope = null;
         this.childScopes = new ArrayList<>();
         this.isMainScope = false;
