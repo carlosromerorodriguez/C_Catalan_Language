@@ -25,4 +25,8 @@ public class ConditionalEntry extends SymbolTableEntry{
     public List<Object> getCondition() {
         return condition;
     }
+    @Override
+    public String toString() {
+        return "VariableEntry{\n\tname='" + super.getName() +"\n\ttipus= "+ type + "'\n\tline='" + super.getLine() + "'\n\tcondition='" + condition + "'}\n";
+    }
 }

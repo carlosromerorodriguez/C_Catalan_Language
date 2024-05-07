@@ -50,5 +50,10 @@ public class VariableEntry extends SymbolTableEntry {
         this.expression.add(value);
     }
 
+    @Override
+    public String toString() {
+        return "VariableEntry{\n\tname='" + super.getName() +"\n\ttipus= "+ type + "'\n\tline='" + super.getLine() + "'\n\texpression='" + expression + "'\n\tisArgument='" + isArgument + "'}\n";
+    }
+
 }
 

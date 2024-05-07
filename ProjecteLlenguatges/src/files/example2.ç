@@ -1,6 +1,6 @@
 proces enter Funció() fer:
-    enter: resultat = 10
-    retorna resultat
+    enter: resultat = 10 ç
+    retorna resultat ç
 fi 
 
 proces Calçot() fer:

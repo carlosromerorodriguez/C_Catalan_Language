@@ -208,6 +208,7 @@ public class Parser {
                 }
             }
         }
+        return;
     }
 
     private void checkContext(String production) {
