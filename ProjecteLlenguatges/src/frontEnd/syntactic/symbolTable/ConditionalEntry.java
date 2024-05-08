@@ -29,9 +29,9 @@ public class ConditionalEntry extends SymbolTableEntry{
     public String toString(int depth) {
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("ConditionalEntry{\n");
-        stringBuilder.append(" ".repeat(depth)).append("name='").append(super.getName()).append("\n");
-        stringBuilder.append(" ".repeat(depth)).append("type='").append(type).append("\n");
-        stringBuilder.append(" ".repeat(depth)).append("line='").append(super.getLine()).append("\n");
+        stringBuilder.append("  ".repeat(depth)).append("name=").append(super.getName()).append("\n");
+        stringBuilder.append("  ".repeat(depth)).append("type=").append(type).append("\n");
+        stringBuilder.append("  ".repeat(depth)).append("line=").append(super.getLine()).append("\n");
        // stringBuilder.append("\t".repeat(depth*2)).append("condition='").append(condition).append("\n");
         return stringBuilder.toString();
     }

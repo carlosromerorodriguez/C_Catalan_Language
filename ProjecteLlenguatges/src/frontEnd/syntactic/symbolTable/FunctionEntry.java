@@ -49,11 +49,17 @@ public class FunctionEntry extends SymbolTableEntry {
     public String toString(int depth) {
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("FunctionEntry{\n");
-        stringBuilder.append(" ".repeat(depth*2)).append("name='").append(super.getName()).append("\n");
-        stringBuilder.append(" ".repeat(depth*2)).append("type='").append(returnType).append("\n");
-        stringBuilder.append(" ".repeat(depth*2)).append("line='").append(super.getLine()).append("\n");
-        //stringBuilder.append("\t".repeat(depth*2)).append("parameters='").append(parameters).append("\n");
-        stringBuilder.append(" ".repeat(depth*2)).append("return='").append(returnValue).append("\n");
+        stringBuilder.append("  ".repeat(depth)).append("name=").append(super.getName()).append("\n");
+        stringBuilder.append("  ".repeat(depth)).append("type=").append(returnType).append("\n");
+        stringBuilder.append("  ".repeat(depth)).append("line=").append(super.getLine()).append("\n");
+        stringBuilder.append("  ".repeat(depth)).append("parameters=").append("\n");
+
+        for (VariableEntry var: parameters) {
+            stringBuilder.append("  ".repeat(depth)).append(var.toString(depth)).append("\n");
+        }
+
+        stringBuilder.append("\t".repeat(depth*2)).append("parameters='").append(parameters).append("\n");
+        stringBuilder.append("  ".repeat(depth)).append("return='").append(returnValue).append("\n");
         return stringBuilder.toString();
     }
 }

@@ -114,7 +114,7 @@ public class Scope {
     public String toString(int depth){
         StringBuilder output = new StringBuilder();
         for(Map.Entry<String, SymbolTableEntry> entry : this.symbolTable.entrySet()){
-            output.append(entry.getValue().toString(depth)).append("\n");
+            output.append("  ".repeat(depth)).append(entry.getValue().toString(depth)).append("\n");
         }
         output.append("\n");
         return output.toString();

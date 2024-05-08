@@ -467,6 +467,7 @@ public class Parser {
         // Afegim el varname a la llista d'arguments de la funció
         VariableEntry symbolTableEntry = new VariableEntry(UUID.randomUUID(), (String) node.getValue(), node.getLine(), parserControlVariables.lastVarTypeSeenInArguments, true);
         functionEntry.addArgument(symbolTableEntry);
+        symbolTable.addSymbolEntry(symbolTableEntry);
     }
 
     private void handleVarnameInDeclaration(Node node) {
