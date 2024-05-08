@@ -156,7 +156,7 @@ public class Parser {
                         parserControlVariables.functionType = (String) topNode.getValue();
                         break;
                     case ";", "END":
-                        // Reseteamos el contexto
+                        // Resetejem variables de control si trobem un punt i coma o un END
                         parserControlVariables.isFirstToken = false;
                         parserControlVariables.context = "";
                         parserControlVariables.typeDeclaration = "";
@@ -167,7 +167,7 @@ public class Parser {
                         parserControlVariables.insideCondition = false;
                         break;
                     case ")":
-                        // Si se cierra la condición
+                        // Si es tanca un parentesi, vol dir que hem acabat d'afegir arguments a una funció o que hem acabat una condició
                         if (parserControlVariables.context.equals("condicional")) {
                             parserControlVariables.insideCondition = false;
                             parserControlVariables.currentConditional = "";
