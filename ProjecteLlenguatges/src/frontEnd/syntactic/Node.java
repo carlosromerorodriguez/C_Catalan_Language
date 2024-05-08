@@ -43,6 +43,7 @@ public class Node {
 
     public void printTree(int level) {
         System.out.println(" ".repeat(level * 2) + type + " (" + value + ")");
+
         for (Node child : children) {
             child.printTree(level + 1);
         }
@@ -78,31 +79,27 @@ public class Node {
         return false;
     }
 
-    public void optimize() {
-        List<String> types = new ArrayList<>();
-        for(Node child : children) {
-            types.add(child.getType());
-        }
+    public void pruneEpsilonPaths() {
+        Iterator<Node> iterator = children.iterator();
+        while (iterator.hasNext()) {
+            Node child = iterator.next();
+            child.pruneEpsilonPaths();
 
-       if(types.contains("ε")) {
-           List<Node> toRemove = new ArrayList<>();
-           for (Node child : children) {
-               if(!child.getType().equals("ε")) {
-                   toRemove.add(child);
-               }
-               /*if(doesntBelongToProduction(child.getType())) {
-                   toRemove.add(child);
-               }*/
-           }
-           children.removeAll(toRemove);
-       } else {
-           for(Node child : children) {
-               child.optimize();
-           }
-       }
+            // Si su hijo es un nodo "ε" y ese nodo no tiene hijos, se elimina directamente
+            if (child.type.equals("ε") && child.children.isEmpty()) {
+                iterator.remove();
+                // Se verifica si después de eliminar el nodo ε, el padre (este nodo) no tiene otros hijos significativos
+                if (children.isEmpty()) {
+                    // Si este nodo ahora no tiene hijos y no es un nodo terminal útil, también se marca para la eliminación
+                    if (shouldBeRemovedWhenEmpty()) {
+                        type = "ε"; // Marcar este nodo para que se elimine en la siguiente pasada
+                    }
+                }
+            }
+        }
     }
 
-    /*private Boolean doesntBelongToProduction(String type) {
-
-    }*/
+    private boolean shouldBeRemovedWhenEmpty() {
+        return !terminalSymbols.contains(type);
+    }
 }

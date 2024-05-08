@@ -589,7 +589,7 @@ public class Parser {
     }
 
     public void optimizeTree() {
-        symbolTable.getAllTree().optimize();
+        symbolTable.getAllTree().pruneEpsilonPaths();
     }
 
 
