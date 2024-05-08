@@ -593,8 +593,8 @@ public class Parser {
     }
 
 
-    public SymbolTable getSymbolTable(){
-        return symbolTable;
+    public Node getParsingTree(){
+        return symbolTable.getAllTree();
     }
 
 }

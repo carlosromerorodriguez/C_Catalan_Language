@@ -8,72 +8,155 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TAC {
-    private List<TacExpression> tacs;
-    private int tempTac = 0;
+    private List<String> tacs;
+    private int tempCounter = 0;
     private Node topNode;
-    private SymbolTable symbolTable;
-    public TAC(SymbolTable symbolTable) {
+
+    public TAC(Node topNode) {
         this.tacs = new ArrayList<>();
-        this.symbolTable = symbolTable;
-        //this.topNode = node;
+        this.topNode = topNode;
     }
-    /*public generateTAC()) {
-        List<String> tacs = new ArrayList<>();
-        buildTAC(topNode, tacs);
-        //printTAC(tacs);
+    private void printTAC() {
+        System.out.println("-------------TAC------------------" + "\n\n");
+        for (String tac : tacs) {
+            System.out.println(tac);
+        }
     }
 
-    public void buildTAC(Node node, List<String> tacs) {
-        System.out.println("-------------TAC------------------" + "\n\n");
+    private String generateTempVariable() {
+        return "t" + (tempCounter++);
+    }
+
+
+    public void generateTAC() {
+        Node rootNode = this.topNode;
+        if (rootNode.getType().equals("sortida")) {
+            for (Node child : rootNode.getChildren()) {
+                if (child.getType().equals("llista de funcions")) {
+                    for (Node func : child.getChildren()) {
+                        buildTAC(func, 0);
+                    }
+                } else if (child.getType().equals("main")) {
+                    buildTAC(child, 0);
+                }
+            }
+        }
+        printTAC();
+    }
+
+
+    public void buildTAC(Node node, int depth) {
+        String indent = "  ".repeat(depth);
         //addTacs(this.symbolTable.getRootScope(), 0);
-        switch(node.getType()){
-            case "EXPRESSION":
-                handleExpression(node, tacs);
+        switch (node.getType()) {
+            case "main":
+                tacs.add(indent + "enter main");
                 break;
-            case "DECLARATION":
-                handleDeclaration(node, tacs);
+            case "funcio":
+                handleFunction(node, depth);
                 break;
-            case "IF":
-                handleIf(node, tacs);
+            case "END":
                 break;
-            case "WHILE":
-                handleWhile(node, tacs);
+            case "llista_sentencies":
+
                 break;
-            case "FOR":
-                handleFor(node, tacs);
+            case "llista_sentencies_rest":
+
+                break;
+            case "ε":
+
+                break;
+            case "sentencia":
+
+                break;
+            case ";":
+
+                break;
+            case "assignació":
+                handleAssignment(node, depth);
+                break;
+            case "continuació_assignació":
+
+                break;
+            case "assignació_final":
+
+                break;
+            case "següent_token":
+
+                break;
+            case "expressió":
+                handleExpression(node, depth);
+                break;
+            case "terme":
+
+                break;
+            case "factor":
+
+                break;
+            case "literal":
+
+                break;
+            case "=":
+
+                break;
+            case "VAR_NAME":
+
+                break;
+            case ":":
+
+                break;
+            case "VAR_TYPE":
+
+                break;
+            case "START":
+
+                break;
+            case "(":
+
+                break;
+            case ")":
+
+                break;
+            case "CALÇOT":
+
+                break;
+            case "FUNCTION_MAIN":
+
                 break;
         }
 
         for (Node child : node.getChildren()) {
-            buildTAC(child, tacs);
+            buildTAC(child, depth + 1);
+        }
+        if (node.getType().equals("main")) {
+            tacs.add(indent + "exit main");
         }
     }
-    private void handleExpression(Node node, List<String> tacs) {
-        if (node.getChildren().size() == 2){
-            Node left = node.getChildren().get(0);
-            Node right = node.getChildren().get(2);
-            Node operator = node.getChildren().get(1);
 
-            String leftOperand = resolveExpression(left, tacInstructions);
-            String rightOperand = resolveExpression(right, tacInstructions);
-            String result = "t" + tempTac++;
-
-            tacs.add(result + " = " + leftOperand + " " + operator.getValue() + " " + rightOperand);
-            node.setValue(result);
-        } else if (node.getChildren().isEmpty()) {  // Es un nodo hoja
-            return node.getValue().toString();
+    private void handleFunction(Node node, int depth) {
+        String funcName = "hola";
+        tacs.add("  ".repeat(depth) + "enter function " + funcName);
+        for (Node child : node.getChildren()) {
+            buildTAC(child, depth + 1);
         }
+        tacs.add("  ".repeat(depth) + "exit function " + funcName);
     }
-    private String resolveExpression(Node node, List<String> tacs) {
-    if (node.getChildren().isEmpty()) {
-        return node.getValue().toString();
-    } else {
-        // Si no es hoja
-        handleExpression(node, tacInstructions);
-        return node.getValue().toString();
+    private void handleExpression(Node node, int depth) {
+        String result = generateTempVariable();
+        tacs.add("  ".repeat(depth) + result + " = eval_expression");
     }
-*/
 
+    private void handleAssignment(Node node, int depth) {
+        String varName = "a";
+        String value = "4";
+        String expressionResult = generateTempVariable();
+        tacs.add("  ".repeat(depth) + varName + " = " + expressionResult);
+        tacs.add("  ".repeat(depth + 1) + expressionResult + " = " + value);
+    }
+
+
+
+/*
     public void buildTAC(){
         System.out.println("-------------TAC------------------" + "\n\n");
         addTacs(this.symbolTable.getRootScope(), 0);
@@ -85,5 +168,5 @@ public class TAC {
             System.out.println("--".repeat((depth*5)+1) + TacScope.toString((depth*5)+1));
             addTacs(TacScope, depth + 1);
         }
-    }
+    }*/
 }
