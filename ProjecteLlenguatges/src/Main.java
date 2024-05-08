@@ -11,8 +11,8 @@ import java.util.List;
 
 
 public class Main {
-    private static final String FILE_PATH = "ProjecteLlenguatges/src/files/example2.ç";
-    private static final String GRAMMAR_PATH = "ProjecteLlenguatges/src/files/grammar.json";
+    private static final String FILE_PATH = "src/files/example2.ç";
+    private static final String GRAMMAR_PATH = "src/files/grammar.json";
 
     public static void  main(String[] args) {
         // 1. Clase para convertir el input del usuario a token de nuestro lenguaje
@@ -41,7 +41,6 @@ public class Main {
         TAC tac = new TAC(parser.getParsingTree());
         tac.generateTAC();
         errorHandler.printErrors();
-
     }
 
 }
