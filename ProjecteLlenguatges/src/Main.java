@@ -32,7 +32,7 @@ public class Main {
 
         // 5. Clase para cargar la gramática y construir la tabla de análisis sintáctico
         FirstFollow inputFirstFollow = new FirstFollow(preProcessing.loadGrammar(GRAMMAR_PATH));
-        Parser parser = new Parser(inputFirstFollow, tokenConverter, errorHandler);
+        Parser parser = new Parser(inputFirstFollow, tokenConverter, errorHandler, inputFirstFollow.getGrammar());
             //parser.printParseTable();
         parser.buildParsingTree(lexer.getTokens());
         parser.optimizeTree();

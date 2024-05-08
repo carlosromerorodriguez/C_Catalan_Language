@@ -21,11 +21,13 @@ public class Parser {
     private final Map<String, Set<String>> first;
     private final Map<String, Set<String>> follow;
     SymbolTable symbolTable;
+    private Map<String, List<List<String>>> grammar;
     private ParserControlVariables parserControlVariables;
 
-    public Parser(FirstFollow firstFollow, TokenConverter tokenConverter, ErrorHandler errorHandler) {
+    public Parser(FirstFollow firstFollow, TokenConverter tokenConverter, ErrorHandler errorHandler, Map<String, List<List<String>>> grammar) {
         this.tokenConverter = tokenConverter;
         this.errorHandler = errorHandler;
+        this.grammar = grammar;
         this.rootNode = new Node("sortida", 0);
         this.symbolTable = new SymbolTable();
         this.symbolTable.setAllTree(rootNode);
@@ -213,7 +215,7 @@ public class Parser {
                         if(symbolTable.getCurrentScope().getRootNode() != null) symbolTable.getCurrentScope().getRootNode().addChild(topNode);
                         //symbolTable.getAllTree().addChild(topNode);
                         if(parserControlVariables.lastTopNode != null){
-                            if(!parserControlVariables.lastTopNode.getChildren().contains(topNode)) parserControlVariables.lastTopNode.addChild(topNode);
+                            if(!parserControlVariables.lastTopNode.getChildren().contains(topNode) && doesBelongToProduction(topNode)) parserControlVariables.lastTopNode.addChild(topNode);
                         }
                         else symbolTable.setAllTree(topNode);
 
@@ -227,6 +229,16 @@ public class Parser {
             }
         }
         return;
+    }
+
+    private boolean doesBelongToProduction(Node topNode) {
+        List<List<String>> production = grammar.get(parserControlVariables.lastTopNode.getType());
+
+        for(List<String> prod : production) {
+            if(prod.contains(topNode.getType())) return true;
+        }
+
+        return false;
     }
 
     private void checkContext(String production) {
@@ -272,7 +284,7 @@ public class Parser {
         }
 
         //Comprovar si el lastTopNode conte el topNode a afegir
-        if(!parserControlVariables.lastTopNode.getChildren().contains(topNode)) parserControlVariables.lastTopNode.addChild(topNode);
+        if(!parserControlVariables.lastTopNode.getChildren().contains(topNode) && doesBelongToProduction(topNode)) parserControlVariables.lastTopNode.addChild(topNode);
         //symbolTable.getCurrentScope().getRootNode().addChild(topNode);
 
         // Mires si es IF, FUNCTION, ELSE, WHILE
