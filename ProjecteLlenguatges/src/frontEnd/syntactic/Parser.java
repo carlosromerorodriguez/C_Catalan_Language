@@ -18,16 +18,23 @@ public class Parser {
     private final Map<String, Map<String, List<String>>> parseTable;
     private final Node rootNode;
     private final ErrorHandler errorHandler;
+    private final Map<String, Set<String>> first;
+    private final Map<String, Set<String>> follow;
     SymbolTable symbolTable;
+    private Map<String, List<List<String>>> grammar;
     private ParserControlVariables parserControlVariables;
 
-    public Parser(FirstFollow firstFollow, TokenConverter tokenConverter, ErrorHandler errorHandler) {
+    public Parser(FirstFollow firstFollow, TokenConverter tokenConverter, ErrorHandler errorHandler, Map<String, List<List<String>>> grammar) {
         this.tokenConverter = tokenConverter;
         this.errorHandler = errorHandler;
+        this.grammar = grammar;
         this.rootNode = new Node("sortida", 0);
         this.symbolTable = new SymbolTable();
+        this.symbolTable.setAllTree(rootNode);
         this.parseTable = new HashMap<>();
         this.parserControlVariables = new ParserControlVariables();
+        this.first = firstFollow.getFirst();
+        this.follow = firstFollow.getFollow();
 
         this.buildParsingTable(firstFollow.getGrammar(), firstFollow.getFollow(), firstFollow.getFirst());
     }
@@ -95,7 +102,7 @@ public class Parser {
         ));
 
         Stack<Node> stack = new Stack<>();
-        stack.push(rootNode);  // Símbol de finalització
+        stack.push(symbolTable.getAllTree());  // Símbol de finalització
 
         int tokenIndex = 0;  // Per recórrer la llista de tokens.
         int depth = 0;
@@ -149,7 +156,7 @@ public class Parser {
                         parserControlVariables.functionType = (String) topNode.getValue();
                         break;
                     case ";", "END":
-                        // Reseteamos el contexto
+                        // Resetejem variables de control si trobem un punt i coma o un END
                         parserControlVariables.isFirstToken = false;
                         parserControlVariables.context = "";
                         parserControlVariables.typeDeclaration = "";
@@ -160,7 +167,7 @@ public class Parser {
                         parserControlVariables.insideCondition = false;
                         break;
                     case ")":
-                        // Si se cierra la condición
+                        // Si es tanca un parentesi, vol dir que hem acabat d'afegir arguments a una funció o que hem acabat una condició
                         if (parserControlVariables.context.equals("condicional")) {
                             parserControlVariables.insideCondition = false;
                             parserControlVariables.currentConditional = "";
@@ -186,6 +193,9 @@ public class Parser {
                 if (mappings == null) {
                     errorHandler.recordError("No productions found for non-terminal: " + topSymbol, token.getLine());
                 } else {
+                    //Actualitzem lastTopNode
+                    parserControlVariables.lastTopNode = parserControlVariables.currentTopNode;
+                    parserControlVariables.currentTopNode = topNode;
                     List<String> production = mappings.get(tokenName);
                     System.out.println(production);
                     //System.out.println("\033[33mSelected production: " + tokenName + "=" + production + "\033[0m");
@@ -197,10 +207,20 @@ public class Parser {
                             Node newNode = new Node(production.get(i), 0);
                             checkContext(production.get(i));
                             System.out.println("New node: " + production.get(i));
-                            newNode.setParent(topNode);
+                            topNode.addChild(newNode);
                             stack.push(newNode);
                             depth++;
                         }
+                        //Afegir al scope actual
+                        if(symbolTable.getCurrentScope().getRootNode() != null) symbolTable.getCurrentScope().getRootNode().addChild(topNode);
+                        //symbolTable.getAllTree().addChild(topNode);
+                        if(parserControlVariables.lastTopNode != null){
+                            if(!parserControlVariables.lastTopNode.getChildren().contains(topNode) && doesBelongToProduction(topNode)) parserControlVariables.lastTopNode.addChild(topNode);
+                        }
+                        else symbolTable.setAllTree(topNode);
+
+                        parserControlVariables.lastTopNode = parserControlVariables.currentTopNode;
+                        parserControlVariables.currentTopNode = topNode;
                     } else {
                         stack.pop();
                         //errorHandler.recordError("Error de sintaxi: no es pot processar el token " + token.getStringToken(), token.getLine());
@@ -209,6 +229,16 @@ public class Parser {
             }
         }
         return;
+    }
+
+    private boolean doesBelongToProduction(Node topNode) {
+        List<List<String>> production = grammar.get(parserControlVariables.lastTopNode.getType());
+
+        for(List<String> prod : production) {
+            if(prod.contains(topNode.getType())) return true;
+        }
+
+        return false;
     }
 
     private void checkContext(String production) {
@@ -252,6 +282,10 @@ public class Parser {
             topNode.setValue(token.getOriginalName());
             topNode.setLine(token.getLine());
         }
+
+        //Comprovar si el lastTopNode conte el topNode a afegir
+        if(!parserControlVariables.lastTopNode.getChildren().contains(topNode) && doesBelongToProduction(topNode)) parserControlVariables.lastTopNode.addChild(topNode);
+        //symbolTable.getCurrentScope().getRootNode().addChild(topNode);
 
         // Mires si es IF, FUNCTION, ELSE, WHILE
         if (requiresNewScope(tokenName)) {
@@ -300,7 +334,13 @@ public class Parser {
     }
 
     public void printTree() {
-        rootNode.printTree(0);
+        System.out.println("TREE:");
+        symbolTable.getAllTree().printTree(0);
+        System.out.println("\n\n");
+        /*for(Scope scope: symbolTable.getCurrentScope().getChildScopes()) {
+            System.out.println("\nChild tree:\n");
+            scope.getRootNode().printTree(0);
+        }*/
     }
 
     public void createSymbolTable() {
@@ -532,8 +572,31 @@ public class Parser {
         symbolTable.addSymbolEntry(functionEntry);
         symbolTable.getCurrentScope().getParentScope().addEntry(functionEntry);
     }
-    public SymbolTable getSymbolTable(){
-        return symbolTable;
+
+    public void verifyTree() {
+        HashSet<Node> visited = new HashSet<>();
+        Queue<Node> queue = new LinkedList<>();
+        queue.add(symbolTable.getAllTree());
+
+        while (!queue.isEmpty()) {
+            Node current = queue.poll();
+            if (visited.contains(current)) {
+                System.out.println("Duplicate or cyclic reference detected at node: " + current.getType());
+                continue;
+            }
+            visited.add(current);
+            queue.addAll(current.getChildren());
+        }
     }
+
+    public void optimizeTree() {
+        symbolTable.getAllTree().pruneEpsilonPaths();
+    }
+
+
+    public Node getParsingTree(){
+        return symbolTable.getAllTree();
+    }
+
 }
 

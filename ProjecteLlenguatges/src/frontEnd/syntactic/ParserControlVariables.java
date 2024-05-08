@@ -16,6 +16,8 @@ public class ParserControlVariables {
     public String lastVarTypeSeenInArguments = "";
     public Boolean isInArguments = false;
     public Boolean argumentsInFunctionSentence = false;
+    public Node lastTopNode;
+    public Node currentTopNode;
 
     public ParserControlVariables() {
     }

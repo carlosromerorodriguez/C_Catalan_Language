@@ -11,7 +11,7 @@ import java.util.List;
 
 
 public class Main {
-    private static final String FILE_PATH = "src/files/example7.ç";
+    private static final String FILE_PATH = "src/files/example2.ç";
     private static final String GRAMMAR_PATH = "src/files/grammar.json";
 
     public static void  main(String[] args) {
@@ -32,14 +32,15 @@ public class Main {
 
         // 5. Clase para cargar la gramática y construir la tabla de análisis sintáctico
         FirstFollow inputFirstFollow = new FirstFollow(preProcessing.loadGrammar(GRAMMAR_PATH));
-        Parser parser = new Parser(inputFirstFollow, tokenConverter, errorHandler);
+        Parser parser = new Parser(inputFirstFollow, tokenConverter, errorHandler, inputFirstFollow.getGrammar());
             //parser.printParseTable();
         parser.buildParsingTree(lexer.getTokens());
-            //parser.printTree();
+        parser.optimizeTree();
+        parser.printTree();
 
-        TAC tac = new TAC(parser.getSymbolTable());
-        tac.buildTAC();
+        TAC tac = new TAC(parser.getParsingTree());
+        tac.generateTAC();
         errorHandler.printErrors();
-
     }
+
 }
