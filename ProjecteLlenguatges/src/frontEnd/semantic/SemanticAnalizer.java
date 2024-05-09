@@ -3,18 +3,32 @@ package frontEnd.semantic;
 import frontEnd.global.ErrorHandler;
 import frontEnd.syntactic.symbolTable.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.Arrays;
+import com.udojava.evalex.Expression;
+
 
 public class SemanticAnalizer {
-    private enum Vartype {
-        ENTER ,
-        DECIMAL,
-        SIONO,
-        LLETRES,
-        UNASSIGNED
+    public enum Vartype {
+        ENTER(4),
+        DECIMAL(5.65),
+        SIONO(true),
+        LLETRES('a'),
+        UNASSIGNED(null);
+
+        private final Object value;
+
+        Vartype(Object value) {
+            this.value = value;
+        }
+
+        public Object getValue() {
+            return value;
+        }
     }
+
     private SymbolTable symbolTable;
     private ErrorHandler errorHandler;
     private List<String> operators;
@@ -23,7 +37,7 @@ public class SemanticAnalizer {
         this.symbolTable = symbolTable;
         this.errorHandler = errorHandler;
         this.operators = Arrays.asList(
-                "+", "-", "*", "/", "(", ")"
+                "+", "-", "*", "/", "(", ")", "==", ">", ">=", "<", "<="
         );
     }
     private Vartype stringToType(String type){
@@ -54,16 +68,29 @@ public class SemanticAnalizer {
                 else if(entry.getValue() instanceof FunctionEntry tableEntry){
                     checkFunction(scope, tableEntry);
                 }
+                else if(entry.getValue() instanceof ConditionalEntry tableEntry){
+                    checkConditional(scope, tableEntry);
+                }
+
                 analizeScopes(scope);
             }
         }
+    }
+    private void checkConditional(Scope scope, ConditionalEntry condEntry) {
+        StringBuilder expression = new StringBuilder();
+        for(Object term: condEntry.getCondition()){
+
+        }
+
+        return;
+
     }
 
     private void checkFunction(Scope scope, FunctionEntry funcEntry) {
         Vartype functionType = stringToType(funcEntry.getReturnType());
         Vartype newType;
         for(Object term: funcEntry.getReturnValue()) {
-            newType = getType(term, scope);
+            newType = getTermType(term, scope);
             if (newType != Vartype.UNASSIGNED && newType != functionType) {
                 this.errorHandler.recordError("Function type mismatch", funcEntry.getLine());
             }
@@ -74,14 +101,14 @@ public class SemanticAnalizer {
         Vartype currentType = stringToType(varEntry.getType());
         Vartype newType;
         for(Object term: varEntry.getExpression()){
-            newType = getType(term, scope);
+            newType = getTermType(term, scope);
             if(newType != Vartype.UNASSIGNED && newType != currentType){
                 this.errorHandler.recordError("Type mismatch", varEntry.getLine());
             }
         }
     }
 
-    private Vartype getType(Object term, Scope scope) {
+    private Vartype getTermType(Object term, Scope scope) {
         if(term instanceof Integer) return Vartype.ENTER;
         if(term instanceof Float) return Vartype.DECIMAL;
         if(term instanceof Boolean) return Vartype.SIONO;
