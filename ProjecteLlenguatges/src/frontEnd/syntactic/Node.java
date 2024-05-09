@@ -1,5 +1,7 @@
 package frontEnd.syntactic;
 
+import frontEnd.lexic.Token;
+
 import java.util.*;
 
 public class Node {
@@ -41,11 +43,25 @@ public class Node {
         this.value = value;
     }
 
-    public void printTree(int level) {
-        System.out.println(" ".repeat(level * 2) + type + " (" + value + ")");
+    public void printTree() {
+        print("", true);
+    }
 
-        for (Node child : children) {
-            child.printTree(level + 1);
+    private void print(String prefix, boolean isTail) {
+        // Definición de colores ANSI
+        String cyan = "\u001B[36m";
+        String yellow = "\u001B[33m";
+        String reset = "\u001B[0m";
+
+        // Imprimir el tipo de nodo en verde y el valor en cian, si existe
+        System.out.println(prefix + (isTail ? "└── " : "├── ") + yellow + type + reset +
+                (value == null ? "" : " (" + cyan + value.toString() + reset + ")"));
+
+        for (int i = 0; i < children.size() - 1; i++) {
+            children.get(i).print(prefix + (isTail ? "    " : "│   "), false);
+        }
+        if (!children.isEmpty()) {
+            children.get(children.size() - 1).print(prefix + (isTail ? "    " : "│   "), true);
         }
     }
 
@@ -101,5 +117,14 @@ public class Node {
 
     private boolean shouldBeRemovedWhenEmpty() {
         return !terminalSymbols.contains(type);
+    }
+
+    public Token<Object> findChildByType(String varName) {
+        for (Node child : children) {
+            if (child.getType().equals(varName)) {
+                return new Token<>((String) child.getValue(), child.getLine());
+            }
+        }
+        return null;
     }
 }
