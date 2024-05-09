@@ -1,5 +1,7 @@
 package frontEnd.syntactic;
 
+import frontEnd.syntactic.symbolTable.CallEntry;
+
 public class ParserControlVariables {
     public String context = "";
     public Boolean isFirstToken = false;
@@ -18,6 +20,8 @@ public class ParserControlVariables {
     public Boolean argumentsInFunctionSentence = false;
     public Node lastTopNode;
     public Node currentTopNode;
+    public CallEntry currentCallEntry;
+    public Boolean isCall = false;
 
     public ParserControlVariables() {
     }

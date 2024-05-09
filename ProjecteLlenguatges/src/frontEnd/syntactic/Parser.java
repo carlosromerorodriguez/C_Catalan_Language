@@ -18,11 +18,14 @@ public class Parser {
     private final Map<String, Map<String, List<String>>> parseTable;
     private final Node rootNode;
     private final ErrorHandler errorHandler;
-    private final Map<String, Set<String>> first;
-    private final Map<String, Set<String>> follow;
     private SymbolTable symbolTable;
     private Map<String, List<List<String>>> grammar;
     private ParserControlVariables parserControlVariables;
+    Set<String> terminalSymbols = new HashSet<>(Arrays.asList(
+            "+", "-", "*", "/", "=", ";", ",", ":", "(", ")", "{", "}", "GREATER", "LOWER", "LOWER_EQUAL", "GREATER_EQUAL", "!", "==", "!=",
+            "RETORN", "FUNCTION", "START", "END", "LITERAL", "VAR_NAME", "FOR", "DE", "FINS", "VAR_TYPE", "IF",
+            "ELSE", "WHILE", "CALL", "FUNCTION_NAME", "AND", "OR", "CALÇOT", "VOID", "FUNCTION_MAIN", "SUMANT", "RESTANT"
+    ));
 
     public Parser(FirstFollow firstFollow, TokenConverter tokenConverter, ErrorHandler errorHandler, Map<String, List<List<String>>> grammar) {
         this.tokenConverter = tokenConverter;
@@ -33,8 +36,6 @@ public class Parser {
         this.symbolTable.setAllTree(rootNode);
         this.parseTable = new HashMap<>();
         this.parserControlVariables = new ParserControlVariables();
-        this.first = firstFollow.getFirst();
-        this.follow = firstFollow.getFollow();
 
         this.buildParsingTable(firstFollow.getGrammar(), firstFollow.getFollow(), firstFollow.getFirst());
     }
@@ -95,12 +96,6 @@ public class Parser {
     }
 
     public void buildParsingTree(List<Token> tokens) {
-        Set<String> terminalSymbols = new HashSet<>(Arrays.asList(
-                "+", "-", "*", "/", "=", ";", ",", ":", "(", ")", "{", "}", "GREATER", "LOWER", "LOWER_EQUAL", "GREATER_EQUAL", "!", "==", "!=",
-                "RETORN", "FUNCTION", "START", "END", "LITERAL", "VAR_NAME", "FOR", "DE", "FINS", "VAR_TYPE", "IF",
-                "ELSE", "WHILE", "CALL", "FUNCTION_NAME", "AND", "OR", "CALÇOT", "VOID", "FUNCTION_MAIN", "SUMANT", "RESTANT"
-        ));
-
         Stack<Node> stack = new Stack<>();
         stack.push(symbolTable.getAllTree());  // Símbol de finalització
 
@@ -148,7 +143,7 @@ public class Parser {
                         if (parserControlVariables.context.equals("arguments")) {
                             parserControlVariables.lastVarTypeSeenInArguments = (String) topNode.getValue();
                         }
-                        if (parserControlVariables.isFirstToken && !parserControlVariables.context.equals("arguments")) {
+                        if (parserControlVariables.isFirstToken && !parserControlVariables.context.equals("arguments") && !parserControlVariables.context.equals("FUNCTION")) {
                             parserControlVariables.isFirstToken = false;
                             parserControlVariables.context = "declaració";
                             parserControlVariables.typeDeclaration = (String) topNode.getValue(); // Guardem tipus de variable
@@ -165,6 +160,10 @@ public class Parser {
                         parserControlVariables.canChangeContext = true;
                         parserControlVariables.currentConditional = "";
                         parserControlVariables.insideCondition = false;
+                        if(parserControlVariables.isCall) {
+                            parserControlVariables.isCall = false;
+                            parserControlVariables.currentCallEntry.reArrangeParameters();
+                        }
                         break;
                     case ")":
                         // Si es tanca un parentesi, vol dir que hem acabat d'afegir arguments a una funció o que hem acabat una condició
@@ -371,6 +370,12 @@ public class Parser {
                 break;
             default:
                 if (parserControlVariables.equalSeen) {
+                    if(parserControlVariables.isCall) {
+                        if(node.getType().equals("(") || node.getType().equals(")")) return;
+                        if(node.getType().equals("+") || node.getType().equals("/") || node.getType().equals("-") || node.getType().equals("*") || node.getType().equals(",")) parserControlVariables.currentCallEntry.addParameter(node.getType());
+                        else parserControlVariables.currentCallEntry.addParameter(node.getValue());
+                        return;
+                    }
                     // Guardar el valor de l'expressió a la variable currentVarname
                     VariableEntry currentVar = (VariableEntry) symbolTable.getCurrentScope().lookup(parserControlVariables.currentVarname);
                     currentVar.setLine(node.getLine());
@@ -439,6 +444,11 @@ public class Parser {
         }
 
         if(parserControlVariables.argumentsInFunctionSentence) {
+            if(parserControlVariables.isCall) {
+                parserControlVariables.currentCallEntry.addParameter(node.getValue());
+                return;
+            }
+
             // Si la varname no es troba a la taula de simbols -> ERROR
             if(symbolTable.getCurrentScope().lookup((String)node.getValue()) == null){
                 errorHandler.recordError("Error: La variable de la crida a la funció no existe", node.getLine());
@@ -478,7 +488,6 @@ public class Parser {
         }
     }
 
-    //TODO: Comprovar si existeix nomes al Scope actual, sino afegir la copia del scope pare
     private void handleVarnameInAssignation(Node node) {
         VariableEntry variableEntry = (VariableEntry) symbolTable.getCurrentScope().lookup((String)node.getValue());
         // Si la varname no es troba a la taula de simbols -> ERROR
@@ -534,7 +543,6 @@ public class Parser {
         currentVar.appendExpressionValue(node.getValue());
     }
 
-    // Poder hauriem d'afegir l'entrada de la funcio al scope actual i al pare
     private void handleFunction(Node node) {
         if(parserControlVariables.equalSeen) {
             // Comprovar si existeix la funcio a la taula de simbols del scope actual
@@ -543,15 +551,22 @@ public class Parser {
                 return;
             }
 
-            parserControlVariables.argumentsInFunctionSentence = true; //Marquem que ens podem trobar arguments quan es crida una funció a una assignació
+            parserControlVariables.argumentsInFunctionSentence = true; //Marquem que ens podem trobar arguments quan es crida una funció
 
             VariableEntry currentVar = (VariableEntry) symbolTable.getCurrentScope().lookup(parserControlVariables.currentVarname);
             if (currentVar == null) {
                 errorHandler.recordError("Error: La variable de la asignación no existe", node.getLine());
                 return;
             }
-            currentVar.appendExpressionValue(node.getValue());
-            return;
+
+            //Creem una crida
+            CallEntry callEntry = new CallEntry(UUID.randomUUID(), (String) node.getValue(), node.getLine());
+            //Posem context a crida
+            parserControlVariables.isCall = true;
+            //Guardem lastCrida
+            parserControlVariables.currentCallEntry = callEntry;
+
+            currentVar.appendExpressionValue(callEntry);
         } else if (parserControlVariables.retornSeen) {
             // Comprovar si existeix la funcio a la taula de simbols del scope actual
             if(symbolTable.getCurrentScope().lookup((String) node.getValue()) == null){
@@ -559,20 +574,45 @@ public class Parser {
                 return;
             }
 
-            parserControlVariables.argumentsInFunctionSentence = true; //Marquem que ens podem trobar arguments quan es crida una funció a un retorn
+            parserControlVariables.argumentsInFunctionSentence = true; //Marquem que ens podem trobar arguments quan es crida una funció
 
-            symbolTable.getCurrentScope().getFunctionEntry().appendReturnValue(node.getValue());
-            return;
+            //Creem una crida
+            CallEntry callEntry = new CallEntry(UUID.randomUUID(), (String) node.getValue(), node.getLine());
+            //Posem context a crida
+            parserControlVariables.isCall = true;
+            //Guardem lastCrida
+            parserControlVariables.currentCallEntry = callEntry;
+
+            symbolTable.getCurrentScope().getFunctionEntry().appendReturnValue(callEntry);
+        } else if(parserControlVariables.context.equals("FUNCTION")) {
+            String functionName = (String) node.getValue(); //Agafem el nom de la funcio
+            int line = node.getLine(); // Agafem la linia on es troba
+
+            SymbolTableEntry functionEntry = new FunctionEntry(UUID.randomUUID(), functionName, line, parserControlVariables.functionType, new ArrayList<>());
+
+            /* Afegim l'entrada de la funció al scope actual i al pare */
+            symbolTable.addSymbolEntry(functionEntry);
+            symbolTable.getCurrentScope().getParentScope().addEntry(functionEntry);
+        } else {
+            //Es una crida
+
+            //Mirem si existeix en algun dels contexts pares
+            if(symbolTable.getCurrentScope().lookup((String) node.getValue()) == null){
+                errorHandler.recordError("Error: La funció no ha estat previament declarada: ", node.getLine());
+                return;
+            }
+
+            parserControlVariables.argumentsInFunctionSentence = true; //Marquem que ens podem trobar arguments quan es crida una funció
+
+            //Creem una crida
+            CallEntry callEntry = new CallEntry(UUID.randomUUID(), (String) node.getValue(), node.getLine());
+            //Posem context a crida
+            parserControlVariables.isCall = true;
+            //Guardem lastCrida
+            parserControlVariables.currentCallEntry = callEntry;
+
+            symbolTable.getCurrentScope().addEntry(callEntry);
         }
-
-        String functionName = (String) node.getValue(); //Agafem el nom de la funcio
-        int line = node.getLine(); // Agafem la linia on es troba
-
-        SymbolTableEntry functionEntry = new FunctionEntry(UUID.randomUUID(), functionName, line, parserControlVariables.functionType, new ArrayList<>());
-
-        /* Afegim l'entrada de la funció al scope actual i al pare */
-        symbolTable.addSymbolEntry(functionEntry);
-        symbolTable.getCurrentScope().getParentScope().addEntry(functionEntry);
     }
 
     public void verifyTree() {
