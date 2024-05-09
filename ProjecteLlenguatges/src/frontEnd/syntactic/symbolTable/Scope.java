@@ -95,7 +95,6 @@ public class Scope {
             if (parentEntry instanceof VariableEntry parentVariableEntry) {
                 return new VariableEntry(parentVariableEntry.getId(), parentVariableEntry.getName(), parentVariableEntry.getLine(), parentVariableEntry.getType(), parentVariableEntry.getIsArgument());
             }
-
             return parentEntry; //Creem una copia del que retorna el pare
         } else {
             return null;

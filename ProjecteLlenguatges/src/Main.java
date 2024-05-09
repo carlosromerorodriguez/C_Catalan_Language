@@ -4,6 +4,7 @@ import frontEnd.lexic.CodeLine;
 import frontEnd.lexic.Lexer;
 import frontEnd.lexic.PreProcessing;
 import frontEnd.lexic.TokenConverter;
+import frontEnd.semantic.SemanticAnalizer;
 import frontEnd.syntactic.FirstFollow;
 import frontEnd.syntactic.Parser;
 
@@ -37,6 +38,9 @@ public class Main {
         parser.buildParsingTree(lexer.getTokens());
         parser.optimizeTree();
         parser.printTree();
+
+        SemanticAnalizer semanticAnalizer = new SemanticAnalizer(parser.getSymbolTable(), errorHandler);
+        semanticAnalizer.analizeSymbolTable();
 
         TAC tac = new TAC(parser.getParsingTree());
         tac.generateTAC();

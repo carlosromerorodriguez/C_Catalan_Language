@@ -33,5 +33,8 @@ public abstract class SymbolTableEntry {
         return null;
     }
 
+    public void setLine(int line) {
+        this.line = line;
+    }
 }
 

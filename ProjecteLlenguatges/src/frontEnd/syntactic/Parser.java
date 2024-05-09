@@ -20,7 +20,7 @@ public class Parser {
     private final ErrorHandler errorHandler;
     private final Map<String, Set<String>> first;
     private final Map<String, Set<String>> follow;
-    SymbolTable symbolTable;
+    private SymbolTable symbolTable;
     private Map<String, List<List<String>>> grammar;
     private ParserControlVariables parserControlVariables;
 
@@ -373,9 +373,11 @@ public class Parser {
                 if (parserControlVariables.equalSeen) {
                     // Guardar el valor de l'expressió a la variable currentVarname
                     VariableEntry currentVar = (VariableEntry) symbolTable.getCurrentScope().lookup(parserControlVariables.currentVarname);
+                    currentVar.setLine(node.getLine());
                     if (!symbolTable.getCurrentScope().entryExists(parserControlVariables.currentVarname)) {
                         symbolTable.getCurrentScope().addEntry(currentVar);
                         currentVar = (VariableEntry) symbolTable.getCurrentScope().lookup(parserControlVariables.currentVarname); // Agafem la variable del scope actual
+
                     }
 
                     if (currentVar == null) {
@@ -598,5 +600,9 @@ public class Parser {
         return symbolTable.getAllTree();
     }
 
+
+    public SymbolTable getSymbolTable() {
+        return symbolTable;
+    }
 }
 

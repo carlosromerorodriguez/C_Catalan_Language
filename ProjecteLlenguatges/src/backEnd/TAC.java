@@ -1,8 +1,6 @@
 package backEnd;
 
 import frontEnd.syntactic.Node;
-import frontEnd.syntactic.symbolTable.Scope;
-import frontEnd.syntactic.symbolTable.SymbolTable;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -57,5 +57,19 @@ public class SymbolTable {
     public void addSymbolEntry(SymbolTableEntry newEntry){
         this.currentScope.addEntry(newEntry);
    }
+
+   @Override
+   public String toString(){
+       System.out.println("-------------SYMBOL TABLE-------------");
+       return printTable(rootScope, 0);
+   }
+    private String printTable(Scope scope, int depth){
+        StringBuilder stringBuilder = new StringBuilder();
+        for (Scope TacScope: scope.getChildScopes()){
+            stringBuilder.append("--".repeat((depth * 5) + 1)).append(TacScope.toString((depth * 5) + 1)).append("\n");
+            stringBuilder.append(printTable(TacScope, depth + 1));
+        }
+        return stringBuilder.toString();
+    }
 }
 
