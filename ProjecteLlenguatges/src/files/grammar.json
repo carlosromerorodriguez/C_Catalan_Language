@@ -70,7 +70,7 @@
     ["LITERAL"]
   ],
   "crida": [
-    ["CALL", "assignacio_crida"]
+    ["assignacio_crida"]
   ],
   "iteratives": [
     ["per"],

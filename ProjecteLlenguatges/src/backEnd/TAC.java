@@ -1,170 +1,72 @@
 package backEnd;
 
-import frontEnd.syntactic.Node;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class TAC {
-    private List<String> tacs;
-    private int tempCounter = 0;
-    private Node topNode;
+    private int blockCounter = 0;
+    private LinkedHashMap<String, TACBlock> blocks;
 
-    public TAC(Node topNode) {
-        this.tacs = new ArrayList<>();
-        this.topNode = topNode;
-    }
-    private void printTAC() {
-        System.out.println("-------------TAC------------------" + "\n\n");
-        for (String tac : tacs) {
-            System.out.println(tac);
-        }
+    public TAC() {
+        blocks = new LinkedHashMap<>();
     }
 
-    private String generateTempVariable() {
-        return "t" + (tempCounter++);
+    public String addBlock(TACBlock block, String name) {
+        String label;
+        if(!name.equals("false")) label = name; // Si el label no es "false", el label es el nom de la funció o main
+        else  label = "L" + blockCounter++; // Si no es una funció o el main, el label es "L" + blockCounter
+
+        blocks.put(label, block);
+        return label;
     }
 
+    public TACBlock getBlock(String label) {
+        return blocks.get(label);
+    }
 
-    public void generateTAC() {
-        Node rootNode = this.topNode;
-        if (rootNode.getType().equals("sortida")) {
-            for (Node child : rootNode.getChildren()) {
-                if (child.getType().equals("llista de funcions")) {
-                    for (Node func : child.getChildren()) {
-                        buildTAC(func, 0);
-                    }
-                } else if (child.getType().equals("main")) {
-                    buildTAC(child, 0);
-                }
+    public Map<String, TACBlock> getAllBlocks() {
+        return blocks;
+    }
+
+    public String convertOperandToType(String operand) {
+        return switch (operand) {
+            case "+" -> "ADD";
+            case "-" -> "SUB";
+            case "*" -> "MUL";
+            case "/" -> "DIV";
+            case "&&" -> "AND";
+            case "||" -> "OR";
+            case "==" -> "EQ";
+            case "!=" -> "NE";
+            case "<" -> "LT";
+            case "<=" -> "LE";
+            case ">" -> "GT";
+            case ">=" -> "GE";
+            case "RETORN" -> "RET";
+            default -> operand;
+            //Altre casos...
+        };
+    }
+
+    public void removeEmptyBlocks() {
+        //TODO: Si sobre temps només eliminar els blocs buits que no formin part d'un if o while
+        List<String> toRemove = new ArrayList<>();
+        for (String label : blocks.keySet()) {
+            if (blocks.get(label).isEmpty()) {
+                toRemove.add(label);
             }
         }
-        printTAC();
-    }
 
-
-    public void buildTAC(Node node, int depth) {
-        String indent = "  ".repeat(depth);
-        //addTacs(this.symbolTable.getRootScope(), 0);
-        switch (node.getType()) {
-            case "main":
-                tacs.add(indent + "enter main");
-                break;
-            case "funcio":
-                handleFunction(node, depth);
-                break;
-            case "END":
-                break;
-            case "llista_sentencies":
-
-                break;
-            case "llista_sentencies_rest":
-
-                break;
-            case "ε":
-
-                break;
-            case "sentencia":
-
-                break;
-            case ";":
-
-                break;
-            case "assignació":
-                handleAssignment(node, depth);
-                break;
-            case "continuació_assignació":
-
-                break;
-            case "assignació_final":
-
-                break;
-            case "següent_token":
-
-                break;
-            case "expressió":
-                handleExpression(node, depth);
-                break;
-            case "terme":
-
-                break;
-            case "factor":
-
-                break;
-            case "literal":
-
-                break;
-            case "=":
-
-                break;
-            case "VAR_NAME":
-
-                break;
-            case ":":
-
-                break;
-            case "VAR_TYPE":
-
-                break;
-            case "START":
-
-                break;
-            case "(":
-
-                break;
-            case ")":
-
-                break;
-            case "CALÇOT":
-
-                break;
-            case "FUNCTION_MAIN":
-
-                break;
-        }
-
-        for (Node child : node.getChildren()) {
-            buildTAC(child, depth + 1);
-        }
-        if (node.getType().equals("main")) {
-            tacs.add(indent + "exit main");
+        for (String label : toRemove) {
+            blocks.remove(label);
         }
     }
 
-    private void handleFunction(Node node, int depth) {
-        String funcName = "hola";
-        tacs.add("  ".repeat(depth) + "enter function " + funcName);
-        for (Node child : node.getChildren()) {
-            buildTAC(child, depth + 1);
+    public void printTAC() {
+        for (String label : blocks.keySet()) {
+            System.out.println(label + ":");
+            blocks.get(label).printBlock();
+            System.out.println("\n");
         }
-        tacs.add("  ".repeat(depth) + "exit function " + funcName);
     }
-    private void handleExpression(Node node, int depth) {
-        String result = generateTempVariable();
-        tacs.add("  ".repeat(depth) + result + " = eval_expression");
-    }
-
-    private void handleAssignment(Node node, int depth) {
-        String varName = "a";
-        String value = "4";
-        String expressionResult = generateTempVariable();
-        tacs.add("  ".repeat(depth) + varName + " = " + expressionResult);
-        tacs.add("  ".repeat(depth + 1) + expressionResult + " = " + value);
-    }
-
-
-
-/*
-    public void buildTAC(){
-        System.out.println("-------------TAC------------------" + "\n\n");
-        addTacs(this.symbolTable.getRootScope(), 0);
-
-    }
-
-    private void addTacs(Scope scope, int depth){
-        for (Scope TacScope: scope.getChildScopes()){
-            System.out.println("--".repeat((depth*5)+1) + TacScope.toString((depth*5)+1));
-            addTacs(TacScope, depth + 1);
-        }
-    }*/
 }

@@ -334,7 +334,7 @@ public class Parser {
 
     public void printTree() {
         System.out.println("TREE:");
-        symbolTable.getAllTree().printTree(0);
+        symbolTable.getAllTree().printTree();
         System.out.println("\n\n");
         /*for(Scope scope: symbolTable.getCurrentScope().getChildScopes()) {
             System.out.println("\nChild tree:\n");
@@ -633,6 +633,8 @@ public class Parser {
 
     public void optimizeTree() {
         symbolTable.getAllTree().pruneEpsilonPaths();
+        symbolTable.getAllTree().collapseSingleChildNodes();
+        symbolTable.getAllTree().optimizeTree();
     }
 
 

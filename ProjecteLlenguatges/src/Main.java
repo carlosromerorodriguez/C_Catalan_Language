@@ -1,4 +1,5 @@
 import backEnd.TAC;
+import backEnd.TACGenerator;
 import frontEnd.global.ErrorHandler;
 import frontEnd.lexic.CodeLine;
 import frontEnd.lexic.Lexer;
@@ -12,7 +13,7 @@ import java.util.List;
 
 
 public class Main {
-    private static final String FILE_PATH = "src/files/example2.ç";
+    private static final String FILE_PATH = "src/files/exemple8.ç";
     private static final String GRAMMAR_PATH = "src/files/grammar.json";
 
     public static void  main(String[] args) {
@@ -42,9 +43,11 @@ public class Main {
         SemanticAnalizer semanticAnalizer = new SemanticAnalizer(parser.getSymbolTable(), errorHandler);
         semanticAnalizer.analizeSymbolTable();
 
-        TAC tac = new TAC(parser.getParsingTree());
-        tac.generateTAC();
+        TACGenerator tacGenerator = new TACGenerator();
+        tacGenerator.generateTAC(parser.getSymbolTable().getAllTree());
+        tacGenerator.printTAC();
         errorHandler.printErrors();
+
     }
 
 }

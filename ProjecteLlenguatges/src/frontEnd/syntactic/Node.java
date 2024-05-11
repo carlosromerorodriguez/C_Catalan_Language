@@ -127,4 +127,12 @@ public class Node {
         }
         return null;
     }
+
+    public void optimizeTree() {
+        //Girem la llista de fills per a que quedin en ordre invers
+        Collections.reverse(children);
+        for (Node child : children) {
+            child.optimizeTree();
+        }
+    }
 }
