@@ -109,7 +109,7 @@ public class TACGenerator {
                 generateReturnCode(child);
                 break;
             case "crida":
-                generateCallCode(child);
+                generateCallCode(child.getChildren().getFirst());
                 break;
             case "end":
                 addEndBlock();
@@ -139,10 +139,21 @@ public class TACGenerator {
         currentBlock = endBlock; //El bloc actual passa a ser el bloc final
     }
 
-    private void generateCallCode(Node child) {
-        // Generar el codi de la crida explorant recursivament aquella part de l'arbre
-        // Processem la crida recursivament
-        // Afegim la crida al bloc actual
+    private void generateCallCode(Node node) {
+        for(Node child : node.getChildren().getLast().getChildren()) {
+            if(!child.getType().equalsIgnoreCase("(") && !child.getType().equalsIgnoreCase(")")) {
+                // Pel que retorni cada fill, afegir-lo al bloc actual
+                String result = generateExpressionTACRecursive(child);
+                //Afegir el resultat al bloc actual
+                //Ex: param tx
+                TACEntry tacEntry = new TACEntry("PARAM", "", result, "", "PARAM");
+                currentBlock.add(tacEntry);
+            }
+        }
+
+        //Afegir el call al tac
+        TACEntry tacEntry = new TACEntry("CALL", "" , node.getChildren().getFirst().getValue().toString(), "", "CALL");
+        currentBlock.add(tacEntry);
     }
 
     private void generateReturnCode(Node child) {
@@ -154,6 +165,15 @@ public class TACGenerator {
 
     }
 
+    private void generateAssignmentCode(Node child) {
+        //Si assignació no té assignació final, no cal generar codi ja que es una declaració
+        if(canDiscardAssignment(child)) {
+            return;
+        }
+
+        generateAssigmentTACRecursive(child);
+    }
+
     private boolean canDiscardAssignment(Node child) {
         for(Node grandChild : child.getChildren()) {
             if(grandChild.getType().equalsIgnoreCase("assignació_final")) {
@@ -161,18 +181,6 @@ public class TACGenerator {
             }
         }
         return true;
-    }
-
-    private void generateAssignmentCode(Node child) {
-        //Si assignació no té assignació final, no cal generar codi ja que es una declaració
-        if(canDiscardAssignment(child)) {
-            return;
-        }
-
-        // Generar el codi de l'assignació recursivament i afegir-lo al bloc actual
-        // Mètode específic recursiu per a l'assignació
-        // (contemplar assignacio_crida per a la crida de funcions)
-        generateAssigmentTACRecursive(child);
     }
 
     private Node getFinalAssignation(Node node) {
@@ -217,8 +225,6 @@ public class TACGenerator {
         }
         return "";
     }
-
-
 
     private String generateExpressionTACRecursive(Node node) {
         if ("literal".equalsIgnoreCase(node.getType()) || "var_name".equalsIgnoreCase(node.getType())) {
@@ -295,7 +301,7 @@ public class TACGenerator {
         //Afegir el call al tac
         //Ex: tx = call node.getValue()
         String tempVar = generateTempVariable();
-        TACEntry tacEntry = new TACEntry("CALL", "" , node.getChildren().getFirst().getValue().toString(), tempVar, "CALL");
+        TACEntry tacEntry = new TACEntry("CALL", "" , node.getChildren().getFirst().getValue().toString(), tempVar, "CALL_EXP");
         currentBlock.add(tacEntry);
 
         return tempVar;
