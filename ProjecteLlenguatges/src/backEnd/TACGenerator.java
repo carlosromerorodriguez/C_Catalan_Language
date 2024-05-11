@@ -80,39 +80,41 @@ public class TACGenerator {
 
     private void buildTAC(Node node) {
         for (Node child : node.getChildren()) {
-            // Casos que hem de controlar segons el tipus de node
-            switch (child.getType().toLowerCase()) {
-                case "condicionals": // If
-                    generateIfCode(child);
-                    break;
-                case "condicional'": // Else
-                    generateElseCode(child);
-                    break;
-                case "mentre": // While
-                    generateWhileCode(child);
-                    break;
-                case "per": // For
-                    generateForCode(child);
-                    break;
-                case "assignació":
-                    generateAssignmentCode(child);
-                    break;
-                case "condició":
-                    generateConditionCode(child);
-                    break;
-                case "retorn":
-                    generateReturnCode(child);
-                    break;
-                case "crida":
-                    generateCallCode(child);
-                    break;
-                case "end":
-                    addEndBlock();
-                default: //Si no és cap dels anteriors, cridem recursivament la funció per a cada fill
-                    for(Node grandChild : child.getChildren()) {
-                        buildTAC(grandChild);
-                    }
-            }
+            processNode(child);
+        }
+    }
+
+    private void processNode(Node child) {
+        // Casos que hem de controlar segons el tipus de node
+        switch (child.getType().toLowerCase()) {
+            case "condicionals": // If
+                generateIfCode(child);
+                break;
+            case "condicional'": // Else
+                generateElseCode(child);
+                break;
+            case "mentre": // While
+                generateWhileCode(child);
+                break;
+            case "per": // For
+                generateForCode(child);
+                break;
+            case "assignació":
+                generateAssignmentCode(child);
+                break;
+            case "condició":
+                generateConditionCode(child);
+                break;
+            case "retorn":
+                generateReturnCode(child);
+                break;
+            case "crida":
+                generateCallCode(child);
+                break;
+            case "end":
+                addEndBlock();
+            default: //Si no és cap dels anteriors, cridem recursivament la funció per el node actual
+                buildTAC(child);
         }
     }
 
@@ -276,36 +278,6 @@ public class TACGenerator {
         }
 
         return "";
-
-        /*List<String> operands = new ArrayList<>();
-        String operator = "";
-        for (Node child : node.getChildren()) {
-            String result = generateExpressionTACRecursive(child);
-            if (isOperator(child.getType())) {
-                if (!operands.isEmpty() && !operator.isEmpty()) {
-                    result = handleBinaryOperation(operands.removeLast(), operator, result);
-                    operator = ""; // Reset operator after use
-                } else {
-                    operator = child.getType(); // Save the operator for future use
-                }
-            } else {
-                //result = generateExpressionTACRecursive(child);
-            }
-            operands.add(result);
-        }
-
-        System.out.println("Operands: " + operands);
-        System.out.println("Operator: " + operator);
-
-        // If there's still an operator left, process remaining operands
-        if (!operator.isEmpty() && operands.size() >= 2) {
-            String leftOperand = operands.remove(operands.size() - 2);
-            String rightOperand = node.getParent().getChildren().get(1).getValue() != null ?
-                    node.getParent().getChildren().get(1).getValue().toString() : node.getParent().getChildren().get(1).getType();
-            return handleBinaryOperation(rightOperand, operator, leftOperand);
-        }
-
-        return operands.isEmpty() ? "" : operands.getLast(); // Return the last processed operand*/
     }
 
     private String generateFunctionCallRecursive(Node node) {
@@ -341,18 +313,6 @@ public class TACGenerator {
         return "";
     }
 
-    private boolean isOperator(String type) {
-        return "+".equals(type) || "-".equals(type) || "*".equals(type) || "/".equals(type);
-    }
-
-    private String handleBinaryOperation(String leftOperand, String operator, String rightOperand) {
-        String tempVar = generateTempVariable();
-
-        TACEntry tacEntry = new TACEntry(operator, rightOperand, leftOperand, tempVar, code.convertOperandToType(operator));
-        currentBlock.add(tacEntry);
-        return tempVar;
-    }
-
     private String generateTempVariable() {
         return "t" + (tempCounter++);
     }
@@ -385,7 +345,6 @@ public class TACGenerator {
         //      ... cos de l'if
 
         // Explorem recursivament el cos de l'if
-
     }
 
     public void printTAC() {
