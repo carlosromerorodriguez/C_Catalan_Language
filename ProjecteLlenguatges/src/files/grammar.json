@@ -65,7 +65,7 @@
     ["(", "return_expression", ")"]
   ],
   "return_id": [
-    ["FUNCTION_NAME","arguments_crida"],
+    ["assignacio_crida"],
     ["VAR_NAME"],
     ["LITERAL"]
   ],

@@ -2,10 +2,11 @@ proces enter HOLA(enter: arg1) fer:
     enter: b, c ç
     b = 5 + 6 + 7 + 8 + 9 / 10 ç
     c = 5 / 5 ç
-    retorna b ç
+    retorna b + 5 - 6 + HOLA(4 + 8 - 3) + HOLA(6) ç
 fi
 
 proces Calçot() fer:
+    enter: prova = 4 + 5 ç
     enter: arg1 = 1 ç
     enter: b = 5 * ((7 - 5) + (7 - 4)) + 2, c = 2 + 5 * 7 + HOLA(arg1 + 4 - 5 / 5) ç
     b = 5 * 5 + 6 - 6 ç

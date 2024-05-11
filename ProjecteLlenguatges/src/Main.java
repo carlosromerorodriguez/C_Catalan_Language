@@ -13,7 +13,7 @@ import java.util.List;
 
 
 public class Main {
-    private static final String FILE_PATH = "src/files/exemple8.ç";
+    private static final String FILE_PATH = "src/files/example8.ç";
     private static final String GRAMMAR_PATH = "src/files/grammar.json";
 
     public static void  main(String[] args) {

@@ -100,16 +100,16 @@ public class TACGenerator {
                 generateForCode(child);
                 break;
             case "assignació":
-                generateAssignmentCode(child);
+                generateAssignmentCode(child); //DONE
                 break;
             case "condició":
                 generateConditionCode(child);
                 break;
             case "retorn":
-                generateReturnCode(child);
+                generateReturnCode(child); //DONE
                 break;
             case "crida":
-                generateCallCode(child.getChildren().getFirst());
+                generateCallCode(child.getChildren().getFirst()); //DONE
                 break;
             case "end":
                 addEndBlock();
@@ -156,13 +156,69 @@ public class TACGenerator {
         currentBlock.add(tacEntry);
     }
 
-    private void generateReturnCode(Node child) {
-        // Crear un nou bloc
-        // Actualitzar el bloc actual
-        // Processem el return code recursivament
-        // Mètode específic recursiu per al return
-        // Afegir el returnCode al bloc actual
+    private void generateReturnCode(Node node) {
+        TACEntry tacEntry = new TACEntry("RET", "", generateReturnExpressionTACRecursive(node.getChildren().get(1)), "", "RET");
+        currentBlock.add(tacEntry);
+    }
 
+    private String generateReturnExpressionTACRecursive(Node node) {
+        if ("literal".equalsIgnoreCase(node.getType()) || "var_name".equalsIgnoreCase(node.getType())) {
+            return node.getValue().toString();
+        } else if ("assignacio_crida".equalsIgnoreCase(node.getType())) {
+            return generateFunctionCallRecursive(node);
+        }
+
+        if(node.getType().equalsIgnoreCase("return_expression'") || node.getType().equalsIgnoreCase("return_terme'")) {
+            if(node.getChildren().size() == 2) {
+                String operator = node.getChildren().get(0).getType();
+                String op2 = generateReturnExpressionTACRecursive(node.getChildren().get(1));
+
+                return operator + "," + op2;
+            }
+
+            String operator = node.getChildren().get(0).getType();
+            String op1 = generateReturnExpressionTACRecursive(node.getChildren().get(1));
+            String recursiveExpression = generateReturnExpressionTACRecursive(node.getChildren().get(2));
+
+            if(!recursiveExpression.contains(",")) {
+                return operator + "," + op1;
+            }
+
+            String op2 = recursiveExpression.split(",")[1];
+            String recursiveOperand = recursiveExpression.split(",")[0];
+
+
+            String temp = generateTempVariable();
+            TACEntry tacEntry = new TACEntry(recursiveOperand, op1, op2, temp, code.convertOperandToType(operator));
+            currentBlock.add(tacEntry);
+
+            return operator + "," + temp;
+        }
+
+        if(node.getType().equalsIgnoreCase("return_expression") || node.getType().equalsIgnoreCase("return_terme")) {
+            String op1 = generateReturnExpressionTACRecursive(node.getChildren().getFirst());
+            String recursiveExpression = generateReturnExpressionTACRecursive(node.getChildren().getLast());
+            if(!recursiveExpression.contains(",")) {
+                return op1;
+            }
+            String operator = recursiveExpression.split(",")[0];
+            String operand = recursiveExpression.split(",")[1];
+
+            String temp = generateTempVariable();
+            TACEntry tacEntry = new TACEntry(operator, op1, operand, temp, code.convertOperandToType(operator));
+            currentBlock.add(tacEntry);
+            return temp;
+        }
+
+        if(node.getType().equalsIgnoreCase("return_factor")) {
+            for(Node child : node.getChildren()) {
+                if(!child.getType().equals("(") && !child.getType().equals(")")) {
+                    return generateReturnExpressionTACRecursive(child);
+                }
+            }
+        }
+
+        return "";
     }
 
     private void generateAssignmentCode(Node child) {
@@ -291,6 +347,7 @@ public class TACGenerator {
             if(!child.getType().equalsIgnoreCase("(") && !child.getType().equalsIgnoreCase(")")) {
                 // Pel que retorni cada fill, afegir-lo al bloc actual
                 String result = generateExpressionTACRecursive(child);
+
                 //Afegir el resultat al bloc actual
                 //Ex: param tx
                 TACEntry tacEntry = new TACEntry("PARAM", "", result, "", "PARAM");
