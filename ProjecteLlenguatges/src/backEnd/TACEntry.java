@@ -17,6 +17,10 @@ public class TACEntry {
 
     @Override
     public String toString() {
-        return destination + " = " + operand1 + " " + operation + " " + operand2;
+        if(!type.equals("PARAM")) {
+            return destination + " = " + operand1 + " " + operation + " " + operand2;
+        } else {
+            return operation + " " + operand2;
+        }
     }
 }

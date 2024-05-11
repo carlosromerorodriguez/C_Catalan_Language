@@ -281,36 +281,24 @@ public class TACGenerator {
     }
 
     private String generateFunctionCallRecursive(Node node) {
-        if(node.getType().equalsIgnoreCase("expressió")) {
-            return generateExpressionTACRecursive(node);
-        }
-
-        if(node.getType().equalsIgnoreCase("arguments_dins_crida")) {
-            for(Node child : node.getChildren()) {
+        for(Node child : node.getChildren().getLast().getChildren()) {
+            if(!child.getType().equalsIgnoreCase("(") && !child.getType().equalsIgnoreCase(")")) {
                 // Pel que retorni cada fill, afegir-lo al bloc actual
-                String result = generateFunctionCallRecursive(child);
+                String result = generateExpressionTACRecursive(child);
                 //Afegir el resultat al bloc actual
                 //Ex: param tx
-                TACEntry tacEntry = new TACEntry("PARAM", result, "", "", "PARAM");
+                TACEntry tacEntry = new TACEntry("PARAM", "", result, "", "PARAM");
                 currentBlock.add(tacEntry);
-                return "";
             }
         }
 
-        if(node.getType().equalsIgnoreCase("FUNCTION_NAME")) {
-            //Afegir el call al tac
-            //Ex: tx = call node.getValue()
-            String tempVar = generateTempVariable();
-            TACEntry tacEntry = new TACEntry("CALL", node.getValue().toString(), "", tempVar, "CALL");
-            currentBlock.add(tacEntry);
-            return "";
-        }
+        //Afegir el call al tac
+        //Ex: tx = call node.getValue()
+        String tempVar = generateTempVariable();
+        TACEntry tacEntry = new TACEntry("CALL", "" , node.getChildren().getFirst().getValue().toString(), tempVar, "CALL");
+        currentBlock.add(tacEntry);
 
-        for(Node child : node.getChildren()) {
-            return generateFunctionCallRecursive(child);
-        }
-
-        return "";
+        return tempVar;
     }
 
     private String generateTempVariable() {
