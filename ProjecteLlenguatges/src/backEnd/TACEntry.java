@@ -15,9 +15,20 @@ public class TACEntry {
         this.type = type;
     }
 
+    public String getType() {
+        return type;
+    }
+
+    public void setDestination(String destination) {
+        this.destination = destination;
+    }
+
     @Override
     public String toString() {
-        if(!type.equals("PARAM") && !type.equals("CALL") && !type.equals("RET")) {
+        if(!type.equals("PARAM") && !type.equals("CALL") && !type.equals("RET") && !type.equals("GOTO")) {
+            if(type.equals("CONDITION")) {
+                return "IF " + operand1 + " goto " + destination;
+            }
             return destination + " = " + operand1 + " " + operation + " " + operand2;
         } else {
             return operation + " " + operand2;

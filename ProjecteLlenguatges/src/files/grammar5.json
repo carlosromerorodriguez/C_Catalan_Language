@@ -11,7 +11,7 @@
     ["FUNCTION_MAIN", "CALÇOT", "( ", ")", "START", ":", "llista_sentencies", "END"]
   ],
   "funcio": [
-    ["FUNCTION", "VAR_TYPE", "FUNCTION_NAME", "arguments_start", "START", ":", "llista_sentencies", "END"]
+    ["FUNCTION", "VAR_TYPE", "FUNCTION_NAME", "arguments_start", "START", ":", "llista_sentencies", "retorn", "END"]
   ],
   "arguments_start": [
     ["(", "arguments"]
@@ -39,11 +39,10 @@
     ["condicionals"],
     ["iteratives"],
     ["crida", ";"],
-    ["assignació", ";"],
-    ["retorn", ";"]
+    ["assignació", ";"]
   ],
   "retorn": [
-    ["RETORN", "return_expression"]
+    ["RETORN", "return_expression", ";"]
   ],
   "return_expression": [
     ["return_terme", "return_expression'"]
@@ -66,12 +65,12 @@
     ["(", "return_expression", ")"]
   ],
   "return_id": [
-    ["FUNCTION_NAME","arguments_crida"],
+    ["assignacio_crida"],
     ["VAR_NAME"],
     ["LITERAL"]
   ],
   "crida": [
-    ["CALL", "assignacio_crida"]
+    ["assignacio_crida"]
   ],
   "iteratives": [
     ["per"],
@@ -135,7 +134,7 @@
   "component": [
     ["VAR_NAME"],
     ["LITERAL"],
-    ["(", "condició", ")"]
+    ["(", "avaluació", ")"]
   ],
   "arguments_crida": [
     ["(","arguments_dins_crida", ")"]

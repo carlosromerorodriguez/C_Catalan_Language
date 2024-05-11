@@ -85,6 +85,7 @@ public class Parser {
             }
         }
     }
+
     public void printParseTable() {
         for (String nonTerminal : parseTable.keySet()) {
             System.out.println(nonTerminal + ":");
@@ -165,7 +166,7 @@ public class Parser {
                             parserControlVariables.currentCallEntry.reArrangeParameters();
                         }
                         break;
-                    case ")":
+                    case "START":
                         // Si es tanca un parentesi, vol dir que hem acabat d'afegir arguments a una funció o que hem acabat una condició
                         if (parserControlVariables.context.equals("condicional")) {
                             parserControlVariables.insideCondition = false;
@@ -211,10 +212,10 @@ public class Parser {
                             depth++;
                         }
                         //Afegir al scope actual
-                        if(symbolTable.getCurrentScope().getRootNode() != null) symbolTable.getCurrentScope().getRootNode().addChild(topNode);
+                        //if(symbolTable.getCurrentScope().getRootNode() != null) symbolTable.getCurrentScope().getRootNode().addChild(topNode);
                         //symbolTable.getAllTree().addChild(topNode);
                         if(parserControlVariables.lastTopNode != null){
-                            if(!parserControlVariables.lastTopNode.getChildren().contains(topNode) && doesBelongToProduction(topNode)) parserControlVariables.lastTopNode.addChild(topNode);
+                            //if(!parserControlVariables.lastTopNode.getChildren().contains(topNode) && doesBelongToProduction(topNode)) parserControlVariables.lastTopNode.addChild(topNode);
                         }
                         else symbolTable.setAllTree(topNode);
 
@@ -404,7 +405,7 @@ public class Parser {
                 if (parserControlVariables.insideCondition) {
                      ConditionalEntry currentConditionalEntry = (ConditionalEntry) symbolTable.getCurrentScope().lookup(parserControlVariables.currentConditional);
                      if(node.getValue() != null) currentConditionalEntry.addCondition(node.getValue());
-                     else if(!node.getType().equals("(") && !node.getType().equals(":") && !node.getType().equals("START")) currentConditionalEntry.addCondition(node.getType());
+                     else if(!node.getType().equals("(") && !node.getType().equals(":") && !node.getType().equals("START") && !node.getType().equals(")")) currentConditionalEntry.addCondition(node.getType());
                 }
                 break;
         }
@@ -484,7 +485,7 @@ public class Parser {
         // Guardem el que trobem a la condició de la conditionalEntry del scope actual
         if(node.getValue() != null) {
             ConditionalEntry currentConditionalEntry = (ConditionalEntry) symbolTable.getCurrentScope().lookup(parserControlVariables.currentConditional);
-            currentConditionalEntry.addCondition(node.getValue());
+            if(currentConditionalEntry != null) currentConditionalEntry.addCondition(node.getValue());
         }
     }
 

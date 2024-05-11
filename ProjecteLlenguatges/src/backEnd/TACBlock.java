@@ -15,7 +15,12 @@ public class TACBlock {
     }
 
     public void processCondition(String endLabel) {
-        //TODO: Mètode que processarà la condició de salt del bloc en cas de ser un bloc condicional
+        for(TACEntry entry : entries) {
+            if(entry.getType().equals("CONDITION")) {
+                // Afegim el GOTO endLabel
+                entry.setDestination(endLabel);
+            }
+        }
     }
 
     public void printBlock() {

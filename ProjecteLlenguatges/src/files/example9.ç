@@ -1,0 +1,31 @@
+proces enter HOLA(enter: arg1) fer:
+    si(arg1 > 0) fer:
+        mentre(arg1 > 0) fer:
+            arg1 = arg1 - 1 ç
+        fi
+    fi
+    sino fer:
+        enter: p = 0 ç
+        mentre(arg1 < 0) fer:
+            arg1 = arg1 + 1 ç
+        fi
+    fi
+fi
+
+proces Calçot() fer:
+    enter: b = 4, c = 5, d = 6 ç
+    siono: ok = cert ç
+    enter: iterador = 0 ç
+
+     per iterador de 10 fins 79 sumant 12 fer:
+            mentre (!ok) fer:
+                enter: nombre = (((0 +10)  * 11)  +7/1) - 10  ç
+                enter: nombre3 = nombre * 9 ç
+            fi
+     fi
+
+    enter: prova = 0 ç
+fi
+
+
+

@@ -13,7 +13,7 @@ import java.util.List;
 
 
 public class Main {
-    private static final String FILE_PATH = "src/files/example8.ç";
+    private static final String FILE_PATH = "src/files/example9.ç";
     private static final String GRAMMAR_PATH = "src/files/grammar.json";
 
     public static void  main(String[] args) {
@@ -42,6 +42,12 @@ public class Main {
 
         SemanticAnalizer semanticAnalizer = new SemanticAnalizer(parser.getSymbolTable(), errorHandler);
         semanticAnalizer.analizeSymbolTable();
+
+        // Si trobem errors al frontend no continuem amb el backend
+        if(errorHandler.hasErrors()) {
+            errorHandler.printErrors();
+            return;
+        }
 
         TACGenerator tacGenerator = new TACGenerator();
         tacGenerator.generateTAC(parser.getSymbolTable().getAllTree());

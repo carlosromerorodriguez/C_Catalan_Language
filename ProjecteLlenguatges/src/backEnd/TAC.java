@@ -6,6 +6,7 @@ import java.util.*;
 public class TAC {
     private int blockCounter = 0;
     private LinkedHashMap<String, TACBlock> blocks;
+    private String currentLabel;
 
     public TAC() {
         blocks = new LinkedHashMap<>();
@@ -17,6 +18,7 @@ public class TAC {
         else  label = "L" + blockCounter++; // Si no es una funció o el main, el label es "L" + blockCounter
 
         blocks.put(label, block);
+        currentLabel = label;
         return label;
     }
 
@@ -26,6 +28,10 @@ public class TAC {
 
     public Map<String, TACBlock> getAllBlocks() {
         return blocks;
+    }
+
+    public String getCurrentLabel() {
+        return currentLabel;
     }
 
     public String convertOperandToType(String operand) {
@@ -66,7 +72,6 @@ public class TAC {
         for (String label : blocks.keySet()) {
             System.out.println(label + ":");
             blocks.get(label).printBlock();
-            System.out.println("\n");
         }
     }
 }

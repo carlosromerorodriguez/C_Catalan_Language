@@ -144,7 +144,7 @@ public class Node {
     }
 
     private boolean isCrucialNode(Node node) {
-        return node.type.equalsIgnoreCase("if") || node.type.equalsIgnoreCase("while") || node.type.equalsIgnoreCase("for") || node.type.equalsIgnoreCase("function") || node.type.equalsIgnoreCase("crida");
+        return node.type.equalsIgnoreCase("if") || node.type.equalsIgnoreCase("while") || node.type.equalsIgnoreCase("for") || node.type.equalsIgnoreCase("function") || node.type.equalsIgnoreCase("crida") || node.type.equalsIgnoreCase("condició");
     }
 
     public Token<Object> findChildByType(String varName) {

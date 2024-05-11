@@ -134,7 +134,8 @@
   "component": [
     ["VAR_NAME"],
     ["LITERAL"],
-    ["(", "condició", ")"]
+    ["assignacio_crida"],
+    ["(", "avaluació", ")"]
   ],
   "arguments_crida": [
     ["(","arguments_dins_crida", ")"]

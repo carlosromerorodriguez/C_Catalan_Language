@@ -8,12 +8,8 @@ public class TACGenerator {
     private TAC code;
     private TACBlock currentBlock;
     private static int tempCounter;
-    private final Set<String> terminalSymbols = new HashSet<>(Arrays.asList(
-            "+", "-", "*", "/", "=", ";", ",", ":", "(", ")", "{", "}", "GREATER", "LOWER", "LOWER_EQUAL",
-            "GREATER_EQUAL", "!", "==", "!=",
-            "RETORN", "FUNCTION", "START", "END", "LITERAL", "VAR_NAME", "FOR", "DE", "FINS", "VAR_TYPE", "IF",
-            "ELSE", "WHILE", "CALL", "FUNCTION_NAME", "AND", "OR", "CALÇOT", "VOID", "FUNCTION_MAIN", "SUMANT", "RESTANT"
-    ));
+    private Stack<String> conditionalLabels = new Stack<>();
+    private Stack<HashMap<Boolean, String>> wasIterator = new Stack<>();
 
     public TACGenerator() {
         this.code = new TAC();
@@ -28,8 +24,6 @@ public class TACGenerator {
                     case "funcio" -> {
                         currentBlock = new TACBlock();
                         String functionName = getFunctionName(child);
-
-                        //TODO: Cal procesar els arguments?
 
                         assert functionName != null;
                         code.addBlock(currentBlock, functionName);
@@ -64,8 +58,6 @@ public class TACGenerator {
                 currentBlock = new TACBlock();
                 String functionName = getFunctionName(child);
 
-                //TODO: Cal procesar els arguments?
-
                 assert functionName != null;
                 code.addBlock(currentBlock, functionName);
                 buildTAC(child);
@@ -88,31 +80,43 @@ public class TACGenerator {
         // Casos que hem de controlar segons el tipus de node
         switch (child.getType().toLowerCase()) {
             case "condicionals": // If
-                generateIfCode(child);
+                generateIfCode(child); //DONE
+                for(Node grandChild : child.getChildren()) {
+                    processNode(grandChild);
+                }
                 break;
             case "condicional'": // Else
-                generateElseCode(child);
+                generateElseCode(child); //DONE
+                for(Node grandChild : child.getChildren()) {
+                    processNode(grandChild);
+                }
                 break;
             case "mentre": // While
-                generateWhileCode(child);
+                generateWhileCode(child); //DONE
+                for(Node grandChild : child.getChildren()) {
+                    processNode(grandChild);
+                }
                 break;
             case "per": // For
                 generateForCode(child);
+                for(Node grandChild : child.getChildren()) {
+                    processNode(grandChild);
+                }
                 break;
             case "assignació":
                 generateAssignmentCode(child); //DONE
                 break;
             case "condició":
-                generateConditionCode(child);
+                generateConditionCode(child); //DONE
                 break;
             case "retorn":
-                generateReturnCode(child); //DONE
+                if(!child.getChildren().isEmpty()) generateReturnCode(child); //DONE
                 break;
             case "crida":
                 generateCallCode(child.getChildren().getFirst()); //DONE
                 break;
             case "end":
-                addEndBlock();
+                addEndBlock(); //DONE
             default: //Si no és cap dels anteriors, cridem recursivament la funció per el node actual
                 buildTAC(child);
         }
@@ -121,22 +125,111 @@ public class TACGenerator {
     private void generateConditionCode(Node child) {
         // Generem el codi de la condició explorant recursivament aquella part de l'arbre
         // Mètode especific recursiu per a la condició
+        String not = "";
+        if(child.getChildren().size() == 2) {
+            // Si té dos fills, te un ! davant, ens el quedem i l'eliminem dels fills
+            not = child.getChildren().getFirst().getType();
+            child.getChildren().removeFirst();
+        }
+
+        String condition = not + generateConditionTACRecursive(child);
+        TACEntry tacEntry = new TACEntry("IF", condition, "", "", "CONDITION");
+        currentBlock.add(tacEntry);
     }
 
-    private void addEndBlock() { //Punts negatius: sempre s'afegirà un bloc final, encara que no sigui necessari
-        // Creem un nou bloc
-        TACBlock endBlock = new TACBlock();
-        // Afegim el bloc a la llista de blocs i ens quedem amb l'etiqueta del bloc per al salt de la condició
-        String endLabel = code.addBlock(endBlock, "false");
+    private String generateConditionTACRecursive(Node node) {
+        if ("literal".equalsIgnoreCase(node.getType()) || "var_name".equalsIgnoreCase(node.getType())) {
+            return node.getValue().toString();
+        } else if ("assignacio_crida".equalsIgnoreCase(node.getType())) {
+            return generateFunctionCallRecursive(node);
+        } else if ("crida".equalsIgnoreCase(node.getType())) {
+            return generateFunctionCallRecursive(node.getChildren().getFirst());
+        }
 
-        // Afegim el salt al final del bloc actual
-        //Afegim el codi de de saltar si es compleix la condició
-        // Ex: if num < 1 goto [L2] (afegim el L2 a la condició del bloc actual si s'escau, es pot donar el cas
-        // que el bloc actual no sigui una condició)
-        currentBlock.processCondition(endLabel);
+        if(node.getType().equalsIgnoreCase("expressió'") || node.getType().equalsIgnoreCase("terme'") ||
+                node.getType().equalsIgnoreCase("condició'") || node.getType().equalsIgnoreCase("oració'") ||
+                node.getType().equalsIgnoreCase("avaluació'") || node.getType().equalsIgnoreCase("operació'")
+        ) {
+            if(node.getChildren().size() == 2) {
+                String operator = node.getChildren().get(0).getType();
+                String op2 = generateConditionTACRecursive(node.getChildren().get(1));
 
-        // El bloc actual passa a ser el bloc creat, tenint en compte els punts negatius
-        currentBlock = endBlock; //El bloc actual passa a ser el bloc final
+                return operator + "," + op2;
+            }
+
+            String operator = node.getChildren().get(0).getType();
+            String op1 = generateConditionTACRecursive(node.getChildren().get(1));
+            String recursiveCondition = generateConditionTACRecursive(node.getChildren().get(2));
+            if(recursiveCondition.split(",").length == 1) {
+                return operator + "," + op1;
+            }
+
+            String op2 = recursiveCondition.split(",")[1];
+            String recursiveOperand = recursiveCondition.split(",")[0];
+
+            String temp = generateTempVariable();
+            TACEntry tacEntry = new TACEntry(recursiveOperand, op1, op2, temp, code.convertOperandToType(operator));
+            currentBlock.add(tacEntry);
+
+            return operator + "," + temp;
+        }
+
+        if(node.getType().equalsIgnoreCase("expressió") || node.getType().equalsIgnoreCase("terme") ||
+                node.getType().equalsIgnoreCase("condició") || node.getType().equalsIgnoreCase("oració") ||
+                node.getType().equalsIgnoreCase("avaluació") || node.getType().equalsIgnoreCase("operació")
+        ){
+            if(node.getChildren().size() == 1) {
+                return generateConditionTACRecursive(node.getChildren().getFirst());
+            }
+
+            String op1 = generateConditionTACRecursive(node.getChildren().getFirst());
+            String recursiveCondition = generateConditionTACRecursive(node.getChildren().getLast());
+            if(recursiveCondition.split(",").length == 1) {
+                return op1;
+            }
+
+            String operator = recursiveCondition.split(",")[0];
+            String operand = recursiveCondition.split(",")[1];
+
+            String temp = generateTempVariable();
+            TACEntry tacEntry = new TACEntry(operator, op1, operand, temp, code.convertOperandToType(operator));
+            currentBlock.add(tacEntry);
+            return temp;
+        }
+
+        if(node.getType().equalsIgnoreCase("factor") || node.getType().equals("component")) {
+            for(Node child : node.getChildren()) {
+                if(!child.getType().equals("(") && !child.getType().equals(")")) {
+                    return generateConditionTACRecursive(child);
+                }
+            }
+        }
+
+        return "";
+    }
+
+    private void addEndBlock() {
+        if(!conditionalLabels.isEmpty()) {
+            if(!wasIterator.isEmpty()) {
+                HashMap<Boolean, String> map = wasIterator.pop();
+                if(map.containsKey(true)) {
+                    String label = map.get(true);
+                    TACEntry tacEntry = new TACEntry("GOTO", "", label, "", "GOTO");
+                    currentBlock.add(tacEntry);
+                }
+            }
+            // Creem un nou bloc
+            TACBlock endBlock = new TACBlock();
+            // Afegim el bloc a la llista de blocs i ens quedem amb l'etiqueta del bloc per al salt de la condició
+            String endLabel = code.addBlock(endBlock, "false");
+
+            TACBlock conditionalBlock = code.getBlock(conditionalLabels.pop());
+            conditionalBlock.processCondition(endLabel);
+
+            // El bloc actual passa a ser el bloc creat, tenint en compte els punts negatius
+            currentBlock = endBlock; //El bloc actual passa a ser el bloc final
+        }
+
     }
 
     private void generateCallCode(Node node) {
@@ -369,33 +462,81 @@ public class TACGenerator {
     }
 
     private void generateForCode(Node child) {
-        // Creem un nou bloc
-        // Generem el codi de la condicióm i l'afegim al bloc
-        // Explorem recursivament el cos del for
+        TACBlock forBlock = new TACBlock();
+        String label = code.addBlock(forBlock, "false");
+        conditionalLabels.push(label);
+
+        currentBlock = forBlock;
+
+        generateForTACCondition(child);
+        HashMap<Boolean, String> map = new HashMap<>();
+        map.put(true, code.getCurrentLabel());
+        wasIterator.push(map);
+    }
+
+    private void generateForTACCondition(Node node) {
+        // Assignment
+        String value = node.getChildren().get(3).getValue().toString();
+        String varName = node.getChildren().get(1).getValue().toString();
+        TACEntry assignmentEntry = new TACEntry("=","" , value, varName, "=");
+        currentBlock.add(assignmentEntry);
+
+        // Condition
+        String condition = "LT";
+        String op2 = node.getChildren().get(5).getValue().toString();
+        String conditionOp = varName + " " + condition + " " + op2;
+        TACEntry conditionEntry = new TACEntry(condition, conditionOp, "", "", "CONDITION");
+        currentBlock.add(conditionEntry);
+
+        //increment or decrement
+        op2 = node.getChildren().get(7).getValue().toString();
+        String inc = node.getChildren().get(6).getType();
+        if(inc.equals("SUMANT")) {
+            condition = "ADD";
+        } else {
+            condition = "SUB";
+        }
+        TACEntry incrementEntry = new TACEntry(condition, varName, op2, varName, code.convertOperandToType(condition));
+        currentBlock.add(incrementEntry);
     }
 
     private void generateWhileCode(Node child) {
         // Creem un nou bloc
-        // Generem el codi de la condició i l'afegim al bloc
-        // Explorem recursivament el cos del while
-
+        TACBlock whileBlock = new TACBlock();
+        String label = code.addBlock(whileBlock, "false");
+        conditionalLabels.push(label);
+        currentBlock = whileBlock;
+        HashMap<Boolean, String> map = new HashMap<>();
+        map.put(true, label);
+        wasIterator.push(map);
     }
 
     private void generateElseCode(Node child) {
-        // Creem un nou bloc
-        // Explorem recursivament el cos de l'else
 
+
+        // Creem un nou bloc
+        TACBlock elseBlock = new TACBlock();
+        String label = code.addBlock(elseBlock, "false");
+        conditionalLabels.push(label);
+        currentBlock = elseBlock;
+
+        // Push a new map with false
+        HashMap<Boolean, String> map = new HashMap<>();
+        map.put(false, label);
+        wasIterator.push(map);
     }
 
     private void generateIfCode(Node child) {
         // Creem un nou bloc
-        // Generem el codi de la condició i l'afegim al bloc
-        // Ex:
-        // L1:
-        //      if num < 1 goto L2
-        //      ... cos de l'if
+        TACBlock ifBlock = new TACBlock();
+        String label = code.addBlock(ifBlock, "false");
+        conditionalLabels.push(label);
+        currentBlock = ifBlock;
 
-        // Explorem recursivament el cos de l'if
+        // Push a new map with false
+        HashMap<Boolean, String> map = new HashMap<>();
+        map.put(false, label);
+        wasIterator.push(map);
     }
 
     public void printTAC() {

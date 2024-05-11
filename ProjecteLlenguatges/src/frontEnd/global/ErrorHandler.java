@@ -24,4 +24,8 @@ public class ErrorHandler {
             System.out.println(ANSI_RED + line + ANSI_RESET);
         }
     }
+
+    public Boolean hasErrors() {
+        return !errors.isEmpty();
+    }
 }
