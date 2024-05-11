@@ -119,6 +119,34 @@ public class Node {
         return !terminalSymbols.contains(type);
     }
 
+    public void collapseSingleChildNodes() {
+        collapseHelper(this);
+    }
+
+    private void collapseHelper(Node node) {
+        for (Node child : node.children) {
+            // Se colapsan recusivamente todos los hijos del hijo actual
+            collapseHelper(child);
+
+            // Si el hijo tiene exactamente un hijo y no es un nodo crucial
+            if (child.children.size() == 1 && !isCrucialNode(child)) {
+                // Se reemplaza el hijo por su único hijo
+                Node grandchild = child.children.getFirst();
+                child.type = grandchild.type;
+                child.value = grandchild.value;
+                child.children = grandchild.children;
+                // Ahora se establece el padre de todos los nuevos hijos a child
+                for (Node grandchildNode : child.children) {
+                    grandchildNode.parent = child;
+                }
+            }
+        }
+    }
+
+    private boolean isCrucialNode(Node node) {
+        return node.type.equalsIgnoreCase("if") || node.type.equalsIgnoreCase("while") || node.type.equalsIgnoreCase("for") || node.type.equalsIgnoreCase("function");
+    }
+
     public Token<Object> findChildByType(String varName) {
         for (Node child : children) {
             if (child.getType().equals(varName)) {

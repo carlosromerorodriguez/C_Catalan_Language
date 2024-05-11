@@ -12,21 +12,11 @@ import java.util.Arrays;
 
 public class SemanticAnalizer {
     public enum Vartype {
-        ENTER(4),
-        DECIMAL(5.65),
-        SIONO(true),
-        LLETRES('a'),
-        UNASSIGNED(null);
-
-        private final Object value;
-
-        Vartype(Object value) {
-            this.value = value;
-        }
-
-        public Object getValue() {
-            return value;
-        }
+        ENTER,
+        DECIMAL,
+        SIONO,
+        LLETRES,
+        UNASSIGNED;
     }
 
     private SymbolTable symbolTable;
