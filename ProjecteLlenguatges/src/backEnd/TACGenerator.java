@@ -11,6 +11,8 @@ public class TACGenerator {
     private Stack<String> conditionalLabels = new Stack<>();
     private Stack<HashMap<Boolean, String>> wasIterator = new Stack<>();
 
+
+
     public TACGenerator() {
         this.code = new TAC();
     }
@@ -133,7 +135,7 @@ public class TACGenerator {
         }
 
         String condition = not + generateConditionTACRecursive(child);
-        TACEntry tacEntry = new TACEntry("IF", condition, "", "", "CONDITION");
+        TACEntry tacEntry = new TACEntry(Type.CONDITION.getType(), condition, "", "", Type.CONDITION);
         currentBlock.add(tacEntry);
     }
 
@@ -214,7 +216,7 @@ public class TACGenerator {
                 HashMap<Boolean, String> map = wasIterator.pop();
                 if(map.containsKey(true)) {
                     String label = map.get(true);
-                    TACEntry tacEntry = new TACEntry("GOTO", "", label, "", "GOTO");
+                    TACEntry tacEntry = new TACEntry(Type.GOTO.getType(), "", label, "", Type.GOTO);
                     currentBlock.add(tacEntry);
                 }
             }
@@ -239,18 +241,18 @@ public class TACGenerator {
                 String result = generateExpressionTACRecursive(child);
                 //Afegir el resultat al bloc actual
                 //Ex: param tx
-                TACEntry tacEntry = new TACEntry("PARAM", "", result, "", "PARAM");
+                TACEntry tacEntry = new TACEntry(Type.PARAM.getType(), "", result, "", Type.PARAM);
                 currentBlock.add(tacEntry);
             }
         }
 
         //Afegir el call al tac
-        TACEntry tacEntry = new TACEntry("CALL", "" , node.getChildren().getFirst().getValue().toString(), "", "CALL");
+        TACEntry tacEntry = new TACEntry(Type.CALL.getType(), "" , node.getChildren().getFirst().getValue().toString(), "", Type.CALL);
         currentBlock.add(tacEntry);
     }
 
     private void generateReturnCode(Node node) {
-        TACEntry tacEntry = new TACEntry("RET", "", generateReturnExpressionTACRecursive(node.getChildren().get(1)), "", "RET");
+        TACEntry tacEntry = new TACEntry(Type.RET.getType(), "", generateReturnExpressionTACRecursive(node.getChildren().get(1)), "", Type.RET);
         currentBlock.add(tacEntry);
     }
 
@@ -345,7 +347,7 @@ public class TACGenerator {
         //Explorem recursivament fins trobar un node que com a fill tingui VAR_NAME i assignació_final
         if(isAssignation(node)) {
             String varname = getVarName(node);
-            TACEntry tacEntry = new TACEntry("", generateExpressionTACRecursive(getFinalAssignation(node)), "", varname, "=");
+            TACEntry tacEntry = new TACEntry("", generateExpressionTACRecursive(getFinalAssignation(node)), "", varname, Type.EQU);
             currentBlock.add(tacEntry);
         }
         for(Node child : node.getChildren()) {
@@ -443,7 +445,7 @@ public class TACGenerator {
 
                 //Afegir el resultat al bloc actual
                 //Ex: param tx
-                TACEntry tacEntry = new TACEntry("PARAM", "", result, "", "PARAM");
+                TACEntry tacEntry = new TACEntry(Type.PARAM.getType(), "", result, "", Type.PARAM);
                 currentBlock.add(tacEntry);
             }
         }
@@ -451,7 +453,7 @@ public class TACGenerator {
         //Afegir el call al tac
         //Ex: tx = call node.getValue()
         String tempVar = generateTempVariable();
-        TACEntry tacEntry = new TACEntry("CALL", "" , node.getChildren().getFirst().getValue().toString(), tempVar, "CALL_EXP");
+        TACEntry tacEntry = new TACEntry(Type.CALL_EXP.getType(), "" , node.getChildren().getFirst().getValue().toString(), tempVar, Type.CALL_EXP);
         currentBlock.add(tacEntry);
 
         return tempVar;
@@ -478,14 +480,14 @@ public class TACGenerator {
         // Assignment
         String value = node.getChildren().get(3).getValue().toString();
         String varName = node.getChildren().get(1).getValue().toString();
-        TACEntry assignmentEntry = new TACEntry("=","" , value, varName, "=");
+        TACEntry assignmentEntry = new TACEntry(Type.EQU.getType(), "" , value, varName, Type.EQU);
         currentBlock.add(assignmentEntry);
 
         // Condition
-        String condition = "LT";
+        String condition = Type.LT.getType();
         String op2 = node.getChildren().get(5).getValue().toString();
         String conditionOp = varName + " " + condition + " " + op2;
-        TACEntry conditionEntry = new TACEntry(condition, conditionOp, "", "", "CONDITION");
+        TACEntry conditionEntry = new TACEntry(condition, conditionOp, "", "", Type.LT);
         currentBlock.add(conditionEntry);
 
         //increment or decrement
@@ -542,5 +544,9 @@ public class TACGenerator {
     public void printTAC() {
         //code.removeEmptyBlocks();
         code.printTAC();
+    }
+
+    public LinkedHashMap<String, TACBlock> getTAC(){
+        return this.code.getAllBlocks();
     }
 }

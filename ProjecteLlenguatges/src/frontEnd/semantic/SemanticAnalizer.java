@@ -15,7 +15,8 @@ public class SemanticAnalizer {
         DECIMAL,
         SIONO,
         LLETRES,
-        UNASSIGNED;
+        UNASSIGNED,
+        RES
     }
 
     private SymbolTable symbolTable;
@@ -45,6 +46,9 @@ public class SemanticAnalizer {
             case "siono" -> {
                 return Vartype.SIONO;
             }
+            case "res" ->{
+                return Vartype.RES;
+            }
             default -> {
                 return Vartype.UNASSIGNED;
             }
@@ -56,21 +60,21 @@ public class SemanticAnalizer {
     }
 
     private void analizeScopes(Scope currentScope) {
-        for (Scope scope : currentScope.getChildScopes()) {
-            for (Map.Entry<String, SymbolTableEntry> entry : scope.getSymbolTable().entrySet()) {
-                if (entry.getValue() instanceof VariableEntry tableEntry) {
-                    checkVariable(scope, tableEntry);
-                } else if (entry.getValue() instanceof FunctionEntry tableEntry) {
-                    checkFunction(scope, tableEntry);
-                } else if (entry.getValue() instanceof ConditionalEntry tableEntry) {
-                    checkConditional(scope, tableEntry);
-                } else if (entry.getValue() instanceof CallEntry tableEntry) {
-                    checkCall(scope, tableEntry);
-                }
-
-                analizeScopes(scope);
+        for (Map.Entry<String, SymbolTableEntry> entry : currentScope.getSymbolTable().entrySet()) {
+            if (entry.getValue() instanceof VariableEntry tableEntry) {
+                checkVariable(currentScope, tableEntry);
+            } else if (entry.getValue() instanceof FunctionEntry tableEntry) {
+                checkFunction(currentScope, tableEntry);
+            } else if (entry.getValue() instanceof ConditionalEntry tableEntry) {
+                checkConditional(currentScope, tableEntry);
+            } else if (entry.getValue() instanceof CallEntry tableEntry) {
+                checkCall(currentScope, tableEntry);
             }
         }
+        for (Scope scope : currentScope.getChildScopes()) {
+                analizeScopes(scope);
+            }
+
     }
 
     private void checkCall(Scope scope, CallEntry condEntry) {
@@ -102,7 +106,7 @@ public class SemanticAnalizer {
         }
         for (Object term : funcEntry.getReturnValue()) {
             newType = getTermType(term, scope);
-            if (newType != Vartype.UNASSIGNED && newType != functionType) {
+            if (functionType != Vartype.RES && newType != Vartype.UNASSIGNED && newType != functionType) {
                 this.errorHandler.recordTypeMismatchError("return of function " + funcEntry.getName(), funcEntry.getReturnType().toUpperCase(), funcEntry.getLine());
             }
         }
@@ -177,39 +181,61 @@ public class SemanticAnalizer {
     }
 
 
-    public  boolean checkBooleanExpression(List<Object> expr, Scope scope) {
+    public boolean checkBooleanExpression(List<Object> expr, Scope scope) {
         Stack<Vartype> stack = new Stack<>();
         Stack<Integer> parenStack = new Stack<>();
 
         for (Object token : expr) {
-            if (token instanceof String && token.equals("(")) {
-                parenStack.push(stack.size());
-            } else if (token instanceof String && token.equals(")")) {
-                if (parenStack.isEmpty() || stack.size() <= parenStack.peek() || stack.peek() != Vartype.SIONO) {
-                    return false;
+            if (token instanceof String) {
+                if (token.equals("(")) {
+                    parenStack.push(stack.size());
+                } else if (token.equals(")")) {
+                    if (parenStack.isEmpty() || stack.size() <= parenStack.peek() || stack.peek() != Vartype.SIONO) {
+                        return false;
+                    }
+                    stack.setSize(parenStack.pop());
+                    stack.push(Vartype.SIONO);
+                } else if (isOperator((String)token)) {
+                    if (token.equals("not")) {
+                        if (stack.isEmpty() || stack.pop() != Vartype.SIONO) {
+                            return false;
+                        }
+                        stack.push(Vartype.SIONO);
+                    } else if (isBooleanOperator((String)token)) {
+                        if (stack.size() < 2 || stack.pop() != Vartype.SIONO || stack.pop() != Vartype.SIONO) {
+                            return false;
+                        }
+                        stack.push(Vartype.SIONO);
+                    } else {
+                        // Mathematical operators
+                        if (stack.size() < 2 || stack.pop() != Vartype.ENTER || stack.pop() != Vartype.ENTER) {
+                            return false;
+                        }
+                        stack.push(Vartype.ENTER); // Assuming result of arithmetic operations is integer
+                    }
+                } else {
+                    // Variables
+                    stack.push(getTermType(token, scope));
                 }
-                stack.setSize(parenStack.pop());
-                stack.push(Vartype.SIONO);
-            } else if (token instanceof Integer) { // Números enteros
+            } else if (token instanceof Integer) {
                 stack.push(Vartype.ENTER);
-            } else if (token instanceof Float) { // Números decimales
+            } else if (token instanceof Float) {
                 stack.push(Vartype.DECIMAL);
-            } else if (token instanceof Boolean) { // Booleanos
-                stack.push(Vartype.SIONO);
-            } else if (token.equals("+") || token.equals("-") || token.equals("*") || token.equals("/")) { // Operadores matemáticos
-                if (stack.size() < 2 || stack.pop() != stack.peek()) {
-                    return false;
-                }
-            } else if (token.equals("and") || token.equals("or") || token.equals("not") || token.equals("GREATER") || token.equals("<") || token.equals("<=") || token.equals(">=") || token.equals("==") || token.equals("!=")) { // Operadores booleanos
-                if (stack.isEmpty() || stack.pop() != Vartype.SIONO || stack.peek() != Vartype.SIONO) {
-                    return false;
-                }
-            } else { // Variables
-                stack.push(getTermType(token, scope));
             }
         }
 
         return stack.size() == 1 && stack.peek() == Vartype.SIONO && parenStack.isEmpty();
     }
+
+    private boolean isOperator(String token) {
+        return token.equals("+") || token.equals("-") || token.equals("*") || token.equals("/") || token.equals("not")
+                || isBooleanOperator(token);
+    }
+
+    private boolean isBooleanOperator(String token) {
+        return token.equals("and") || token.equals("or") || token.equals("GREATER") || token.equals("<") || token.equals("<=")
+                || token.equals(">=") || token.equals("==") || token.equals("!=");
+    }
+
 
 }

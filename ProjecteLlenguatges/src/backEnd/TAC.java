@@ -3,10 +3,14 @@ package backEnd;
 
 import java.util.*;
 
+
+
 public class TAC {
     private int blockCounter = 0;
     private LinkedHashMap<String, TACBlock> blocks;
     private String currentLabel;
+
+
 
     public TAC() {
         blocks = new LinkedHashMap<>();
@@ -26,7 +30,7 @@ public class TAC {
         return blocks.get(label);
     }
 
-    public Map<String, TACBlock> getAllBlocks() {
+    public LinkedHashMap<String, TACBlock> getAllBlocks() {
         return blocks;
     }
 
@@ -34,28 +38,29 @@ public class TAC {
         return currentLabel;
     }
 
-    public String convertOperandToType(String operand) {
+    public Type convertOperandToType(String operand) {
         return switch (operand) {
-            case "+" -> "ADD";
-            case "-" -> "SUB";
-            case "*" -> "MUL";
-            case "/" -> "DIV";
-            case "&&" -> "AND";
-            case "||" -> "OR";
-            case "==" -> "EQ";
-            case "!=" -> "NE";
-            case "<" -> "LT";
-            case "<=" -> "LE";
-            case ">" -> "GT";
-            case ">=" -> "GE";
-            case "RETORN" -> "RET";
-            default -> operand;
+            case "+" -> Type.ADD;
+            case "-" -> Type.SUB;
+            case "*" -> Type.MUL;
+            case "/" -> Type.DIV;
+            case "&&" -> Type.AND;
+            case "||" -> Type.OR;
+            case "==" -> Type.EQ;
+            case "!=" -> Type.NE;
+            case "<" -> Type.LT;
+            case "<=" -> Type.LE;
+            case ">" -> Type.GT;
+            case ">=" -> Type.GE;
+            case "RETORN" -> Type.RET;
+            default -> Type.UNDEFINED;
             //Altre casos...
         };
     }
 
+
+
     public void removeEmptyBlocks() {
-        //TODO: Si sobre temps només eliminar els blocs buits que no formin part d'un if o while
         List<String> toRemove = new ArrayList<>();
         for (String label : blocks.keySet()) {
             if (blocks.get(label).isEmpty()) {

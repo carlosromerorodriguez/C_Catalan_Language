@@ -1,5 +1,6 @@
 import backEnd.TAC;
 import backEnd.TACGenerator;
+import backEnd.TACToRISCConverter;
 import frontEnd.global.ErrorHandler;
 import frontEnd.lexic.CodeLine;
 import frontEnd.lexic.Lexer;
@@ -13,8 +14,9 @@ import java.util.List;
 
 
 public class Main {
-    private static final String FILE_PATH = "src/files/example9.ç";
+    private static final String FILE_PATH = "src/files/example2.ç";
     private static final String GRAMMAR_PATH = "src/files/grammar.json";
+    private static final String MIPS_FILE_PATH = "src/mips.txt";
 
     public static void  main(String[] args) {
         // 1. Clase para convertir el input del usuario a token de nuestro lenguaje
@@ -44,15 +46,18 @@ public class Main {
         semanticAnalizer.analizeSymbolTable();
 
         // Si trobem errors al frontend no continuem amb el backend
-        if(errorHandler.hasErrors()) {
+        /*if(errorHandler.hasErrors()) {
             errorHandler.printErrors();
             return;
-        }
+        }*/
 
         TACGenerator tacGenerator = new TACGenerator();
         tacGenerator.generateTAC(parser.getSymbolTable().getAllTree());
         tacGenerator.printTAC();
         errorHandler.printErrors();
+
+        TACToRISCConverter tacToRISCConverter = new TACToRISCConverter(MIPS_FILE_PATH);
+        tacToRISCConverter.convertTAC(tacGenerator.getTAC());
 
     }
 

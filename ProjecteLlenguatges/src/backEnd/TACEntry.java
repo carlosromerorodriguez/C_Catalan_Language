@@ -5,9 +5,9 @@ public class TACEntry {
     private String operand1;
     private String operand2;
     private String destination;
-    private String type; // Necessari per "condition" i per tant fer append al seguent bloc creat Ex: if i < 5 goto L2
+    private Type type; // Necessari per "condition" i per tant fer append al seguent bloc creat Ex: if i < 5 goto L2
 
-    public TACEntry(String op, String op1, String op2, String destination, String type) {
+    public TACEntry(String op, String op1, String op2, String destination, Type type) {
         operation = op;
         operand1 = op1;
         operand2 = op2;
@@ -15,7 +15,7 @@ public class TACEntry {
         this.type = type;
     }
 
-    public String getType() {
+    public Type getType() {
         return type;
     }
 
@@ -33,5 +33,21 @@ public class TACEntry {
         } else {
             return operation + " " + operand2;
         }
+    }
+
+    public String getOperation() {
+        return operation;
+    }
+
+    public String getOperand1() {
+        return operand1;
+    }
+
+    public String getOperand2() {
+        return operand2;
+    }
+
+    public String getDestination() {
+        return destination;
     }
 }

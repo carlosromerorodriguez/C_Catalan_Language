@@ -32,4 +32,8 @@ public class TACBlock {
     public boolean isEmpty() {
         return entries.isEmpty();
     }
+
+    public List<TACEntry> getEntries() {
+        return this.entries;
+    }
 }
