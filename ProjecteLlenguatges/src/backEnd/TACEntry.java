@@ -25,8 +25,8 @@ public class TACEntry {
 
     @Override
     public String toString() {
-        if(!type.equals("PARAM") && !type.equals("CALL") && !type.equals("RET") && !type.equals("GOTO")) {
-            if(type.equals("CONDITION")) {
+        if(!type.equals(Type.PARAM) && !type.equals(Type.CALL) && !type.equals(Type.RET) && !type.equals(Type.GOTO)) {
+            if(type.equals(Type.CONDITION)) {
                 return "IF " + operand1 + " goto " + destination;
             }
             return destination + " = " + operand1 + " " + operation + " " + operand2;

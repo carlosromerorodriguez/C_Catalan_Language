@@ -1,1 +1,1 @@
-HOLAmove $a,$truemove $c,78.9L0move $as,$trueL1move $v0, $mainmove $a,$trueaddi $a0, $zero, jal addi $a0, $zero, jal move $a,$t3
+HOLAmove $a,$truemove $c,78.9L0move $as,$trueL1move $v0, $mainmove $a,$t3addi $a0, $zero, jal move $a,$t4

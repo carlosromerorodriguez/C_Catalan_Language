@@ -2,6 +2,8 @@ package frontEnd.syntactic;
 
 import frontEnd.syntactic.symbolTable.CallEntry;
 
+import java.util.Stack;
+
 public class ParserControlVariables {
     public String context = "";
     public Boolean isFirstToken = false;
@@ -22,6 +24,7 @@ public class ParserControlVariables {
     public Node currentTopNode;
     public CallEntry currentCallEntry;
     public Boolean isCall = false;
+    public Stack<CallEntry> callEntryStack = new Stack<>();
 
     public ParserControlVariables() {
     }

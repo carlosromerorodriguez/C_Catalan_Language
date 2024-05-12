@@ -1,3 +1,5 @@
+//TODO: Revertir condicions, ELSE
+
 package backEnd;
 
 import frontEnd.syntactic.Node;

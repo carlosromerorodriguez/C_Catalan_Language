@@ -163,7 +163,6 @@ public class Parser {
                         parserControlVariables.insideCondition = false;
                         if(parserControlVariables.isCall) {
                             parserControlVariables.isCall = false;
-                            parserControlVariables.currentCallEntry.reArrangeParameters();
                         }
                         break;
                     case "START":
@@ -298,8 +297,8 @@ public class Parser {
             //analizeSemantic(symbolTable.getCurrentScope());
 
             // Sortim del scope actual
+            reArrangeParameters();
             symbolTable.leaveScope();
-            System.out.println(symbolTable.getCurrentScope());
             parserControlVariables.retornSeen = false;
             parserControlVariables.equalSeen = false;
         } else {
@@ -310,6 +309,15 @@ public class Parser {
 
         // Handle the symbolTable scope
         processNode(topNode);
+    }
+
+    private void reArrangeParameters() {
+        if(parserControlVariables.callEntryStack.isEmpty()) return;
+
+        while(!parserControlVariables.callEntryStack.isEmpty()) {
+            CallEntry callEntry = parserControlVariables.callEntryStack.pop();
+            callEntry.reArrangeParameters();
+        }
     }
 
     private void analizeSemantic(Scope currentScope) {
@@ -566,6 +574,7 @@ public class Parser {
             parserControlVariables.isCall = true;
             //Guardem lastCrida
             parserControlVariables.currentCallEntry = callEntry;
+            parserControlVariables.callEntryStack.push(callEntry);
 
             currentVar.appendExpressionValue(callEntry);
         } else if (parserControlVariables.retornSeen) {
