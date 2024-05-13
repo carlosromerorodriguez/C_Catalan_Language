@@ -1,1 +1,1 @@
-HOLAL0move $arg1,1L1sub $t2,$arg1,1move $arg1,$t2L2move $arg1,2L3L4move $arg1,3L5add $t4,$arg1,1move $arg1,$t4L6move $arg1,4L7move $arg1,5move $v0, $mainmove $b,4move $c,5move $d,6move $ok,$trueL8move $a,3L9move $prova,0
+HOLAL0move $arg1,1L1move $arg1,2L2L3move $arg1,3L4add $t3,$arg1,1move $arg1,$t3L5move $arg1,4L6move $arg1,2L7L8mult 3,4move $arg1,$t4L9add $t6,$arg1,1move $arg1,$t6L10move $arg1,4L11move $arg1,5move $v0, $mainmove $b,4move $c,5move $d,6move $ok,$trueL12sne t7, $b,6move $a,3L13move $prova,0

@@ -87,22 +87,22 @@ public class TACToRISCConverter {
                 return "and " + entry.getDestination() + ", " + varOrLit(entry.getOperand1()) + ", " + varOrLit(entry.getOperand2());
             case "OR": // or
                 return "or " + entry.getDestination() + ", " + varOrLit(entry.getOperand1()) + ", " + varOrLit(entry.getOperand2());
-            case "EQ": // beq
+            case "==": // beq
                 return "seq " + entry.getDestination() + ", " + varOrLit(entry.getOperand1())  + "," + varOrLit(entry.getOperand2());
-            case "NE": // bne
+            case "!=": // bne
                 return "sne " + entry.getDestination() + ", " + varOrLit(entry.getOperand1()) + "," + varOrLit(entry.getOperand2());
-            case "LT": // slt (set on less than)
+            case "LOWER": // slt (set on less than)
                 return "slt " + entry.getDestination() + ", " + varOrLit(entry.getOperand1()) + ", " + varOrLit(entry.getOperand2());
-            case "LE": // slt and beq combination to simulate 'less than or equal'
+            case "LOWER_EQUAL": // slt and beq combination to simulate 'less than or equal'
                 String tempReg = generateTempReg();
                 String leResult = "slt " + tempReg + ", " + varOrLit(entry.getOperand1()) + ", " + varOrLit(entry.getOperand2()) + "\n" +
                         "xori " + tempReg + ", " + tempReg + ", 1\n" + // invert the result of slt
                         "andi " + entry.getDestination() + ", " + tempReg + ", 1"; // store result in destination
                 tempRegCounter--;
                 return leResult;
-            case "GT": // slt (set on less than) with swapped operands to simulate 'greater than'
+            case "GREATER": // slt (set on less than) with swapped operands to simulate 'greater than'
                 return "sgt " + entry.getDestination() + ", " + varOrLit(entry.getOperand2()) + ", " + varOrLit(entry.getOperand1());
-            case "GE": // slt and beq combination to simulate 'greater than or equal'
+            case "GREATER_EQUAL": // slt and beq combination to simulate 'greater than or equal'
                 String tempRegGE = generateTempReg();
                 String geResult = "sgt " + tempRegGE + ", " + varOrLit(entry.getOperand2()) + ", " + varOrLit(entry.getOperand1()) + "\n" +
                         "xori " + tempRegGE + ", " + tempRegGE + ", 1\n" + // invert the result of slt

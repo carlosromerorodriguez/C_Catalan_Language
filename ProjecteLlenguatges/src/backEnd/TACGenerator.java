@@ -1,4 +1,4 @@
-//TODO: Revertir condicions, ELSE
+//TODO: Revertir condicions
 //TODO: Quan fiquem operands als TACEntry no els fiquem com a ADD sino com a +, etc
 
 package backEnd;
@@ -186,8 +186,10 @@ public class TACGenerator {
         String not = "";
         if(child.getChildren().size() == 2) {
             // Si té dos fills, te un ! davant, ens el quedem i l'eliminem dels fills
-            not = child.getChildren().getFirst().getType();
-            child.getChildren().removeFirst();
+            if(child.getChildren().getFirst().getType().equals("!")) {
+                not = child.getChildren().getFirst().getType();
+                child.getChildren().removeFirst();
+            }
         }
 
         String condition = not + generateConditionTACRecursive(child);
