@@ -10,8 +10,6 @@ public class TAC {
     private LinkedHashMap<String, TACBlock> blocks;
     private String currentLabel;
 
-
-
     public TAC() {
         blocks = new LinkedHashMap<>();
     }
@@ -78,5 +76,9 @@ public class TAC {
             System.out.println(label + ":");
             blocks.get(label).printBlock();
         }
+    }
+
+    public int getBlockCounter() {
+        return blockCounter;
     }
 }

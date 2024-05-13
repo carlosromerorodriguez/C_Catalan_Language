@@ -16,7 +16,7 @@ public class TACBlock {
 
     public void processCondition(String endLabel) {
         for(TACEntry entry : entries) {
-            if(entry.getType().equals("CONDITION")) {
+            if(entry.getType().equals(Type.CONDITION)) {
                 // Afegim el GOTO endLabel
                 entry.setDestination(endLabel);
             }

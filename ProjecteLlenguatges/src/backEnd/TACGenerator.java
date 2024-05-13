@@ -1,4 +1,5 @@
 //TODO: Revertir condicions, ELSE
+//TODO: Quan fiquem operands als TACEntry no els fiquem com a ADD sino com a +, etc
 
 package backEnd;
 
@@ -12,8 +13,6 @@ public class TACGenerator {
     private static int tempCounter;
     private Stack<String> conditionalLabels = new Stack<>();
     private Stack<HashMap<Boolean, String>> wasIterator = new Stack<>();
-
-
 
     public TACGenerator() {
         this.code = new TAC();
@@ -218,7 +217,7 @@ public class TACGenerator {
                 HashMap<Boolean, String> map = wasIterator.pop();
                 if(map.containsKey(true)) {
                     String label = map.get(true);
-                    TACEntry tacEntry = new TACEntry(Type.GOTO.getType(), "", label, "", Type.GOTO);
+                    TACEntry tacEntry = new TACEntry(Type.GOTO.getType(), "", label, label, Type.GOTO);
                     currentBlock.add(tacEntry);
                 }
             }
@@ -516,8 +515,6 @@ public class TACGenerator {
     }
 
     private void generateElseCode(Node child) {
-
-
         // Creem un nou bloc
         TACBlock elseBlock = new TACBlock();
         String label = code.addBlock(elseBlock, "false");

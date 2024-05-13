@@ -69,13 +69,13 @@ public class TACToRISCConverter {
 
     private String processOperation(TACEntry entry) {
         return switch (entry.getOperation()) {
-            case "ADD" -> // add $resultat $operand1 $operand2
+            case "+" -> // add $resultat $operand1 $operand2
                     "add " + "$" + entry.getDestination() + "," + varOrLit(entry.getOperand1()) + "," + entry.getOperand2();
-            case "SUB" -> //sub $resultat $operand1 $operand2
+            case "-" -> //sub $resultat $operand1 $operand2
                     "sub " + "$" + entry.getDestination() + "," + varOrLit(entry.getOperand1()) + "," + entry.getOperand2();
-            case "MUL" ->//mult
+            case "*" ->//mult
                     "mult " + varOrLit(entry.getOperand1()) + "," + varOrLit(entry.getOperand2());
-            case "DIV" ->//div
+            case "/" ->//div
                     "div " + varOrLit(entry.getOperand1()) + "," + varOrLit(entry.getOperand2());
             default -> "";
         };

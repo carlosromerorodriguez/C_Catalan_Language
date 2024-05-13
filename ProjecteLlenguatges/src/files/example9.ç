@@ -17,7 +17,7 @@ proces Calçot() fer:
     enter: b = 4, c = 5, d = 6 ç
     siono: ok = cert ç
 
-    si((b < 6) i (c > 4) i (d igual 5)) fer:
+    si(b < 6) fer:
         enter: a = 3 ç
     fi
 
