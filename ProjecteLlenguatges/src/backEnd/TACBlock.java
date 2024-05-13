@@ -5,9 +5,18 @@ import java.util.List;
 
 public class TACBlock {
     private List<TACEntry> entries;
+    private String label;
 
     public TACBlock() {
         entries = new ArrayList<>();
+    }
+
+    public String getLabel() {
+        return label;
+    }
+
+    public void setLabel(String label) {
+        this.label = label;
     }
 
     public void add(TACEntry entry) {

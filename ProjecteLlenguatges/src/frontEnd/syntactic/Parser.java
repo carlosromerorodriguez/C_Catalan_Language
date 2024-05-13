@@ -24,7 +24,7 @@ public class Parser {
     Set<String> terminalSymbols = new HashSet<>(Arrays.asList(
             "+", "-", "*", "/", "=", ";", ",", ":", "(", ")", "{", "}", "GREATER", "LOWER", "LOWER_EQUAL", "GREATER_EQUAL", "!", "==", "!=",
             "RETORN", "FUNCTION", "START", "END", "LITERAL", "VAR_NAME", "FOR", "DE", "FINS", "VAR_TYPE", "IF",
-            "ELSE", "WHILE", "CALL", "FUNCTION_NAME", "AND", "OR", "CALÇOT", "VOID", "FUNCTION_MAIN", "SUMANT", "RESTANT"
+            "ELSE", "WHILE", "CALL", "FUNCTION_NAME", "AND", "OR", "CALÇOT", "VOID", "FUNCTION_MAIN", "SUMANT", "RESTANT", "ENDELSE", "ENDIF"
     ));
 
     public Parser(FirstFollow firstFollow, TokenConverter tokenConverter, ErrorHandler errorHandler, Map<String, List<List<String>>> grammar) {
@@ -151,7 +151,7 @@ public class Parser {
                         }
                         parserControlVariables.functionType = (String) topNode.getValue();
                         break;
-                    case ";", "END":
+                    case ";", "END", "ENDIF", "ENDELSE":
                         // Resetejem variables de control si trobem un punt i coma o un END
                         parserControlVariables.isFirstToken = false;
                         parserControlVariables.context = "";
@@ -292,7 +292,7 @@ public class Parser {
             enterScope(topNode);
             // Si es el main scope el marquem com a tal
             if(tokenName.equals("FUNCTION_MAIN")) symbolTable.getCurrentScope().setIsMainScope(true);
-        } else if (tokenName.equals("END")) {
+        } else if (tokenName.equals("END") || tokenName.equals("ENDIF") || tokenName.equals("ENDELSE")) {
             // Si es END analitzem semanticament l'arbre del scope actual
             //analizeSemantic(symbolTable.getCurrentScope());
 

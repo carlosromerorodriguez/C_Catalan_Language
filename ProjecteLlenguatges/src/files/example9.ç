@@ -1,14 +1,19 @@
 proces enter HOLA(enter: arg1) fer:
     si(arg1 > 0) fer:
+        arg1 = 1 ç
         mentre(arg1 > 0) fer:
             arg1 = arg1 - 1 ç
         fi
-    fi
+        arg1 = 2 ç
+    fisi
     sino fer:
+        arg1 = 3 ç
         mentre(arg1 < 0) fer:
             arg1 = arg1 + 1 ç
         fi
-    fi
+        arg1 = 4 ç
+    fisino
+    arg1 = 5 ç
 
     retorna 4 ç
 fi
@@ -19,7 +24,7 @@ proces Calçot() fer:
 
     si(b < 6) fer:
         enter: a = 3 ç
-    fi
+    fisi
 
     enter: prova = 0 ç
 fi

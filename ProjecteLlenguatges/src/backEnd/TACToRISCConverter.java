@@ -80,6 +80,7 @@ public class TACToRISCConverter {
             default -> "";
         };
     }
+
     private String processCondition(TACEntry entry){
         switch (entry.getOperation()){
             case "AND": // and

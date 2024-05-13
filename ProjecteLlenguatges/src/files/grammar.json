@@ -77,10 +77,10 @@
     ["mentre"]
   ],
   "condicionals": [
-    ["IF", "(", "condició", ")", "START",":", "llista_sentencies", "END", "condicional'"]
+    ["IF", "(", "condició", ")", "START",":", "llista_sentencies", "ENDIF", "condicional'"]
   ],
   "condicional'": [
-    ["ELSE", "START", ":", "llista_sentencies", "END"],
+    ["ELSE", "START", ":", "llista_sentencies", "ENDELSE"],
     ["ε"]
   ],
   "mentre": [

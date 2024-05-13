@@ -21,10 +21,13 @@ public class FirstFollow {
 
     private void initializeTerminals() {
         // Inicialitza els terminals
-        String[] terminalSymbols = {"+", "-", "*", "/", "=", ";", ",", ":", "(", ")", "{", "}", "GREATER", "LOWER", "LOWER_EQUAL", "GREATER_EQUAL", "!", "==", "!=", "RETORN", "FUNCTION", "START", "END", "LITERAL", "VAR_NAME", "FOR", "DE", "FINS", "VAR_TYPE", "IF", "ELSE", "WHILE", "CALL", "FUNCTION_NAME", "AND", "OR", "CALÇOT", "VOID", "FUNCTION_MAIN", "SUMANT", "RESTANT"};
-        //String[] terminalSymbols = {"+", "*", "(", ")", "id"};
+        Set<String> terminalSymbols = new HashSet<>(Arrays.asList(
+                "+", "-", "*", "/", "=", ";", ",", ":", "(", ")", "{", "}", "GREATER", "LOWER", "LOWER_EQUAL", "GREATER_EQUAL", "!", "==", "!=",
+                "RETORN", "FUNCTION", "START", "END", "LITERAL", "VAR_NAME", "FOR", "DE", "FINS", "VAR_TYPE", "IF",
+                "ELSE", "WHILE", "CALL", "FUNCTION_NAME", "AND", "OR", "CALÇOT", "VOID", "FUNCTION_MAIN", "SUMANT", "RESTANT", "ENDELSE", "ENDIF"
+        ));        //String[] terminalSymbols = {"+", "*", "(", ")", "id"};
         //String[] terminalSymbols = {"+", "*", "(", ")", "id", "const"};
-        terminals.addAll(Arrays.asList(terminalSymbols));
+        terminals.addAll(terminalSymbols);
     }
 
     public void calculateFirsts() {

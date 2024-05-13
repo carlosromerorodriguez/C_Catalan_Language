@@ -19,6 +19,7 @@ public class TAC {
         if(!name.equals("false")) label = name; // Si el label no es "false", el label es el nom de la funció o main
         else  label = "L" + blockCounter++; // Si no es una funció o el main, el label es "L" + blockCounter
 
+        block.setLabel(label);
         blocks.put(label, block);
         currentLabel = label;
         return label;

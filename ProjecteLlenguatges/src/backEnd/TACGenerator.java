@@ -13,6 +13,7 @@ public class TACGenerator {
     private static int tempCounter;
     private Stack<String> conditionalLabels = new Stack<>();
     private Stack<HashMap<Boolean, String>> wasIterator = new Stack<>();
+    private Stack<TACBlock> endIfs = new Stack<>();
 
     public TACGenerator() {
         this.code = new TAC();
@@ -119,10 +120,64 @@ public class TACGenerator {
                 generateCallCode(child.getChildren().getFirst()); //DONE
                 break;
             case "end":
-                addEndBlock(); //DONE
+                addEndBlock();
+                break;//DONE
+            case "endif":
+                addEndIfBlock();
+                break;
+            case "endelse":
+                addEndElseBlock();
+                break;
             default: //Si no és cap dels anteriors, cridem recursivament la funció per el node actual
                 buildTAC(child);
         }
+    }
+
+    private void addEndElseBlock() {
+        // Creem un nou bloc
+        TACBlock endBlock = new TACBlock();
+        // Afegim el bloc a la llista de blocs i ens quedem amb l'etiqueta del bloc per al salt de la condició
+        String endLabel = code.addBlock(endBlock, "false");
+
+        TACBlock conditionalBlock = code.getBlock(conditionalLabels.pop());
+        conditionalBlock.processCondition(endLabel);
+
+        // El bloc actual passa a ser el bloc creat, tenint en compte els punts negatius
+        currentBlock = endBlock; //El bloc actual passa a ser el bloc final
+
+        if (!endIfs.isEmpty()) {
+            TACBlock endIfBlock = endIfs.pop();
+            String label = endIfBlock.getLabel();
+
+            try {
+                int labelNumber = Integer.parseInt(label.substring(1)) - 1;  // Substring per a eliminar 'L' i parsejar el número.
+                String newLabel = "L" + labelNumber;  // Creem la nova label amb el número reduït.
+
+                TACBlock ifBodyBlock = code.getBlock(newLabel);  // Obtenim el bloc utilitzant la nova label
+                if (ifBodyBlock != null) {
+                    TACEntry tacEntry = new TACEntry(Type.GOTO.getType(), "", endLabel, endLabel, Type.GOTO);
+                    ifBodyBlock.add(tacEntry);
+                } else {
+                    System.err.println("Bloc no trobat per a la label: " + newLabel);
+                }
+            } catch (NumberFormatException e) {
+                System.err.println("Format de label incorrecte: " + label);
+            }
+        }
+    }
+
+    private void addEndIfBlock() {
+        // Creem un nou bloc
+        TACBlock endIfBlock = new TACBlock();
+        // Afegim el bloc a la llista de blocs i ens quedem amb l'etiqueta del bloc per al salt de la condició
+        String endLabel = code.addBlock(endIfBlock, "false");
+
+        TACBlock conditionalBlock = code.getBlock(conditionalLabels.pop());
+        conditionalBlock.processCondition(endLabel);
+        endIfs.push(endIfBlock);
+
+        // El bloc actual passa a ser el bloc creat, tenint en compte els punts negatius
+        currentBlock = endIfBlock; //El bloc actual passa a ser el bloc final
     }
 
     private void generateConditionCode(Node child) {
@@ -515,6 +570,8 @@ public class TACGenerator {
     }
 
     private void generateElseCode(Node child) {
+        //Hem trobat un else per tant podem afegir el ultim endBlock la label actual
+
         // Creem un nou bloc
         TACBlock elseBlock = new TACBlock();
         String label = code.addBlock(elseBlock, "false");

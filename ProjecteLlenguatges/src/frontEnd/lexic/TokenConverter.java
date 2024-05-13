@@ -64,6 +64,8 @@ public class TokenConverter {
         tokensDictionary.put("proces", "function");
         tokensDictionary.put("retorna", "retorn");
         tokensDictionary.put("crida", "call ");
+        tokensDictionary.put("fisi", "endif");
+        tokensDictionary.put("fisino", "endelse");
     }
 
     /**

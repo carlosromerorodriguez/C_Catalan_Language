@@ -17,7 +17,7 @@ import java.util.regex.Pattern;
  */
 public class Lexer {
     private final String tokenPattern =
-            "\\b(si|cert|fals|sino|mentre|per|fer|fi|enter|decimal|lletra|lletres|siono|res|Calçot|proces|retorn|crida|de|fins)\\b\n|" + // Palabras reservadas
+            "\\b(si|cert|fals|sino|mentre|per|fer|fi|fisi|fisino|enter|decimal|lletra|lletres|siono|res|Calçot|proces|retorn|crida|de|fins)\\b\n|" + // Palabras reservadas
             "([A-Za-zÀ-ú][A-Za-zÀ-ú0-9_]*)|" + // Identificadores
             "(\\d+(\\.\\d+)?)|" + // Números (decimales y enteros)
             "(!|==|!=|<=|>=|\\+|-|\\*|/|=|<|>|\\(|\\)|;|,|:)"; // Operadores y símbolos
