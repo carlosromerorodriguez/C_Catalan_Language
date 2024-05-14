@@ -3,7 +3,8 @@ proces enter HOLA(enter: u) fer:
     decimal: c = 78.9 ç
     si (a > c) fer:
         siono: as = true ç
-    fi
+    fisi
+
     retorna 4 ç
 fi
 

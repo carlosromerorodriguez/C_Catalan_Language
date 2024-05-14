@@ -58,4 +58,8 @@ public class ErrorHandler {
     public Boolean hasErrors() {
         return !errors.isEmpty();
     }
+
+    public void recordFunctionAlreadyExists(Node node) {
+        errors.add(new Error("Function "+node.getValue()+" already exists", node.getLine()));
+    }
 }

@@ -1,3 +1,11 @@
+proces res HOLA() fer:
+    enter: a = b ç
+fi
+
+proces res HOLA() fer:
+    enter: a = b ç
+fi
+
 proces Calçot() fer:
     enter: iterador = 0 ç
     enter: iterador = 45 ç

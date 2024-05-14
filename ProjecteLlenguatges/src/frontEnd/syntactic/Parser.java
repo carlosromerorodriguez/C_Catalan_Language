@@ -426,6 +426,7 @@ public class Parser {
                 VariableEntry searchVar = (VariableEntry) symbolTable.getCurrentScope().lookup((String) node.getValue());
                 if(searchVar != null) {
                     errorHandler.recordVariableAlreadyDeclared(node);
+                    return;
                 }
             }
             if(lastVar != null) lastVar.setExpressionAlreadyAssigned(true);
@@ -588,6 +589,12 @@ public class Parser {
             int line = node.getLine(); // Agafem la linia on es troba
 
             SymbolTableEntry functionEntry = new FunctionEntry(UUID.randomUUID(), functionName, line, parserControlVariables.functionType, new ArrayList<>());
+
+            //mirem si ja existeix la funció recursivament a la symbol table
+            FunctionEntry checkFunctionEntry = (FunctionEntry) symbolTable.getCurrentScope().lookup(functionName);
+            if(checkFunctionEntry != null) {
+                errorHandler.recordFunctionAlreadyExists(node);
+            }
 
             /* Afegim l'entrada de la funció al scope actual i al pare */
             symbolTable.addSymbolEntry(functionEntry);
