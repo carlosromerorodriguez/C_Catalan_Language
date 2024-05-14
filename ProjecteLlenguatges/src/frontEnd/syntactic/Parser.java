@@ -423,7 +423,8 @@ public class Parser {
             VariableEntry lastVar = (VariableEntry) symbolTable.getCurrentScope().lookup(parserControlVariables.currentVarname);
 
             if(parserControlVariables.context.equals("declaració")) {
-                if(lastVar != null) {
+                VariableEntry searchVar = (VariableEntry) symbolTable.getCurrentScope().lookup((String) node.getValue());
+                if(searchVar != null) {
                     errorHandler.recordVariableAlreadyDeclared(node);
                 }
             }
