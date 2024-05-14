@@ -1,5 +1,7 @@
 package frontEnd.global;
 
+import frontEnd.syntactic.Node;
+
 import java.util.*;
 
 public class ErrorHandler {

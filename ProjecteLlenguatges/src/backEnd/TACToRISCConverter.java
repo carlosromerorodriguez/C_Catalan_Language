@@ -70,13 +70,13 @@ public class TACToRISCConverter {
     private String processOperation(TACEntry entry) {
         return switch (entry.getOperation()) {
             case "+" -> // add $resultat $operand1 $operand2
-                    "add " + "$" + entry.getDestination() + "," + varOrLit(entry.getOperand1()) + "," + entry.getOperand2();
+                    "add " + "$" + entry.getDestination() + "," + varOrLit(entry.getOperand1()) + "," + entry.getOperand2() + "\n";
             case "-" -> //sub $resultat $operand1 $operand2
-                    "sub " + "$" + entry.getDestination() + "," + varOrLit(entry.getOperand1()) + "," + entry.getOperand2();
+                    "sub " + "$" + entry.getDestination() + "," + varOrLit(entry.getOperand1()) + "," + entry.getOperand2() + "\n";
             case "*" ->//mult
-                    "mult " + varOrLit(entry.getOperand1()) + "," + varOrLit(entry.getOperand2());
+                    "mult " + varOrLit(entry.getOperand1()) + "," + varOrLit(entry.getOperand2()) + "\n";
             case "/" ->//div
-                    "div " + varOrLit(entry.getOperand1()) + "," + varOrLit(entry.getOperand2());
+                    "div " + varOrLit(entry.getOperand1()) + "," + varOrLit(entry.getOperand2()) + "\n";
             default -> "";
         };
     }
@@ -86,29 +86,29 @@ public class TACToRISCConverter {
             case "!":
                 //return nor $t0, $t1, $zero.
             case "AND": // and
-                return "and " + entry.getDestination() + ", " + varOrLit(entry.getOperand1()) + ", " + varOrLit(entry.getOperand2());
+                return "and " + entry.getDestination() + ", " + varOrLit(entry.getOperand1()) + ", " + varOrLit(entry.getOperand2()) + "\n";
             case "OR": // or
-                return "or " + entry.getDestination() + ", " + varOrLit(entry.getOperand1()) + ", " + varOrLit(entry.getOperand2());
+                return "or " + entry.getDestination() + ", " + varOrLit(entry.getOperand1()) + ", " + varOrLit(entry.getOperand2()) + "\n";
             case "==": // beq
-                return "seq " + entry.getDestination() + ", " + varOrLit(entry.getOperand1())  + "," + varOrLit(entry.getOperand2());
+                return "seq " + entry.getDestination() + ", " + varOrLit(entry.getOperand1())  + "," + varOrLit(entry.getOperand2()) + "\n";
             case "!=": // bne
-                return "sne " + entry.getDestination() + ", " + varOrLit(entry.getOperand1()) + "," + varOrLit(entry.getOperand2());
+                return "sne " + entry.getDestination() + ", " + varOrLit(entry.getOperand1()) + "," + varOrLit(entry.getOperand2()) + "\n";
             case "LOWER": // slt (set on less than)
-                return "slt " + entry.getDestination() + ", " + varOrLit(entry.getOperand1()) + ", " + varOrLit(entry.getOperand2());
+                return "slt " + entry.getDestination() + ", " + varOrLit(entry.getOperand1()) + ", " + varOrLit(entry.getOperand2()) + "\n";
             case "LOWER_EQUAL": // slt and beq combination to simulate 'less than or equal'
                 String tempReg = generateTempReg();
                 String leResult = "slt " + tempReg + ", " + varOrLit(entry.getOperand1()) + ", " + varOrLit(entry.getOperand2()) + "\n" +
                         "xori " + tempReg + ", " + tempReg + ", 1\n" + // invert the result of slt
-                        "andi " + entry.getDestination() + ", " + tempReg + ", 1"; // store result in destination
+                        "andi " + entry.getDestination() + ", " + tempReg + ", 1"  + "\n"; // store result in destination
                 tempRegCounter--;
                 return leResult;
             case "GREATER": // slt (set on less than) with swapped operands to simulate 'greater than'
-                return "sgt " + entry.getDestination() + ", " + varOrLit(entry.getOperand2()) + ", " + varOrLit(entry.getOperand1());
+                return "sgt " + entry.getDestination() + ", " + varOrLit(entry.getOperand2()) + ", " + varOrLit(entry.getOperand1())  + "\n";
             case "GREATER_EQUAL": // slt and beq combination to simulate 'greater than or equal'
                 String tempRegGE = generateTempReg();
                 String geResult = "sgt " + tempRegGE + ", " + varOrLit(entry.getOperand2()) + ", " + varOrLit(entry.getOperand1()) + "\n" +
                         "xori " + tempRegGE + ", " + tempRegGE + ", 1\n" + // invert the result of slt
-                        "andi " + entry.getDestination() + ", " + tempRegGE + ", 1"; // store result in destination
+                        "andi " + entry.getDestination() + ", " + tempRegGE + ", 1"  + "\n"; // store result in destination
                 tempRegCounter--;
                 return geResult;
         }
@@ -117,20 +117,21 @@ public class TACToRISCConverter {
 
     private String processConditional(TACEntry entry){
         //negar la condició nor $t0, $t1, $zero, afegir-ho a un registre temporal i posar que el if comprovi això
+
         return "";
     }
 
     private String processCall(TACEntry entry) {
-        return "jal " + entry.getOperand1();
+        return "jal " + varOrLit(entry.getOperand1()) + "\n";
     }
 
     private String processAssignment(TACEntry entry){
         // move $dest,$src
-        return "move $" + entry.getDestination() +"," + varOrLit(entry.getOperand1());
+        return "move $" + entry.getDestination() +"," + varOrLit(entry.getOperand1()) + "\n";
     }
 
     private String processParameter(TACEntry entry) {
-        return "addi $a0, $zero, " + entry.getOperand1();
+        return "addi $a0, $zero, " + entry.getOperand1() + "\n";
     }
 
     private String processReturn(TACEntry entry){
