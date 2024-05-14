@@ -8,6 +8,6 @@ proces enter HOLA(enter: u) fer:
 fi
 
 proces Calçot() fer:
-    decimal: a = 45 * (8) + 1 - cert ç
-    a = HOLA(cert) ç
+    decimal: f = 45 * (8) + 1 - cert ç
+    f = HOLA(cert) ç
 fi
