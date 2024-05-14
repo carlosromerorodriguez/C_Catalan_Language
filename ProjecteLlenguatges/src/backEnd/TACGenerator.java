@@ -1,5 +1,4 @@
-//TODO: Revertir condicions
-//TODO: Quan fiquem operands als TACEntry no els fiquem com a ADD sino com a +, etc
+//TODO: Revertir condicions nor $t0, $t1, $zero
 
 package backEnd;
 

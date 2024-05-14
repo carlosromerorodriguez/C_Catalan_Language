@@ -83,6 +83,8 @@ public class TACToRISCConverter {
 
     private String processCondition(TACEntry entry){
         switch (entry.getOperation()){
+            case "!":
+                //return nor $t0, $t1, $zero.
             case "AND": // and
                 return "and " + entry.getDestination() + ", " + varOrLit(entry.getOperand1()) + ", " + varOrLit(entry.getOperand2());
             case "OR": // or
@@ -114,8 +116,8 @@ public class TACToRISCConverter {
     }
 
     private String processConditional(TACEntry entry){
-        //TODO:
-        return processCondition(entry);
+        //negar la condició nor $t0, $t1, $zero, afegir-ho a un registre temporal i posar que el if comprovi això
+        return "";
     }
 
     private String processCall(TACEntry entry) {
@@ -132,10 +134,14 @@ public class TACToRISCConverter {
     }
 
     private String processReturn(TACEntry entry){
-        //String builder
-                //mo $a, $src
-                //jr $a
-        return "move $v0, $" + entry.getOperand1();
+        StringBuilder stringBuilder = new StringBuilder();
+
+        String toReturnRegis = "move $ra, " + varOrLit(entry.getOperand2());
+        stringBuilder.append(toReturnRegis).append("\n");
+        String returnLine = "jr $ra";
+        stringBuilder.append(returnLine).append("\n"); // Afegim un salt de línia per a millor format del resultat
+
+        return stringBuilder.toString();
     }
 
 }

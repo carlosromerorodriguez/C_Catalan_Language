@@ -1,5 +1,5 @@
 proces enter HOLA(enter: arg1) fer:
-    si(arg1 > 0) fer:
+    si(!(arg1 > 0)) fer:
         arg1 = 1 ç
         si(arg1 > 0) fer:
             arg1 = 2 ç
