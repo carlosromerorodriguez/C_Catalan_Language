@@ -47,10 +47,10 @@ public class TAC {
             case "||" -> Type.OR;
             case "==" -> Type.EQ;
             case "!=" -> Type.NE;
-            case "<" -> Type.LT;
-            case "<=" -> Type.LE;
-            case ">" -> Type.GT;
-            case ">=" -> Type.GE;
+            case "GREATER" -> Type.LT;
+            case "GRATER_EQUAL" -> Type.LE;
+            case "LOWER" -> Type.GT;
+            case "LOWER_EQUAL" -> Type.GE;
             case "RETORN" -> Type.RET;
             default -> Type.UNDEFINED;
             //Altre casos...
