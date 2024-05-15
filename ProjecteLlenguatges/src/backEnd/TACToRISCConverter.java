@@ -148,10 +148,10 @@ public class TACToRISCConverter {
             case "||" -> "or " + operand1 + ", " + operand1 + ", " + operand2;
             case "==" -> "beq " + operand1 + ", " + operand2 + ", " + destination;
             case "!=" -> "bne " + operand1 + ", " + operand2 + ", " + destination;
-            case "<" -> "blt " + operand1 + ", " + operand2 + ", " + destination;
-            case "<=" -> "ble " + operand1 + ", " + operand2 + ", " + destination;
-            case ">" -> "bgt " + operand1 + ", " + operand2 + ", " + destination;
-            case ">=" -> "bge " + operand1 + ", " + operand2 + ", " + destination;
+            case "LOWER" -> "blt " + operand1 + ", " + operand2 + ", " + destination;
+            case "LOWER_EQUAL" -> "ble " + operand1 + ", " + operand2 + ", " + destination;
+            case "GREATER" -> "bgt " + operand1 + ", " + operand2 + ", " + destination;
+            case "GREATER_EQUAL" -> "bge " + operand1 + ", " + operand2 + ", " + destination;
             default -> "";
         };
 
@@ -172,7 +172,7 @@ public class TACToRISCConverter {
 
     private String processCall(TACEntry entry) {
         // Guardar els registres temporals fets servir a la pila (guardar context)
-
+        // Al tornar de la crida, restaurar els registres temporals
         return "jal " + entry.getOperand1();
     }
 
