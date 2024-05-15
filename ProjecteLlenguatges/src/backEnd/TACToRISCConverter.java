@@ -12,6 +12,8 @@ public class TACToRISCConverter {
     private Map<String, Integer> variableToStackOffsetMap;
     private Stack<String> usedRegisters;
     private int stackOffset;
+    private Map<String, Integer> lastUsedTimeMap = new HashMap<>();
+    private int currentTime = 0; // Este contador global ayudará a rastrear el último uso de cada registro.
 
     public TACToRISCConverter(String path) {
         this.MIPS_FILE_PATH = path;
@@ -31,59 +33,56 @@ public class TACToRISCConverter {
     }
 
     public void convertTAC(LinkedHashMap<String, TACBlock> blocks) {
-        StringBuilder sb = new StringBuilder();
-        for (Map.Entry<String, TACBlock> blockEntry : blocks.entrySet()) {
-            sb.append(blockEntry.getKey()).append(":\n"); // Añadir el nombre del bloque con nueva línea
-            for (TACEntry entry : blockEntry.getValue().getEntries()) {
-                sb.append(translateToMIPS(entry)).append("\n");
-            }
-        }
-
-        // Escribir en el fichero de texto
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(MIPS_FILE_PATH))) {
-            writer.write(sb.toString());
+            for (Map.Entry<String, TACBlock> blockEntry : blocks.entrySet()) {
+                writer.write(blockEntry.getKey() + ":\n");
+                for (TACEntry entry : blockEntry.getValue().getEntries()) {
+                    writer.write(translateToMIPS(entry, writer));
+                }
+            }
         } catch (IOException e) {
             System.out.println("Error Mips File: " + e.getMessage());
             System.exit(0);
         }
     }
 
-    private String translateToMIPS(TACEntry entry) {
-        StringBuilder sb = new StringBuilder();
+    private String translateToMIPS(TACEntry entry, BufferedWriter writer) throws IOException {
+        StringBuilder localBuilder = new StringBuilder();
 
         // Cargar variables desde la pila si es necesario
         if (variableToStackOffsetMap.containsKey(entry.getOperand1())) {
-            sb.append(loadFromStack(entry.getOperand1())).append("\n");
+            localBuilder.append(loadFromStack(entry.getOperand1(), writer)).append("\n");
         }
         if (variableToStackOffsetMap.containsKey(entry.getOperand2())) {
-            sb.append(loadFromStack(entry.getOperand2())).append("\n");
+            localBuilder.append(loadFromStack(entry.getOperand2(), writer)).append("\n");
         }
         if (variableToStackOffsetMap.containsKey(entry.getDestination())) {
-            sb.append(loadFromStack(entry.getDestination())).append("\n");
+            localBuilder.append(loadFromStack(entry.getDestination(), writer)).append("\n");
         }
 
-        sb.append(switch (entry.getType()) {
-            case ADD, SUB, MUL, DIV -> processOperation(entry);
-            case AND, OR, EQ, NE, LT, LE, GT, GE -> processCondition(entry);
-            case CONDITION -> processConditional(entry);
+        // Append the result of the switch to the local StringBuilder
+        localBuilder.append(switch (entry.getType()) {
+            case ADD, SUB, MUL, DIV -> processOperation(entry, writer);
+            case AND, OR, EQ, NE, LT, LE, GT, GE -> processCondition(entry, writer);
+            case CONDITION -> processConditional(entry, writer);
             case CALL, CALL_EXP -> processCall(entry);
-            case EQU -> processAssignment(entry);
-            case PARAM -> processParameter(entry);
-            case RET -> processReturn(entry);
+            case EQU -> processAssignment(entry, writer);
+            case PARAM -> processParameter(entry, writer);
+            case RET -> processReturn(entry, writer);
             case GOTO -> processGoto(entry);
             default -> "";
-        });
+        }).append("\n");
 
-        return sb.toString();
+        return localBuilder.toString();
     }
 
-    private String varOrReg(String operand) {
+    private String varOrReg(String operand, BufferedWriter writer) throws IOException {
         if (variableToRegisterMap.containsKey(operand)) {
             return variableToRegisterMap.get(operand);
         } else if (isNumeric(operand)) {
             return operand;
         } else {
-            String reg = allocateRegister(operand);
+            String reg = allocateRegister(operand, writer);
             variableToRegisterMap.put(operand, reg);
             return reg;
         }
@@ -98,30 +97,49 @@ public class TACToRISCConverter {
         }
     }
 
-    private String allocateRegister(String var) {
+    private String allocateRegister(String var, BufferedWriter writer) throws IOException {
         if (freeRegisters.isEmpty()) {
-            // No hay registros libres, realizar un spill a la pila
-            String spilledReg = usedRegisters.pop();
-            String spillCode = spillRegisterToStack(spilledReg);
-            System.out.println(spillCode); // Añadir el código de spill al output (o almacenarlo para posterior uso)
-            return spilledReg;
+            if (usedRegisters.isEmpty()) {
+                throw new RuntimeException("Attempted to allocate register but no registers are free and no registers are in use to spill.");
+            }
+            // Encontrar el registro menos usado para hacer spill
+            String leastUsedReg = findLeastUsedRegister();
+            spillRegisterToStack(leastUsedReg, writer);
+            // Una vez realizado el spill, liberamos el registro
+            freeRegister(leastUsedReg);
         }
         String reg = freeRegisters.pop();
         usedRegisters.push(reg);
+        updateRegisterUsage(reg);
+        variableToRegisterMap.put(var, reg);
         return reg;
     }
 
+    private String findLeastUsedRegister() {
+        String leastUsedReg = null;
+        int oldestTime = Integer.MAX_VALUE;
+        for (String reg : usedRegisters) {
+            Integer lastUsedTime = lastUsedTimeMap.get(reg);
+            if (lastUsedTime != null && lastUsedTime < oldestTime) {
+                oldestTime = lastUsedTime;
+                leastUsedReg = reg;
+            }
+        }
+        return leastUsedReg;
+    }
+
     private void freeRegister(String reg) {
-        if (usedRegisters.remove(reg)) {
+        if (usedRegisters.contains(reg)) {
+            usedRegisters.remove(reg);
             freeRegisters.push(reg);
         }
     }
 
 
-    private String processOperation(TACEntry entry) {
-        String operand1 = varOrReg(entry.getOperand1());
-        String operand2 = varOrReg(entry.getOperand2());
-        String destination = varOrReg(entry.getDestination());
+    private String processOperation(TACEntry entry, BufferedWriter writer) throws IOException {
+        String operand1 = varOrReg(entry.getOperand1(), writer);
+        String operand2 = varOrReg(entry.getOperand2(), writer);
+        String destination = varOrReg(entry.getDestination(), writer);
 
         String mipsCode = switch (entry.getOperation()) {
             case "+" -> "add " + destination + ", " + operand1 + ", " + operand2;
@@ -138,9 +156,9 @@ public class TACToRISCConverter {
     }
 
 
-    private String processCondition(TACEntry entry) {
-        String operand1 = varOrReg(entry.getOperand1());
-        String operand2 = varOrReg(entry.getOperand2());
+    private String processCondition(TACEntry entry, BufferedWriter writer) throws IOException {
+        String operand1 = varOrReg(entry.getOperand1(), writer);
+        String operand2 = varOrReg(entry.getOperand2(), writer);
         String destination = entry.getDestination(); // Destino es una etiqueta en este caso
 
         String mipsCode = switch (entry.getOperation()) {
@@ -148,10 +166,10 @@ public class TACToRISCConverter {
             case "||" -> "or " + operand1 + ", " + operand1 + ", " + operand2;
             case "==" -> "beq " + operand1 + ", " + operand2 + ", " + destination;
             case "!=" -> "bne " + operand1 + ", " + operand2 + ", " + destination;
-            case "LOWER" -> "blt " + operand1 + ", " + operand2 + ", " + destination;
-            case "LOWER_EQUAL" -> "ble " + operand1 + ", " + operand2 + ", " + destination;
-            case "GREATER" -> "bgt " + operand1 + ", " + operand2 + ", " + destination;
-            case "GREATER_EQUAL" -> "bge " + operand1 + ", " + operand2 + ", " + destination;
+            case "<" -> "blt " + operand1 + ", " + operand2 + ", " + destination;
+            case "<=" -> "ble " + operand1 + ", " + operand2 + ", " + destination;
+            case ">" -> "bgt " + operand1 + ", " + operand2 + ", " + destination;
+            case ">=" -> "bge " + operand1 + ", " + operand2 + ", " + destination;
             default -> "";
         };
 
@@ -161,9 +179,9 @@ public class TACToRISCConverter {
     }
 
 
-    private String processConditional(TACEntry entry) {
-        String operand1 = varOrReg(entry.getOperand1());
-        String tempReg = allocateRegister("temp");
+    private String processConditional(TACEntry entry, BufferedWriter writer) throws IOException {
+        String operand1 = varOrReg(entry.getOperand1(), writer);
+        String tempReg = allocateRegister("temp", writer);
         String notCondition = "nor " + tempReg + ", " + operand1 + ", $zero\n";
         notCondition += "bne " + tempReg + ", $zero, " + entry.getDestination();
         freeRegister(tempReg);
@@ -171,32 +189,30 @@ public class TACToRISCConverter {
     }
 
     private String processCall(TACEntry entry) {
-        // Guardar els registres temporals fets servir a la pila (guardar context)
-        // Al tornar de la crida, restaurar els registres temporals
         return "jal " + entry.getOperand1();
     }
 
-    private String processAssignment(TACEntry entry) {
+    private String processAssignment(TACEntry entry, BufferedWriter writer) throws IOException {
         String src = entry.getOperand1();
-        String dest = varOrReg(entry.getDestination());
+        String dest = varOrReg(entry.getDestination(), writer);
 
         if (isNumeric(src)) {
             return "li " + dest + ", " + src;
         } else {
-            String srcReg = varOrReg(src);
+            String srcReg = varOrReg(src, writer);
             return "move " + dest + ", " + srcReg;
         }
     }
 
-    private String processParameter(TACEntry entry) {
-        String param = varOrReg(entry.getOperand1());
+    private String processParameter(TACEntry entry, BufferedWriter writer) throws IOException {
+        String param = varOrReg(entry.getOperand1(), writer);
         return "addi $a0, $zero, " + param;
     }
 
-    private String processReturn(TACEntry entry) {
+    private String processReturn(TACEntry entry, BufferedWriter writer) throws IOException {
         StringBuilder stringBuilder = new StringBuilder();
         if (entry.getOperand2() != null && !entry.getOperand2().isEmpty()) {
-            stringBuilder.append("move $v0, ").append(varOrReg(entry.getOperand2())).append("\n");
+            stringBuilder.append("move $v0, ").append(varOrReg(entry.getOperand2(), writer)).append("\n");
         }
         stringBuilder.append("jr $ra");
         return stringBuilder.toString();
@@ -206,101 +222,28 @@ public class TACToRISCConverter {
         return "j " + entry.getDestination();
     }
 
-    private String spillRegisterToStack(String reg) {
-        int offset = stackOffset;
-        variableToStackOffsetMap.put(reg, offset);
-        stackOffset += 4;
-        return "sw " + reg + ", " + offset + "($sp)";
+    private void updateRegisterUsage(String reg) {
+        lastUsedTimeMap.put(reg, currentTime++);
     }
 
-    private String loadFromStack(String var) {
+    private void spillRegisterToStack(String reg, BufferedWriter writer) throws IOException {
+        int offset = stackOffset;
+        variableToStackOffsetMap.put(reg, offset);
+        stackOffset += 4;  // Assume 4 bytes per stack slot for simplicity
+
+        String code = "sw " + reg + ", " + offset + "($sp)\n";
+        writer.write(code);  // Write directly to the MIPS output file
+
+        // Este registro ya no está en uso, así que lo movemos de vuelta a los libres
+        freeRegister(reg);
+    }
+
+    private String loadFromStack(String var, BufferedWriter writer) throws IOException {
+        if (!variableToStackOffsetMap.containsKey(var)) {
+            throw new IllegalStateException("Attempting to load a variable that was not spilled.");
+        }
         int offset = variableToStackOffsetMap.get(var);
-        String reg = allocateRegister(var);
+        String reg = allocateRegister(var, writer);
         return "lw " + reg + ", " + offset + "($sp)";
     }
 }
-
-/*
-TAC: if a < b goto L1
-MIPS: slt $t0, $a, $b  ; set on less than
-      bne $t0, $zero, L1  ; branch if not equal to zero
-
-  TAC if i >= 10 goto L2
-        bge $t0, 10, L2
-
-TAC: a = b
-MIPS: move $a, $b  ; Suponiendo que a y b están en registros $a y $b
-
-TAC: t1 = b + c
-MIPS: add $t1, $b, $c  ; Nuevamente, suponiendo que b y c están en registros $b y $c
-
-TAC: a = M[addr]
-MIPS: lw $a, addr
-TAC: M[addr] = b
-MIPS: sw $b, addr
-
- */
-
-/*
-
-https://www.doc.ic.ac.uk/lab/secondyear/spim/node15.html
-//https://github.com/ffcabbar/MIPS-Assembly-Language-Examples/blob/master
-//https://web.cecs.pdx.edu/~mperkows/temp/register-allocation.pdf
-
-while:
-	beq $t1,$zero,endWhile
-	rem $t3,$t1,10                                   #  123%10 = 3
-	add $t2,$t2,$t3
-	div $t1,$t1,10
-	j while
-
-    recursivePowerFunction:
-# a0 -> baseNumber       a1 -> expNumber		v0 -> result
-#	recursivePowerFunction
-#	   if (expNumber == 0)
-#			return 1;
-#	   else
-#		   return baseNumber * recursivePowerFunction(baseNumber,expNumber - 1)
-
-	bne $a1,$zero,recursion
-	li $v0,1
-	jr $ra
-recursion:
-	addi $sp,-4
-	sw $ra,0($sp)
-	addi $a1,$a1,-1
-	jal recursivePowerFunction
-	mul $v0,$v0,$a0
-	lw $ra,0($sp)
-	addi $sp,4
-	jr $ra
-
-
-#########################################################
-main:
-	li $v0, 4
-	la $a0, string1
-	syscall
-
-	li $v0,5
-	syscall
-	move $t0,$v0
-
-	li $v0, 4
-	la $a0, string2
-	syscall
-
-	li $v0,5
-	syscall
-	move $t1,$v0
-
-	move $a0,$t0
-	move $a1,$t1
-	jal recursivePowerFunction
-	move $a0,$v0
-	li $v0,1
-	syscall
-
-	li $v0, 10
-	syscall
- */

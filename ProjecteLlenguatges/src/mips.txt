@@ -1,6 +1,39 @@
-mainmove $iterador,0
-move $iterador,45
-L0move $iterador,$
-move $b,5
-move $c,8
-L1
+main:
+li $t0, 0
+li $t1, 6
+li $t2, 2
+li $t3, 1
+li $t4, -2
+li $t5, 4
+li $t6, 6
+li $t7, 7
+li $t8, 6
+add $t9, 3, 1
+sw $t0, 0($sp)
+sub $t0, 3, $t9
+sub $t9, 9, $t0
+sub $t0, 8, $t9
+sub $t9, 7, $t0
+sub $t0, 6, $t9
+sub $t9, 5, $t0
+sub $t0, 1, $t9
+add $t9, 2, $t0
+add $t0, 5, $t9
+sub $t9, 3, $t0
+add $t0, 5, $t9
+add $t9, -6, $t0
+move $t0, $t9
+sw $t1, 4($sp)
+li $t1, 0
+L0:
+
+nor $t1, $t0, $zero
+bne $t1, $zero, L1
+li $t0, 1
+j L3
+L1:
+L2:
+li $t0, 2
+L3:
+add $t1, $t1, $t0
+move $t1, $t1

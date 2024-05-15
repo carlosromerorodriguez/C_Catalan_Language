@@ -14,7 +14,7 @@ import java.util.List;
 
 
 public class Main {
-    private static final String FILE_PATH = "src/files/example6.ç";
+    private static final String FILE_PATH = "src/files/example4.ç";
     private static final String GRAMMAR_PATH = "src/files/grammar.json";
     private static final String MIPS_FILE_PATH = "src/mips.txt";
 
@@ -32,7 +32,7 @@ public class Main {
         // 4. Clase para convertir el archivo de entrada (sin comentarios) a tokens
         Lexer lexer = new Lexer(tokenConverter, errorHandler, linesWithOutComments);
         lexer.showTokens();
-        errorHandler.printErrors();
+        //errorHandler.printErrors();
 
         // 5. Clase para cargar la gramática y construir la tabla de análisis sintáctico
         FirstFollow inputFirstFollow = new FirstFollow(preProcessing.loadGrammar(GRAMMAR_PATH));
@@ -46,15 +46,15 @@ public class Main {
         semanticAnalizer.analizeSymbolTable();
 
         // Si trobem errors al frontend no continuem amb el backend
-        if(errorHandler.hasErrors()) {
+        /*if(errorHandler.hasErrors()) {
             errorHandler.printErrors();
             return;
-        }
+        }*/
 
         TACGenerator tacGenerator = new TACGenerator();
         tacGenerator.generateTAC(parser.getSymbolTable().getAllTree());
         tacGenerator.printTAC();
-        errorHandler.printErrors();
+        //errorHandler.printErrors();
 
         TACToRISCConverter tacToRISCConverter = new TACToRISCConverter(MIPS_FILE_PATH);
         tacToRISCConverter.convertTAC(tacGenerator.getTAC());
