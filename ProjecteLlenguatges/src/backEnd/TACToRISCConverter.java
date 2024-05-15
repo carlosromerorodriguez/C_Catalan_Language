@@ -228,7 +228,9 @@ public class TACToRISCConverter {
 
     private void spillRegisterToStack(String reg, BufferedWriter writer) throws IOException {
         int offset = stackOffset;
-        variableToStackOffsetMap.put(reg, offset);
+
+        // TODO: Subir la variable no el registro
+        variableToStackOffsetMap.put(getVarnameFromRegister(reg), offset);
         stackOffset += 4;  // Assume 4 bytes per stack slot for simplicity
 
         String code = "sw " + reg + ", " + offset + "($sp)\n";
@@ -236,6 +238,15 @@ public class TACToRISCConverter {
 
         // Este registro ya no está en uso, así que lo movemos de vuelta a los libres
         freeRegister(reg);
+    }
+
+    private String getVarnameFromRegister(String reg) {
+        for (Map.Entry<String, String> entry : variableToRegisterMap.entrySet()) {
+            if (entry.getValue().equals(reg)) {
+                return entry.getKey();
+            }
+        }
+        return null;
     }
 
     private String loadFromStack(String var, BufferedWriter writer) throws IOException {

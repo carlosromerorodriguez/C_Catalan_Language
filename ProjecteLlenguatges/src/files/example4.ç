@@ -18,5 +18,5 @@ proces Calçot() fer:
         més_gran = 2 ç
     fisino
 
-    nombre3 = nombre1 + nombre2 ç
+    nombre3 = nombre1 + nombre2 + més_gran ç
 fi
