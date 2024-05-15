@@ -171,6 +171,8 @@ public class TACToRISCConverter {
     }
 
     private String processCall(TACEntry entry) {
+        // Guardar els registres temporals fets servir a la pila (guardar context)
+
         return "jal " + entry.getOperand1();
     }
 
