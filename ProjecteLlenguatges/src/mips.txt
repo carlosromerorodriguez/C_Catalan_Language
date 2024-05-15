@@ -1,3 +1,6 @@
-HOLAL0move $arg1,1L1move $arg1,2L2L3move $arg1,3L4add $t3,$arg1,1move $arg1,$t3L5move $arg1,4L6move $arg1,2L7L8mult 3,4move $arg1,$t4L9add $t6,$arg1,1move $arg1,$t6L10move $arg1,4L11move $arg1,5move $ra, 4
-jr $ra
-mainmove $b,4move $c,5move $d,6move $ok,$trueL12sne t7, $b,6move $a,3L13move $prova,0
+mainmove $iterador,0
+move $iterador,45
+L0move $iterador,$
+move $b,5
+move $c,8
+L1

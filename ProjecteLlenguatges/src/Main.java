@@ -14,7 +14,7 @@ import java.util.List;
 
 
 public class Main {
-    private static final String FILE_PATH = "src/files/example9.ç";
+    private static final String FILE_PATH = "src/files/example6.ç";
     private static final String GRAMMAR_PATH = "src/files/grammar.json";
     private static final String MIPS_FILE_PATH = "src/mips.txt";
 
@@ -46,10 +46,10 @@ public class Main {
         semanticAnalizer.analizeSymbolTable();
 
         // Si trobem errors al frontend no continuem amb el backend
-        /*if(errorHandler.hasErrors()) {
+        if(errorHandler.hasErrors()) {
             errorHandler.printErrors();
             return;
-        }*/
+        }
 
         TACGenerator tacGenerator = new TACGenerator();
         tacGenerator.generateTAC(parser.getSymbolTable().getAllTree());

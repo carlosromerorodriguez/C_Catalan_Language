@@ -1,20 +1,17 @@
+proces res HOLA() fer:
+    enter: a = b ç
+fi
+
+proces res HOLA() fer:
+    enter: a = b ç
+fi
+
 proces Calçot() fer:
-    lletres:  resultat ç 
-    enter: num1 = -8 ç 
-    enter: num2 = 6 ç 
+    enter: iterador = 0 ç
+    enter: iterador = 45 ç
 
-    si (num1 > num2) fer: 
-        resultat  = "gran” ç 
+    per iterador de 10 fins 79 restant 4 fer:
+        enter: b = 5 ç
+        enter: c = 8 ç
     fi
-
-    sino fer: 
-        si (num1 < num2) fer: 
-            resultat  = "petit” ç 
-        fi 
-
-        sino fer: 
-
-            resultat  = "igual” ç 
-        fi 
-    fi 
 fi

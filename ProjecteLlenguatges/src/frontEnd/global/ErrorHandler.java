@@ -1,5 +1,7 @@
 package frontEnd.global;
 
+import frontEnd.syntactic.Node;
+
 import java.util.*;
 
 public class ErrorHandler {
@@ -29,6 +31,17 @@ public class ErrorHandler {
         errors.add(new Error("Condition does not evaluate into a SIONO", line));
     }
 
+    public void recordFunctionIsNotDeclared(Node node){
+        errors.add(new Error("Function " + node.getValue() + " is not previously declared", node.getLine()));
+    }
+
+    public void recordVariableDoesntExist(Node node){
+        errors.add(new Error("Variable " + node.getValue() + " is not previously declared", node.getLine()));
+    }
+
+    public void recordVariableAlreadyDeclared(Node node) {
+        errors.add(new Error("Variable " + node.getValue() + " is already declared", node.getLine()));
+    }
 
     public void printErrors() {
         String ANSI_RED = "\u001B[31m";
@@ -44,5 +57,9 @@ public class ErrorHandler {
 
     public Boolean hasErrors() {
         return !errors.isEmpty();
+    }
+
+    public void recordFunctionAlreadyExists(Node node) {
+        errors.add(new Error("Function "+node.getValue()+" already exists", node.getLine()));
     }
 }

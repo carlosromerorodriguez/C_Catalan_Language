@@ -320,10 +320,6 @@ public class Parser {
         }
     }
 
-    private void analizeSemantic(Scope currentScope) {
-
-    }
-
     private void enterScope(Node newNode) {
         symbolTable.addScope();
         symbolTable.getCurrentScope().setRootNode(newNode);
@@ -345,15 +341,6 @@ public class Parser {
         System.out.println("TREE:");
         symbolTable.getAllTree().printTree();
         System.out.println("\n\n");
-        /*for(Scope scope: symbolTable.getCurrentScope().getChildScopes()) {
-            System.out.println("\nChild tree:\n");
-            scope.getRootNode().printTree(0);
-        }*/
-    }
-
-    public void createSymbolTable() {
-        processNode(rootNode);
-        System.out.println(symbolTable);
     }
 
     public void processNode(Node node) {
@@ -432,7 +419,16 @@ public class Parser {
         if((!parserControlVariables.argumentsInFunctionSentence && parserControlVariables.lastTopSymbol.equals(",")) ||
                 parserControlVariables.lastTopSymbol.equals(";") || parserControlVariables.lastTopSymbol.equals("START") ||
                 parserControlVariables.lastTopSymbol.equals("END") || parserControlVariables.lastTopSymbol.equals(":")) { //Si l'ultim top symbol
+
             VariableEntry lastVar = (VariableEntry) symbolTable.getCurrentScope().lookup(parserControlVariables.currentVarname);
+
+            if(parserControlVariables.context.equals("declaració")) {
+                VariableEntry searchVar = (VariableEntry) symbolTable.getCurrentScope().lookup((String) node.getValue());
+                if(searchVar != null) {
+                    errorHandler.recordVariableAlreadyDeclared(node);
+                    return;
+                }
+            }
             if(lastVar != null) lastVar.setExpressionAlreadyAssigned(true);
 
             System.out.println("Varname: " + node.getValue());
@@ -484,12 +480,6 @@ public class Parser {
     }
 
     private void handleVarnameInCondicional(Node node) {
-        // Si la varname no es troba a la taula de simbols -> ERROR
-        if(symbolTable.getCurrentScope().lookup((String)node.getValue()) == null){
-            errorHandler.recordError("Error: La variable de la condició no existe", node.getLine());
-            return;
-        }
-
         // Guardem el que trobem a la condició de la conditionalEntry del scope actual
         if(node.getValue() != null) {
             ConditionalEntry currentConditionalEntry = (ConditionalEntry) symbolTable.getCurrentScope().lookup(parserControlVariables.currentConditional);
@@ -501,14 +491,14 @@ public class Parser {
         VariableEntry variableEntry = (VariableEntry) symbolTable.getCurrentScope().lookup((String)node.getValue());
         // Si la varname no es troba a la taula de simbols -> ERROR
         if(variableEntry == null){
-            errorHandler.recordError("Assignation error: variable " + node.getValue() + " isn't declared before.", node.getLine());
+            errorHandler.recordVariableDoesntExist(node);
             return;
         }
         if(parserControlVariables.equalSeen){ //Si ja hem vist l'igual, vol dir que el varname trobat forma part de l'expressió del currentVarname
             //Guardem la variable al valor de l'expressió de currentVarname
             VariableEntry currentVar = (VariableEntry) symbolTable.getCurrentScope().lookup(parserControlVariables.currentVarname);
             if(currentVar == null){
-                errorHandler.recordError("Error: La variable de la asignación no existe", node.getLine());
+                errorHandler.recordVariableDoesntExist(node);
                 return;
             }
             currentVar.appendExpressionValue(node.getValue());
@@ -539,14 +529,14 @@ public class Parser {
             return;
         } else if (symbolTable.getCurrentScope().lookup((String) node.getValue()) == null) {
             //Error
-            errorHandler.recordError("Error: La variable de la asignación no existe", node.getLine());
+            errorHandler.recordVariableDoesntExist(node);
             return;
         }
 
         // Si la varname ja es troba a la taula de simbols l'afegim a l'expressió de currentVarname
         VariableEntry currentVar = (VariableEntry) symbolTable.getCurrentScope().lookup(parserControlVariables.currentVarname);
         if (currentVar == null) {
-            errorHandler.recordError("Error: La variable de la asignación no existe", node.getLine());
+            errorHandler.recordVariableDoesntExist(node);
             return;
         }
         currentVar.appendExpressionValue(node.getValue());
@@ -556,7 +546,7 @@ public class Parser {
         if(parserControlVariables.equalSeen) {
             // Comprovar si existeix la funcio a la taula de simbols del scope actual
             if(symbolTable.getCurrentScope().lookup((String) node.getValue()) == null){
-                errorHandler.recordError("Error: La funció no ha estat previament declarada:", node.getLine());
+                errorHandler.recordFunctionIsNotDeclared(node);
                 return;
             }
 
@@ -564,7 +554,7 @@ public class Parser {
 
             VariableEntry currentVar = (VariableEntry) symbolTable.getCurrentScope().lookup(parserControlVariables.currentVarname);
             if (currentVar == null) {
-                errorHandler.recordError("Error: La variable de la asignación no existe", node.getLine());
+                errorHandler.recordVariableDoesntExist(node);
                 return;
             }
 
@@ -600,6 +590,12 @@ public class Parser {
 
             SymbolTableEntry functionEntry = new FunctionEntry(UUID.randomUUID(), functionName, line, parserControlVariables.functionType, new ArrayList<>());
 
+            //mirem si ja existeix la funció recursivament a la symbol table
+            FunctionEntry checkFunctionEntry = (FunctionEntry) symbolTable.getCurrentScope().lookup(functionName);
+            if(checkFunctionEntry != null) {
+                errorHandler.recordFunctionAlreadyExists(node);
+            }
+
             /* Afegim l'entrada de la funció al scope actual i al pare */
             symbolTable.addSymbolEntry(functionEntry);
             symbolTable.getCurrentScope().getParentScope().addEntry(functionEntry);
@@ -608,7 +604,7 @@ public class Parser {
 
             //Mirem si existeix en algun dels contexts pares
             if(symbolTable.getCurrentScope().lookup((String) node.getValue()) == null){
-                errorHandler.recordError("Error: La funció no ha estat previament declarada: ", node.getLine());
+                errorHandler.recordFunctionIsNotDeclared(node);
                 return;
             }
 
@@ -622,22 +618,6 @@ public class Parser {
             parserControlVariables.currentCallEntry = callEntry;
 
             symbolTable.getCurrentScope().addEntry(callEntry);
-        }
-    }
-
-    public void verifyTree() {
-        HashSet<Node> visited = new HashSet<>();
-        Queue<Node> queue = new LinkedList<>();
-        queue.add(symbolTable.getAllTree());
-
-        while (!queue.isEmpty()) {
-            Node current = queue.poll();
-            if (visited.contains(current)) {
-                System.out.println("Duplicate or cyclic reference detected at node: " + current.getType());
-                continue;
-            }
-            visited.add(current);
-            queue.addAll(current.getChildren());
         }
     }
 
