@@ -1,3 +1,9 @@
+proces enter HOLA() fer:
+    enter: b = 4 ç
+
+    retorna b ç
+fi
+
 proces Calçot() fer:
     enter: més_gran = 0 ç
     enter: nombre1 = 6 ç
@@ -18,5 +24,5 @@ proces Calçot() fer:
         més_gran = 2 ç
     fisino
 
-    nombre3 = nombre1 + nombre2 + més_gran ç
+    nombre3 = nombre1 + nombre2 + HOLA() ç
 fi
