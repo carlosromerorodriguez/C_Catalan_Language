@@ -449,7 +449,7 @@ public class Parser {
         if(parserControlVariables.retornSeen) {
             // Si la varname no es troba a la taula de simbols -> ERROR
             if(symbolTable.getCurrentScope().lookup((String)node.getValue()) == null){
-                errorHandler.recordError("Error: La variable del retorn no existe", node.getLine());
+                errorHandler.recordVariableDoesntExist(node);
                 return;
             }
             // Guardem el que trobem al retornValue de la functionEntry del scope actual

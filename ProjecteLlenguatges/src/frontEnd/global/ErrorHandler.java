@@ -28,7 +28,7 @@ public class ErrorHandler {
         errors.add(new Error("Invalid return in void function " + func, line));
     }
     public void recordConditionError(int line){
-        errors.add(new Error("Condition does not evaluate into a SIONO", line));
+        errors.add(new Error("Els tipus de condició no coincideixen", line));
     }
 
     public void recordFunctionIsNotDeclared(Node node){

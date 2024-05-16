@@ -31,7 +31,7 @@ public class SemanticAnalizer {
         this.symbolTable = symbolTable;
         this.errorHandler = errorHandler;
         this.operators = Arrays.asList(
-                "+", "-", "*", "/", "(", ")", "==", ">", ">=", "<", "<="
+                "+", "-", "*", "/", "(", ")", "==", ">", ">=", "<", "<=", "GREATER", "LOWER"
         );
     }
 
@@ -77,9 +77,16 @@ public class SemanticAnalizer {
 
     }
 
-    private void checkCall(Scope scope, CallEntry condEntry) {
-
+    private void checkCall(Scope scope, CallEntry callEntry) {
+        FunctionEntry functionEntry = (FunctionEntry) this.symbolTable.getRootScope().getEntry(callEntry.getName());
+        if(callEntry.getParameters().size() != 0){
+            checkParametersType(callEntry, functionEntry, scope);
+        }
+        if (functionEntry.getParameters().size() != callEntry.getParameters().size()) {
+            this.errorHandler.recordParameterMismatchError(callEntry.getName(), functionEntry.getParameters().size(), callEntry.getParameters().size(), callEntry.getLine());
+        }
     }
+
 
     private void checkConditional(Scope scope, ConditionalEntry condEntry) {
         if(!checkBooleanExpression(condEntry.getCondition(), scope)){
@@ -192,7 +199,7 @@ public class SemanticAnalizer {
                 previousType = currentType;
                 first = false;
             }
-            if(currentType != previousType){
+            if(currentType != Vartype.UNASSIGNED && currentType != previousType){
                 return false;
             }
         }
