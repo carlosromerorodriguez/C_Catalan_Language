@@ -72,9 +72,8 @@ public class SemanticAnalizer {
             }
         }
         for (Scope scope : currentScope.getChildScopes()) {
-                analizeScopes(scope);
-            }
-
+            analizeScopes(scope);
+        }
     }
 
     private void checkCall(Scope scope, CallEntry callEntry) {
