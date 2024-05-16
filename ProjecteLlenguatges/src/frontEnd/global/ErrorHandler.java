@@ -5,10 +5,10 @@ import frontEnd.syntactic.Node;
 import java.util.*;
 
 public class ErrorHandler {
-    private final TreeSet<Error> errors;
+    private final LinkedList<Error> errors;
 
     public ErrorHandler() {
-        this.errors = new TreeSet<>(Comparator.comparing(Error::getErrorMsg));
+        this.errors = new LinkedList<>();
     }
 
     public void recordError(String errorMsg, int line){
@@ -44,6 +44,8 @@ public class ErrorHandler {
     }
 
     public void printErrors() {
+        orderErrorsByLine();
+
         String ANSI_RED = "\u001B[31m";
         String ANSI_RESET = "\u001B[0m";
         String line = "_______________________________________________________________________________________";
@@ -53,6 +55,23 @@ public class ErrorHandler {
             System.out.printf(ANSI_RED + "Error: %s in line %d.\n" + ANSI_RESET, e.getErrorMsg(), e.getLine());
             System.out.println(ANSI_RED + line + ANSI_RESET);
         }
+    }
+
+    private void orderErrorsByLine() {
+        removeDuplicateErrors();
+        errors.sort(Comparator.comparingInt(Error::getLine));
+    }
+
+    private void removeDuplicateErrors() {
+        for (int i = 0; i < errors.size(); i++) {
+            for (int j = 0; j < errors.size(); j++) {
+                if (i != j && errors.get(i).getErrorMsg().equals(errors.get(j).getErrorMsg()) && errors.get(i).getLine() == errors.get(j).getLine()) {
+                    errors.remove(j);
+                    j--;
+                }
+            }
+        }
+
     }
 
     public Boolean hasErrors() {

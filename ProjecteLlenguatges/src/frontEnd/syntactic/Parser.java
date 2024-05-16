@@ -374,6 +374,14 @@ public class Parser {
                     }
                     // Guardar el valor de l'expressió a la variable currentVarname
                     VariableEntry currentVar = (VariableEntry) symbolTable.getCurrentScope().lookup(parserControlVariables.currentVarname);
+                    if (currentVar == null) {
+                        if (node.getValue() != null) {
+                            if (this.symbolTable.getCurrentScope().lookup(node.getValue().toString()) == null) {
+                                errorHandler.recordVariableDoesntExist(node);
+                            }
+                        }
+                        return;
+                    }
                     currentVar.setLine(node.getLine());
                     if (!symbolTable.getCurrentScope().entryExists(parserControlVariables.currentVarname)) {
                         symbolTable.getCurrentScope().addEntry(currentVar);
@@ -382,7 +390,7 @@ public class Parser {
                     }
 
                     if (currentVar == null) {
-                        errorHandler.recordError("Error: La variable de la asignación no existe", node.getLine());
+                        errorHandler.recordVariableDoesntExist(node);
                         return;
                     }
                     System.out.println("Current var: " + currentVar);
@@ -498,7 +506,7 @@ public class Parser {
             //Guardem la variable al valor de l'expressió de currentVarname
             VariableEntry currentVar = (VariableEntry) symbolTable.getCurrentScope().lookup(parserControlVariables.currentVarname);
             if(currentVar == null){
-                errorHandler.recordVariableDoesntExist(node);
+                //errorHandler.recordVariableDoesntExist(node);
                 return;
             }
             currentVar.appendExpressionValue(node.getValue());
