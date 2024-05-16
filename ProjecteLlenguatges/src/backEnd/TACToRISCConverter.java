@@ -7,13 +7,13 @@ import java.util.*;
 
 public class TACToRISCConverter {
     private final String MIPS_FILE_PATH;
-    private Stack<String> freeRegisters;
-    private Map<String, String> variableToRegisterMap;
-    private Map<String, Integer> variableToStackOffsetMap;
-    private Stack<String> usedRegisters;
-    private int stackOffset;
-    private Map<String, Integer> lastUsedTimeMap = new HashMap<>();
-    private int currentTime = 0; // Este contador global ayudará a rastrear el último uso de cada registro.
+    private Stack<String> freeRegisters; // Registres lliures
+    private Map<String, String> variableToRegisterMap; // Mapa de variables a registres
+    private Map<String, Integer> variableToStackOffsetMap; // Mapa de variables a offsets de la pila
+    private Stack<String> usedRegisters; // Registres que estan en us
+    private int stackOffset; // Offset de la pila
+    private Map<String, Integer> lastUsedTimeMap = new HashMap<>(); // Mapa de temps de l'últim ús de cada registre
+    private int currentTime = 0; //Contador de temps per veure el last used register
 
     public TACToRISCConverter(String path) {
         this.MIPS_FILE_PATH = path;
@@ -26,7 +26,7 @@ public class TACToRISCConverter {
     }
 
     private void initializeRegisters() {
-        // Inicializar la pila de registros temporales ($t0 - $t9)
+        // Inicialitzem els registres temporals
         for (int i = 9; i >= 0; i--) {
             freeRegisters.push("$t" + i);
         }
@@ -44,12 +44,14 @@ public class TACToRISCConverter {
             System.out.println("Error Mips File: " + e.getMessage());
             System.exit(0);
         }
+
+        // Formatejar el codi per fer-ho més llegible
     }
 
     private String translateToMIPS(TACEntry entry, BufferedWriter writer) throws IOException {
         StringBuilder localBuilder = new StringBuilder();
 
-        // Cargar variables desde la pila si es necesario
+        // Carregar les variables del stack a registres si cal
         if (variableToStackOffsetMap.containsKey(entry.getOperand1())) {
             localBuilder.append(loadFromStack(entry.getOperand1(), writer)).append("\n");
         }
@@ -60,7 +62,7 @@ public class TACToRISCConverter {
             localBuilder.append(loadFromStack(entry.getDestination(), writer)).append("\n");
         }
 
-        // Append the result of the switch to the local StringBuilder
+        // Afeegim el codi MIPS corresponent a l'entrada TAC
         localBuilder.append(switch (entry.getType()) {
             case ADD, SUB, MUL, DIV -> processOperation(entry, writer);
             case AND, OR, EQ, NE, LT, LE, GT, GE -> processCondition(entry, writer);
@@ -102,10 +104,10 @@ public class TACToRISCConverter {
             if (usedRegisters.isEmpty()) {
                 throw new RuntimeException("Attempted to allocate register but no registers are free and no registers are in use to spill.");
             }
-            // Encontrar el registro menos usado para hacer spill
+            // Busquem el registre menys utilitzat per fer el spill
             String leastUsedReg = findLeastUsedRegister();
             spillRegisterToStack(leastUsedReg, writer);
-            // Una vez realizado el spill, liberamos el registro
+            // Un cop hem fet el spill, alliberem el registre
             freeRegister(leastUsedReg);
         }
         String reg = freeRegisters.pop();
@@ -146,7 +148,6 @@ public class TACToRISCConverter {
             case "-" -> "sub " + destination + ", " + operand1 + ", " + operand2;
             case "*" -> "mul " + destination + ", " + operand1 + ", " + operand2;
             case "/" -> "div " + destination + ", " + operand1 + ", " + operand2;
-            case "GREATER" -> "slt " + destination + ", " + operand2 + ", " + operand1; // operand1 > operand2
             default -> "";
         };
 
@@ -162,14 +163,14 @@ public class TACToRISCConverter {
         String destination = entry.getDestination(); // Destino es una etiqueta en este caso
 
         String mipsCode = switch (entry.getOperation()) {
-            case "&&" -> "and " + operand1 + ", " + operand1 + ", " + operand2;
-            case "||" -> "or " + operand1 + ", " + operand1 + ", " + operand2;
+            case "and" -> "and " + operand1 + ", " + operand1 + ", " + operand2;
+            case "or" -> "or " + operand1 + ", " + operand1 + ", " + operand2;
             case "==" -> "beq " + operand1 + ", " + operand2 + ", " + destination;
             case "!=" -> "bne " + operand1 + ", " + operand2 + ", " + destination;
-            case "<" -> "blt " + operand1 + ", " + operand2 + ", " + destination;
-            case "<=" -> "ble " + operand1 + ", " + operand2 + ", " + destination;
-            case ">" -> "bgt " + operand1 + ", " + operand2 + ", " + destination;
-            case ">=" -> "bge " + operand1 + ", " + operand2 + ", " + destination;
+            case "LOWER" -> "blt " + operand1 + ", " + operand2 + ", " + destination;
+            case "LOWER_EQUAL" -> "ble " + operand1 + ", " + operand2 + ", " + destination;
+            case "GREATER" -> "bgt " + operand1 + ", " + operand2 + ", " + destination;
+            case "GREATER_EQUAL" -> "bge " + operand1 + ", " + operand2 + ", " + destination;
             default -> "";
         };
 
@@ -180,16 +181,28 @@ public class TACToRISCConverter {
 
 
     private String processConditional(TACEntry entry, BufferedWriter writer) throws IOException {
+        boolean isNegate = false;
+        if(entry.getOperand1().contains("!")) {
+            isNegate = true;
+        }
+
         String operand1 = varOrReg(entry.getOperand1(), writer);
         String tempReg = allocateRegister("temp", writer);
-        String notCondition = "nor " + tempReg + ", " + operand1 + ", $zero\n";
+        String notCondition = "";
+
+        //Si es negate, fem el not de la condició de l'operand1
+        if(isNegate) {
+            notCondition = "nor " + tempReg + ", " + operand1 + ", $zero\n";
+        }
+
         notCondition += "bne " + tempReg + ", $zero, " + entry.getDestination();
         freeRegister(tempReg);
         return notCondition;
     }
 
     private String processCall(TACEntry entry) {
-        return "jal " + entry.getOperand1();
+        //Guardar context i restaurar context després de la crida
+        return "jal " + entry.getOperand2();
     }
 
     private String processAssignment(TACEntry entry, BufferedWriter writer) throws IOException {
@@ -205,8 +218,9 @@ public class TACToRISCConverter {
     }
 
     private String processParameter(TACEntry entry, BufferedWriter writer) throws IOException {
-        String param = varOrReg(entry.getOperand1(), writer);
-        return "addi $a0, $zero, " + param;
+        String param = varOrReg(entry.getOperand2(), writer);
+        // Pot ser que tinguem més parametres, a0, a1, a2, a3
+        return "move $a0, $zero, " + param;
     }
 
     private String processReturn(TACEntry entry, BufferedWriter writer) throws IOException {
@@ -229,14 +243,13 @@ public class TACToRISCConverter {
     private void spillRegisterToStack(String reg, BufferedWriter writer) throws IOException {
         int offset = stackOffset;
 
-        // TODO: Subir la variable no el registro
         variableToStackOffsetMap.put(getVarnameFromRegister(reg), offset);
-        stackOffset += 4;  // Assume 4 bytes per stack slot for simplicity
+        stackOffset += 4;  // Cada posició de la pila ocupa 4 bytes
 
         String code = "sw " + reg + ", " + offset + "($sp)\n";
-        writer.write(code);  // Write directly to the MIPS output file
+        writer.write(code);  // Escrivim el codi MIPS per fer el spill
 
-        // Este registro ya no está en uso, así que lo movemos de vuelta a los libres
+        // Marquem el registre com a lliure
         freeRegister(reg);
     }
 
