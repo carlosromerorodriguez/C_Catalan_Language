@@ -8,23 +8,23 @@ import java.util.*;
 public class TACToRISCConverter {
     private final String MIPS_FILE_PATH;
     private Stack<String> freeRegisters; // Registres lliures
-    private Map<String, String> variableToRegisterMap; // Mapa de variables a registres
-    private Map<String, Integer> variableToStackOffsetMap; // Mapa de variables a offsets de la pila
+    private LinkedHashMap<String, String> variableToRegisterMap; // Mapa de variables a registres
+    private LinkedHashMap<String, Integer> variableToStackOffsetMap; // Mapa de variables a offsets de la pila
     private Stack<String> usedRegisters; // Registres que estan en us
     private int stackOffset; // Offset de la pila
     private Map<String, Integer> lastUsedTimeMap = new HashMap<>(); // Mapa de temps de l'últim ús de cada registre
     private int currentTime = 0; //Contador de temps per veure el last used register
     private String currentFunction = null;
     private Set<HashMap<String, String>> functionVariables = new HashSet<>();
-    private Map<String, Integer> varNameToOffsetMap = new HashMap<>();
+    private LinkedHashMap<String, Integer> varNameToOffsetMap = new LinkedHashMap<>();
     private int fpOffset = 0;
     private Stack<Integer> fpOffsetStack = new Stack<>();
 
     public TACToRISCConverter(String path) {
         this.MIPS_FILE_PATH = path;
         this.freeRegisters = new Stack<>();
-        this.variableToRegisterMap = new HashMap<>();
-        this.variableToStackOffsetMap = new HashMap<>();
+        this.variableToRegisterMap = new LinkedHashMap<>();
+        this.variableToStackOffsetMap = new LinkedHashMap<>();
         this.usedRegisters = new Stack<>();
         this.stackOffset = 0;
         initializeRegisters();
@@ -126,9 +126,9 @@ public class TACToRISCConverter {
             }
             // Busquem el registre menys utilitzat per fer el spill
             String leastUsedReg = findLeastUsedRegister();
-            //stackOffset -= 4;
 
             spillRegisterToStack(leastUsedReg, writer);
+
         }
 
         String reg = freeRegisters.pop();
@@ -175,10 +175,6 @@ public class TACToRISCConverter {
 
         freeRegister(operand1);
         freeRegister(operand2);
-        if(!varNameToOffsetMap.containsKey(entry.getDestination())) {
-            stackOffset -= 4;
-            varNameToOffsetMap.put(entry.getDestination(), stackOffset);
-        }
 
         return mipsCode;
     }
@@ -231,11 +227,21 @@ public class TACToRISCConverter {
     private String processCall(TACEntry entry) {
         StringBuilder stringBuilder = new StringBuilder();
         List<String> removeRegisters = new ArrayList<>();
-        for(String reg : usedRegisters) {
-            String varName = getVarnameFromRegister(reg);
-            int offset = varNameToOffsetMap.get(varName);
-            stringBuilder.append("sw ").append(reg).append(", ").append(offset).append("($fp)\n");
-            removeRegisters.add(reg);
+        Set<String> usedRegister = new HashSet<>();
+
+        // Convertim el conjunt de claus a una llista
+        List<String> keys = new ArrayList<>(varNameToOffsetMap.keySet());
+        // Invertim l'ordre de la llista
+        Collections.reverse(keys);
+
+        // Ara recorrem la llista invertida
+        for (String var : keys) {
+            String reg = variableToRegisterMap.get(var);
+            if (!usedRegister.contains(reg)) {
+                usedRegister.add(reg);
+                stringBuilder.append("sw ").append(reg).append(", ").append(varNameToOffsetMap.get(var)).append("($fp)\n");
+                removeRegisters.add(reg);
+            }
         }
 
         for(String reg: removeRegisters) {
@@ -292,8 +298,8 @@ public class TACToRISCConverter {
             freeRegister(reg);
         }
 
-        varNameToOffsetMap = new HashMap<>();
-        variableToRegisterMap = new HashMap<>();
+        varNameToOffsetMap = new LinkedHashMap<>();
+        variableToRegisterMap = new LinkedHashMap<>();
         stackOffset = 0;
 
         stringBuilder.append("jr $ra");
