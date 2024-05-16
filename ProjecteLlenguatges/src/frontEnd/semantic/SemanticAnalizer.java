@@ -66,7 +66,7 @@ public class SemanticAnalizer {
             } else if (entry.getValue() instanceof FunctionEntry tableEntry) {
                 checkFunction(currentScope, tableEntry);
             } else if (entry.getValue() instanceof ConditionalEntry tableEntry) {
-                //checkConditional(currentScope, tableEntry);
+                checkConditional(currentScope, tableEntry);
             } else if (entry.getValue() instanceof CallEntry tableEntry) {
                 checkCall(currentScope, tableEntry);
             }
@@ -182,49 +182,21 @@ public class SemanticAnalizer {
 
 
     public boolean checkBooleanExpression(List<Object> expr, Scope scope) {
-        Stack<Vartype> stack = new Stack<>();
-        Stack<Integer> parenStack = new Stack<>();
+        Vartype previousType = Vartype.UNASSIGNED;
+        Vartype currentType = Vartype.UNASSIGNED;
+        boolean first = true;
 
         for (Object token : expr) {
-            if (token instanceof String) {
-                if (token.equals("(")) {
-                    parenStack.push(stack.size());
-                } else if (token.equals(")")) {
-                    if (parenStack.isEmpty() || stack.size() <= parenStack.peek() || stack.peek() != Vartype.SIONO) {
-                        return false;
-                    }
-                    stack.setSize(parenStack.pop());
-                    stack.push(Vartype.SIONO);
-                } else if (isOperator((String)token)) {
-                    if (token.equals("not")) {
-                        if (stack.isEmpty() || stack.pop() != Vartype.SIONO) {
-                            return false;
-                        }
-                        stack.push(Vartype.SIONO);
-                    } else if (isBooleanOperator((String)token)) {
-                        if (stack.size() < 2 || stack.pop() != Vartype.SIONO || stack.pop() != Vartype.SIONO) {
-                            return false;
-                        }
-                        stack.push(Vartype.SIONO);
-                    } else {
-                        // Mathematical operators
-                        if (stack.size() < 2 || stack.pop() != Vartype.ENTER || stack.pop() != Vartype.ENTER) {
-                            return false;
-                        }
-                        stack.push(Vartype.ENTER); // Assuming result of arithmetic operations is integer
-                    }
-                } else {
-                    // Variables
-                    stack.push(getTermType(token, scope));
-                }
-            } else if (token instanceof Integer) {
-                stack.push(Vartype.ENTER);
-            } else if (token instanceof Float) {
-                stack.push(Vartype.DECIMAL);
+            currentType = getTermType(token, scope);
+            if (first){
+                previousType = currentType;
+                first = false;
+            }
+            if(currentType != previousType){
+                return false;
             }
         }
-
-        return stack.size() == 1 && stack.peek() == Vartype.SIONO && parenStack.isEmpty();
+        return true;
     }
 
     private boolean isOperator(String token) {
