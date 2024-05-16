@@ -14,6 +14,11 @@ public class TACToRISCConverter {
     private int stackOffset; // Offset de la pila
     private Map<String, Integer> lastUsedTimeMap = new HashMap<>(); // Mapa de temps de l'últim ús de cada registre
     private int currentTime = 0; //Contador de temps per veure el last used register
+    private String currentFunction = null;
+    private Set<HashMap<String, String>> functionVariables = new HashSet<>();
+    private Map<String, Integer> varNameToOffsetMap = new HashMap<>();
+    private int fpOffset = 0;
+    private Stack<Integer> fpOffsetStack = new Stack<>();
 
     public TACToRISCConverter(String path) {
         this.MIPS_FILE_PATH = path;
@@ -36,6 +41,8 @@ public class TACToRISCConverter {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(MIPS_FILE_PATH))) {
             for (Map.Entry<String, TACBlock> blockEntry : blocks.entrySet()) {
                 writer.write(blockEntry.getKey() + ":\n");
+                saveStackAndFramePointerIfNeeded(blockEntry.getValue(), writer);
+
                 for (TACEntry entry : blockEntry.getValue().getEntries()) {
                     writer.write(translateToMIPS(entry, writer));
                 }
@@ -46,6 +53,19 @@ public class TACToRISCConverter {
         }
 
         // Formatejar el codi per fer-ho més llegible
+    }
+
+    private void saveStackAndFramePointerIfNeeded(TACBlock value, BufferedWriter writer) throws IOException {
+        //Si el value no es L + numero, es una funcio i per tant hem de guardar el frame pointer i el stack pointer
+        if(!value.getLabel().matches("L\\d+")) {
+            currentFunction = value.getLabel();
+            if(!currentFunction.equals("main")) {
+                writer.write("sub $sp, $sp, 8\n");
+                writer.write("sw $fp, 0($sp)\n");
+                writer.write("sw $ra, 4($sp)\n");
+            }
+            writer.write("move $fp, $sp\n");
+        }
     }
 
     private String translateToMIPS(TACEntry entry, BufferedWriter writer) throws IOException {
@@ -106,10 +126,11 @@ public class TACToRISCConverter {
             }
             // Busquem el registre menys utilitzat per fer el spill
             String leastUsedReg = findLeastUsedRegister();
+            //stackOffset -= 4;
+
             spillRegisterToStack(leastUsedReg, writer);
-            // Un cop hem fet el spill, alliberem el registre
-            freeRegister(leastUsedReg);
         }
+
         String reg = freeRegisters.pop();
         usedRegisters.push(reg);
         updateRegisterUsage(reg);
@@ -141,6 +162,7 @@ public class TACToRISCConverter {
     private String processOperation(TACEntry entry, BufferedWriter writer) throws IOException {
         String operand1 = varOrReg(entry.getOperand1(), writer);
         String operand2 = varOrReg(entry.getOperand2(), writer);
+        //TODO: get temp register
         String destination = varOrReg(entry.getDestination(), writer);
 
         String mipsCode = switch (entry.getOperation()) {
@@ -153,6 +175,11 @@ public class TACToRISCConverter {
 
         freeRegister(operand1);
         freeRegister(operand2);
+        if(!varNameToOffsetMap.containsKey(entry.getDestination())) {
+            stackOffset -= 4;
+            varNameToOffsetMap.put(entry.getDestination(), stackOffset);
+        }
+
         return mipsCode;
     }
 
@@ -160,6 +187,7 @@ public class TACToRISCConverter {
     private String processCondition(TACEntry entry, BufferedWriter writer) throws IOException {
         String operand1 = varOrReg(entry.getOperand1(), writer);
         String operand2 = varOrReg(entry.getOperand2(), writer);
+        //TODO: get temp register
         String destination = entry.getDestination(); // Destino es una etiqueta en este caso
 
         String mipsCode = switch (entry.getOperation()) {
@@ -201,16 +229,45 @@ public class TACToRISCConverter {
     }
 
     private String processCall(TACEntry entry) {
-        //Guardar context i restaurar context després de la crida
-        return "jal " + entry.getOperand2();
+        StringBuilder stringBuilder = new StringBuilder();
+        List<String> removeRegisters = new ArrayList<>();
+        for(String reg : usedRegisters) {
+            String varName = getVarnameFromRegister(reg);
+            int offset = varNameToOffsetMap.get(varName);
+            stringBuilder.append("sw ").append(reg).append(", ").append(offset).append("($fp)\n");
+            removeRegisters.add(reg);
+        }
+
+        for(String reg: removeRegisters) {
+            freeRegister(reg);
+        }
+
+        stringBuilder.append("jal ").append(entry.getOperand2()).append("\n");
+        return stringBuilder.toString();
     }
 
     private String processAssignment(TACEntry entry, BufferedWriter writer) throws IOException {
         String src = entry.getOperand1();
         String dest = varOrReg(entry.getDestination(), writer);
 
+        //Mirem si la variable ja ha estat declarada a la funcio actual
+        if(currentFunction != null) {
+            HashMap<String, String> functionVariablesMap = new HashMap<>();
+            functionVariablesMap.put(currentFunction, entry.getDestination());
+            if(!functionVariables.contains(functionVariablesMap)) {
+                functionVariables.add(functionVariablesMap);
+                writer.write("sub $sp, $sp, 4\n");
+                varNameToOffsetMap.put(entry.getDestination(), stackOffset);
+                variableToRegisterMap.put(entry.getDestination(), dest);
+                stackOffset -= 4; // Cada posició de la pila ocupa 4 bytes
+            }
+
+        }
+
         if (isNumeric(src)) {
-            return "li " + dest + ", " + src;
+            writer.write( "li " + dest + ", " + src+"\n");
+            return "";
+            //return "sw " + dest + ", " + varNameToOffsetMap.get(entry.getDestination()) + "($fp)\n";
         } else {
             String srcReg = varOrReg(src, writer);
             return "move " + dest + ", " + srcReg;
@@ -228,6 +285,17 @@ public class TACToRISCConverter {
         if (entry.getOperand2() != null && !entry.getOperand2().isEmpty()) {
             stringBuilder.append("move $v0, ").append(varOrReg(entry.getOperand2(), writer)).append("\n");
         }
+
+        List<String> removeRegisters = new ArrayList<>(usedRegisters);
+
+        for(String reg: removeRegisters) {
+            freeRegister(reg);
+        }
+
+        varNameToOffsetMap = new HashMap<>();
+        variableToRegisterMap = new HashMap<>();
+        stackOffset = 0;
+
         stringBuilder.append("jr $ra");
         return stringBuilder.toString();
     }
@@ -241,12 +309,9 @@ public class TACToRISCConverter {
     }
 
     private void spillRegisterToStack(String reg, BufferedWriter writer) throws IOException {
-        int offset = stackOffset;
+        int offset = varNameToOffsetMap.get(getVarnameFromRegister(reg));
 
-        variableToStackOffsetMap.put(getVarnameFromRegister(reg), offset);
-        stackOffset += 4;  // Cada posició de la pila ocupa 4 bytes
-
-        String code = "sw " + reg + ", " + offset + "($sp)\n";
+        String code = "sw " + reg + ", " + offset + "($fp)\n";
         writer.write(code);  // Escrivim el codi MIPS per fer el spill
 
         // Marquem el registre com a lliure
