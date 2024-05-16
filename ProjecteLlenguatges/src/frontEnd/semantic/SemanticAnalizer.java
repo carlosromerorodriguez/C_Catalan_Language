@@ -66,7 +66,7 @@ public class SemanticAnalizer {
             } else if (entry.getValue() instanceof FunctionEntry tableEntry) {
                 checkFunction(currentScope, tableEntry);
             } else if (entry.getValue() instanceof ConditionalEntry tableEntry) {
-                checkConditional(currentScope, tableEntry);
+                //checkConditional(currentScope, tableEntry);
             } else if (entry.getValue() instanceof CallEntry tableEntry) {
                 checkCall(currentScope, tableEntry);
             }
