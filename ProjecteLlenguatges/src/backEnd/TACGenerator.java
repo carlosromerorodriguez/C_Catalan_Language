@@ -182,16 +182,23 @@ public class TACGenerator {
     private void generateConditionCode(Node child) {
         // Generem el codi de la condició explorant recursivament aquella part de l'arbre
         // Mètode especific recursiu per a la condició
+        boolean isNegate = false;
         String not = "";
         if(child.getChildren().size() == 2) {
             // Si té dos fills, te un ! davant, ens el quedem i l'eliminem dels fills
             if(child.getChildren().getFirst().getType().equals("!")) {
                 not = child.getChildren().getFirst().getType();
                 child.getChildren().removeFirst();
+                isNegate = true;
             }
         }
 
-        String condition = not + generateConditionTACRecursive(child);
+        String condition;
+        if(isNegate) {
+            condition = generateConditionTACRecursive(child);
+        } else {
+            condition = "!" + generateConditionTACRecursive(child);
+        }
         TACEntry tacEntry = new TACEntry(Type.CONDITION.getType(), condition, "", "", Type.CONDITION);
         currentBlock.add(tacEntry);
     }
