@@ -16,8 +16,15 @@ public class TAC {
 
     public String addBlock(TACBlock block, String name) {
         String label;
-        if(!name.equals("false")) label = name; // Si el label no es "false", el label es el nom de la funció o main
-        else  label = "L" + blockCounter++; // Si no es una funció o el main, el label es "L" + blockCounter
+        if (name.equals("LOOP")) {
+            label = "LOOP" + blockCounter++; // Si el label es "loop", el label es "LOOP" + blockCounter
+        }
+        else if (name.equals("false")) {
+            label = "L" + blockCounter++; // Si no es una funció o el main, el label es "L" + blockCounter
+        }
+        else {
+            label = name; // Si el label no es "false", el label es el nom de la funció o main
+        }
 
         block.setLabel(label);
         blocks.put(label, block);

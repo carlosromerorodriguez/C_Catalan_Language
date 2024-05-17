@@ -183,11 +183,9 @@ public class TACGenerator {
         // Generem el codi de la condició explorant recursivament aquella part de l'arbre
         // Mètode especific recursiu per a la condició
         boolean isNegate = false;
-        String not = "";
         if(child.getChildren().size() == 2) {
             // Si té dos fills, te un ! davant, ens el quedem i l'eliminem dels fills
             if(child.getChildren().getFirst().getType().equals("!")) {
-                not = child.getChildren().getFirst().getType();
                 child.getChildren().removeFirst();
                 isNegate = true;
             }
@@ -529,7 +527,7 @@ public class TACGenerator {
 
     private void generateForCode(Node child) {
         TACBlock forBlock = new TACBlock();
-        String label = code.addBlock(forBlock, "false");
+        String label = code.addBlock(forBlock, "LOOP");
         conditionalLabels.push(label);
 
         currentBlock = forBlock;
@@ -544,32 +542,39 @@ public class TACGenerator {
         // Assignment
         String value = node.getChildren().get(3).getValue().toString();
         String varName = node.getChildren().get(1).getValue().toString();
-        TACEntry assignmentEntry = new TACEntry(Type.EQU.getType(), "" , value, varName, Type.EQU);
+        TACEntry assignmentEntry = new TACEntry("", value, "", varName, Type.EQU);
         currentBlock.add(assignmentEntry);
 
         // Condition
         String condition = Type.LT.getType();
         String op2 = node.getChildren().get(5).getValue().toString();
         String conditionOp = varName + " " + condition + " " + op2;
-        TACEntry conditionEntry = new TACEntry(condition, conditionOp, "", "", Type.LT);
+        String temp = generateTempVariable();
+        TACEntry conditionEntry = new TACEntry("LOWER", varName, op2, temp, Type.LT);
         currentBlock.add(conditionEntry);
+
+        TACEntry ifEntry = new TACEntry(Type.CONDITION.getType(), "!"+temp, "", "", Type.CONDITION);
+        currentBlock.add(ifEntry);
 
         //increment or decrement
         op2 = node.getChildren().get(7).getValue().toString();
         String inc = node.getChildren().get(6).getType();
+        Type type;
         if(inc.equals("SUMANT")) {
-            condition = "ADD";
+            condition = "+";
+            type = Type.ADD;
         } else {
-            condition = "SUB";
+            condition = "-";
+            type = Type.SUB;
         }
-        TACEntry incrementEntry = new TACEntry(condition, varName, op2, varName, code.convertOperandToType(condition));
+        TACEntry incrementEntry = new TACEntry(condition, varName, op2, varName, type);
         currentBlock.add(incrementEntry);
     }
 
     private void generateWhileCode(Node child) {
         // Creem un nou bloc
         TACBlock whileBlock = new TACBlock();
-        String label = code.addBlock(whileBlock, "false");
+        String label = code.addBlock(whileBlock, "LOOP");
         conditionalLabels.push(label);
         currentBlock = whileBlock;
         HashMap<Boolean, String> map = new HashMap<>();

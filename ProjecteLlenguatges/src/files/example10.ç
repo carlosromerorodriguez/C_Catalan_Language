@@ -1,13 +1,18 @@
 proces Calçot() fer:
-    enter: nombre1 = 4, nombre2 = 5, nombre3 = 6 ç
+        enter: nombre_test1 = 4, nombre_test2 = 5, nombre_test3 = 6 ç
 
-    enter: resultat = nombre1 + nombre2 + nombre3 ç
+    enter: resultat = nombre_test1 + nombre_test2 + nombre_test3 ç
     resultat = resultat * 2 ç
 
-    si(nombre2 < nombre1) fer:
+    si(nombre_test2 < nombre_test1) fer:
         resultat = 4 + 1 ç
     fisi
     sino fer:
         resultat = 4 + 2 ç
     fisino
+
+    mentre(nombre_test1 < 10) fer:
+        resultat = resultat + 1 ç
+        nombre_test1 = nombre_test1 + 1 ç
+    fi
 fi
