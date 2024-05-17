@@ -19,6 +19,9 @@ public class TACToRISCConverter {
     private LinkedHashMap<String, Integer> varNameToOffsetMap = new LinkedHashMap<>();
     private int fpOffset = 0;
     private Stack<Integer> fpOffsetStack = new Stack<>();
+    private TACBlock currentBlock;
+    private LinkedHashMap<String, TACBlock> code;
+    private HashMap<String, String> registerToValue = new HashMap<>();
 
     public TACToRISCConverter(String path) {
         this.MIPS_FILE_PATH = path;
@@ -38,13 +41,20 @@ public class TACToRISCConverter {
     }
 
     public void convertTAC(LinkedHashMap<String, TACBlock> blocks) {
+        code = blocks;
+        boolean isLastBlock = false;
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(MIPS_FILE_PATH))) {
             for (Map.Entry<String, TACBlock> blockEntry : blocks.entrySet()) {
                 writer.write(blockEntry.getKey() + ":\n");
                 saveStackAndFramePointerIfNeeded(blockEntry.getValue(), writer);
-
+                currentBlock = blockEntry.getValue();
+                isLastBlock = checkLastBlock(blockEntry.getKey());
                 for (TACEntry entry : blockEntry.getValue().getEntries()) {
                     writer.write(translateToMIPS(entry, writer));
+                }
+                if(isLastBlock) {
+                    writer.write("\nmove $sp, $fp\n");
+                    writer.write("jr $ra\n");
                 }
             }
         } catch (IOException e) {
@@ -53,6 +63,18 @@ public class TACToRISCConverter {
         }
 
         // Formatejar el codi per fer-ho més llegible
+    }
+
+    private boolean checkLastBlock(String key) {
+        boolean isLastBlock = false;
+        for (Map.Entry<String, TACBlock> blockEntry : code.entrySet()) {
+            isLastBlock = false;
+            if(blockEntry.getKey().equals(key)) {
+                isLastBlock = true;
+            }
+        }
+
+        return isLastBlock;
     }
 
     private void saveStackAndFramePointerIfNeeded(TACBlock value, BufferedWriter writer) throws IOException {
@@ -100,6 +122,38 @@ public class TACToRISCConverter {
 
     private String varOrReg(String operand, BufferedWriter writer) throws IOException {
         if (variableToRegisterMap.containsKey(operand)) {
+            if(!usedRegisters.contains(variableToRegisterMap.get(operand))) {
+                //Si el seu registre esta free ficar el seu registre, sino fer allocateRegister
+                if(freeRegisters.contains(variableToRegisterMap.get(operand))) {
+                    if (!operand.matches("t\\d+")) {
+                        writer.write("lw " + variableToRegisterMap.get(operand) + ", " + varNameToOffsetMap.get(operand) + "($fp)\n");
+                    }
+                    usedRegisters.push(variableToRegisterMap.get(operand));
+                    return variableToRegisterMap.get(operand);
+                } else {
+                    String reg = allocateRegister(operand, writer);
+                    variableToRegisterMap.put(operand, reg);
+                    if (!operand.matches("t\\d+")) {
+                        writer.write("lw " + variableToRegisterMap.get(operand) + ", " + varNameToOffsetMap.get(operand) + "($fp)\n");
+                    }
+                    return reg;
+                }
+            } else if (!registerToValue.get(variableToRegisterMap.get(operand)).equals(operand)) {
+                if(freeRegisters.contains(variableToRegisterMap.get(operand))) {
+                    if (!operand.matches("t\\d+")) {
+                        writer.write("lw " + variableToRegisterMap.get(operand) + ", " + varNameToOffsetMap.get(operand) + "($fp)\n");
+                    }
+                    usedRegisters.push(variableToRegisterMap.get(operand));
+                    return variableToRegisterMap.get(operand);
+                } else {
+                    String reg = allocateRegister(operand, writer);
+                    variableToRegisterMap.put(operand, reg);
+                    if (!operand.matches("t\\d+")) {
+                        writer.write("lw " + variableToRegisterMap.get(operand) + ", " + varNameToOffsetMap.get(operand) + "($fp)\n");
+                    }
+                    return reg;
+                }
+            }
             return variableToRegisterMap.get(operand);
         } else if (isNumeric(operand)) {
             return operand;
@@ -128,7 +182,6 @@ public class TACToRISCConverter {
             String leastUsedReg = findLeastUsedRegister();
 
             spillRegisterToStack(leastUsedReg, writer);
-
         }
 
         String reg = freeRegisters.pop();
@@ -159,24 +212,106 @@ public class TACToRISCConverter {
     }
 
 
-    private String processOperation(TACEntry entry, BufferedWriter writer) throws IOException {
+   private String processOperation(TACEntry entry, BufferedWriter writer) throws IOException {
         String operand1 = varOrReg(entry.getOperand1(), writer);
+        //Si operand1 comença amb $ fem aixo:
+        if(operand1.startsWith("$")) {
+            registerToValue.put(operand1, entry.getOperand1());
+        }
+
         String operand2 = varOrReg(entry.getOperand2(), writer);
-        //TODO: get temp register
+        if(operand2.startsWith("$")) {
+            registerToValue.put(operand2, entry.getOperand2());
+        }
+
         String destination = varOrReg(entry.getDestination(), writer);
+        if(destination.startsWith("$")) {
+            registerToValue.put(destination, entry.getDestination());
+        }
 
-        String mipsCode = switch (entry.getOperation()) {
-            case "+" -> "add " + destination + ", " + operand1 + ", " + operand2;
-            case "-" -> "sub " + destination + ", " + operand1 + ", " + operand2;
-            case "*" -> "mul " + destination + ", " + operand1 + ", " + operand2;
-            case "/" -> "div " + destination + ", " + operand1 + ", " + operand2;
-            default -> "";
-        };
+        String code = "";
+        switch (entry.getOperation()) {
+           case "+":
+               if (isNumeric(entry.getOperand2()) && isNumeric(entry.getOperand1())) {
+                   code = "li " + destination + ", " + entry.getOperand1();
+                   code += "\naddi " + destination + ", " + destination + ", " + entry.getOperand2();
+               } else if (isNumeric(entry.getOperand1())) {
+                   code = "li " + destination + ", " + entry.getOperand1();
+                   code += "\nadd " + destination + ", " + destination + ", " + operand2;
+               } else if (isNumeric(entry.getOperand2())) {
+                   code = "addi " + destination + ", " + operand1 + ", " + entry.getOperand2();
+               } else {
+                   code = "add " + destination + ", " + operand1 + ", " + operand2;
+               }
+               break;
+           case "-":
+               if (isNumeric(entry.getOperand2()) && isNumeric(entry.getOperand1())) {
+                   int result = Integer.parseInt(entry.getOperand1()) - Integer.parseInt(entry.getOperand2());
+                   code = "li " + destination + ", " + result;  // Carrega el resultat directament al destinació
+               } else if (isNumeric(entry.getOperand1())) {
+                   //t5 = 2 - t3 -> t5 = (-t3) + 2
+                   code = "sub " + operand2 + ", $zero, " + operand2;  // Neguem operand2 i guardem a operand2
+                   // Sumem operand1
+                   code += "\naddi " + destination + ", " + operand2 + ", " + entry.getOperand1();
+               } else if (isNumeric(entry.getOperand2())) {
+                   //t5 = t3 - 2 -> t5 = t3 + (-2)
+                   code = "add1 " + destination + ", " + operand1 + ", -" + entry.getOperand2();
+               } else {
+                   code = "sub " + destination + ", " + operand1 + ", " + operand2;
+               }
+               break;
+           case "*":
+               code = "mul " + destination + ", " + operand1 + ", " + operand2;
+               break;
+           case "/":
+               code = "div " + destination + ", " + operand1 + ", " + operand2;
+               break;
+           default:
+               code = "";
+       }
 
-        freeRegister(operand1);
-        freeRegister(operand2);
+        //Si no surt més endavant podem lliberar el registre
+        if(!isNeededLater(entry.getDestination(), entry)) {
+            freeRegister(destination);
+        }
+        if(!isNeededLater(entry.getOperand1(), entry)) {
+            freeRegister(operand1);
+        }
+        if(!isNeededLater(entry.getOperand2(), entry)) {
+            freeRegister(operand2);
+        }
 
-        return mipsCode;
+        return code;
+    }
+
+   private boolean isNeededLater(String checkValue, TACEntry currentEntry) {
+        boolean dontCheck = false;
+        boolean checkEntry = false;
+        boolean isNeeded = false;
+        int checkEntryCounter = 0;
+        for(TACBlock block: code.values()) {
+            if(block.getEntries().equals(currentBlock.getEntries())) {
+                dontCheck = true;
+            }
+            if(dontCheck) {
+                for(TACEntry entry: block.getEntries()) {
+                    if(entry.equals(currentEntry)) {
+                        checkEntry = true;
+                    }
+                    if(checkEntry) {
+                        checkEntryCounter++;
+                        if(checkEntryCounter >= 2) {
+                            if(entry.getOperand1().equals(checkValue) || entry.getOperand2().equals(checkValue) || entry.getDestination().equals(checkValue)) {
+                                isNeeded = true;
+                            }
+                        }
+
+                    }
+                }
+            }
+        }
+
+        return isNeeded;
     }
 
 
@@ -255,6 +390,7 @@ public class TACToRISCConverter {
     private String processAssignment(TACEntry entry, BufferedWriter writer) throws IOException {
         String src = entry.getOperand1();
         String dest = varOrReg(entry.getDestination(), writer);
+        registerToValue.put(dest, entry.getDestination());
 
         //Mirem si la variable ja ha estat declarada a la funcio actual
         if(currentFunction != null) {
@@ -267,7 +403,6 @@ public class TACToRISCConverter {
                 variableToRegisterMap.put(entry.getDestination(), dest);
                 stackOffset -= 4; // Cada posició de la pila ocupa 4 bytes
             }
-
         }
 
         if (isNumeric(src)) {
@@ -276,6 +411,10 @@ public class TACToRISCConverter {
             //return "sw " + dest + ", " + varNameToOffsetMap.get(entry.getDestination()) + "($fp)\n";
         } else {
             String srcReg = varOrReg(src, writer);
+            if(!isNeededLater(src, entry)) {
+                freeRegister(srcReg);
+            }
+
             return "move " + dest + ", " + srcReg;
         }
     }

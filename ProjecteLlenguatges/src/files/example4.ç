@@ -14,7 +14,7 @@ proces Calçot() fer:
     enter: nombre8 = 6 ç
     enter: nombre9 = 7 ç
     enter: nombre10 = 6 ç
-    enter: nombre2 = -6 + 5+ 3 -5 +2 +1- 5 - 6- 7- 8- 9- 3- 3+ 1 ç
+    enter: nombre2 = 4 + nombre10 + 2 - nombre9 + 7 ç
     enter: nombre3 = 0 ç
 
     si (nombre1 > nombre2) fer:

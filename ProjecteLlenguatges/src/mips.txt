@@ -1,49 +1,53 @@
 main:
+move $fp, $sp
+sub $sp, $sp, 4
 li $t0, 0
-li $t1, 6
-li $t2, 2
-li $t3, 1
-li $t4, -2
-li $t5, 4
-li $t6, 6
-li $t7, 7
-li $t8, 6
-add $t9, 3, 1
-sw $t0, 0($sp)
-sub $t0, 3, $t9
-sub $t9, 9, $t0
-sub $t0, 8, $t9
-sub $t9, 7, $t0
-sub $t0, 6, $t9
-sub $t9, 5, $t0
-sub $t0, 1, $t9
-add $t9, 2, $t0
-add $t0, 5, $t9
-sub $t9, 3, $t0
-add $t0, 5, $t9
-add $t9, -6, $t0
-move $t0, $t9
-sw $t1, 4($sp)
-li $t1, 0
-L0:
-sw $t2, 8($sp)
-lw $t2, 4($sp)
 
-nor $t2, $t0, $zero
-bne $t2, $zero, L1
-lw $t2, 0($sp)
-li $t2, 1
-j L3
-L1:
-L2:
-sw $t3, 12($sp)
-lw $t3, 0($sp)
-li $t3, 2
-L3:
-sw $t4, 16($sp)
-sw $t5, 20($sp)
-lw $t4, 0($sp)
-add $t5, $t0, $t4
-lw $t4, 4($sp)
-add $t0, $t4, $t5
-move $t1, $t0
+sub $sp, $sp, 4
+li $t1, 6
+
+sub $sp, $sp, 4
+li $t2, 2
+
+sub $sp, $sp, 4
+li $t3, 1
+
+sub $sp, $sp, 4
+li $t4, -2
+
+sub $sp, $sp, 4
+li $t5, 4
+
+sub $sp, $sp, 4
+li $t6, 6
+
+sub $sp, $sp, 4
+li $t7, 7
+
+sub $sp, $sp, 4
+li $t8, 6
+
+li $t9, 7
+addi $t9, $t9, 7
+sw $t0, 0($fp)
+sub $t9, $zero, $t9
+addi $t0, $t9, 2
+li $t9, 6
+add $t9, $t9, $t0
+li $t0, 4
+add $t0, $t0, $t9
+sub $sp, $sp, 4
+move $t9, $t0
+sub $sp, $sp, 4
+li $t0, 0
+
+sw $t1, -4($fp)
+lw $t1, 0($fp)
+sw $t2, -8($fp)
+add $t2, $t8, $t1
+lw $t1, -4($fp)
+add $t1, $t1, $t2
+move $t0, $t1
+
+move $sp, $fp
+jr $ra
