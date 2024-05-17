@@ -212,7 +212,7 @@ public class TACToRISCConverter {
     }
 
 
-   private String processOperation(TACEntry entry, BufferedWriter writer) throws IOException {
+    private String processOperation(TACEntry entry, BufferedWriter writer) throws IOException {
         String operand1 = varOrReg(entry.getOperand1(), writer);
         //Si operand1 comença amb $ fem aixo:
         if(operand1.startsWith("$")) {
@@ -284,7 +284,7 @@ public class TACToRISCConverter {
         return code;
     }
 
-   private boolean isNeededLater(String checkValue, TACEntry currentEntry) {
+    private boolean isNeededLater(String checkValue, TACEntry currentEntry) {
         boolean dontCheck = false;
         boolean checkEntry = false;
         boolean isNeeded = false;
@@ -318,45 +318,74 @@ public class TACToRISCConverter {
     private String processCondition(TACEntry entry, BufferedWriter writer) throws IOException {
         String operand1 = varOrReg(entry.getOperand1(), writer);
         String operand2 = varOrReg(entry.getOperand2(), writer);
-        //TODO: get temp register
-        String destination = entry.getDestination(); // Destino es una etiqueta en este caso
+        String destination = varOrReg(entry.getDestination(), writer);
+
+        // Només podem fer operacions logiques amb registres, per tant si tenim un valor numeric el guardem a un registre
+        if(isNumeric(operand1)) {
+            String randomString = "temp" + UUID.randomUUID();
+            operand1 = allocateRegister(randomString, writer); //D'aquesta forma posteriorment sempre farem freeRegister
+            writer.write("li " + operand1 + ", " + entry.getOperand1() + "\n");
+        }
+
+        if(isNumeric(operand2)) {
+            String randomString = "temp" + UUID.randomUUID();
+            operand2 = allocateRegister(randomString, writer); //D'aquesta forma posteriorment sempre farem freeRegister
+            writer.write("li " + operand2 + ", " + entry.getOperand2() + "\n");
+        }
 
         String mipsCode = switch (entry.getOperation()) {
             case "and" -> "and " + operand1 + ", " + operand1 + ", " + operand2;
             case "or" -> "or " + operand1 + ", " + operand1 + ", " + operand2;
-            case "==" -> "beq " + operand1 + ", " + operand2 + ", " + destination;
-            case "!=" -> "bne " + operand1 + ", " + operand2 + ", " + destination;
-            case "LOWER" -> "blt " + operand1 + ", " + operand2 + ", " + destination;
-            case "LOWER_EQUAL" -> "ble " + operand1 + ", " + operand2 + ", " + destination;
-            case "GREATER" -> "bgt " + operand1 + ", " + operand2 + ", " + destination;
-            case "GREATER_EQUAL" -> "bge " + operand1 + ", " + operand2 + ", " + destination;
+
+            case "==" -> "seq " + destination + ", " + operand1 + ", " + operand2;
+            case "!=" -> "sne " + destination + ", " + operand1 + ", " + operand2;
+            case "LOWER" -> "slt " + destination + ", " + operand1 + ", " + operand2;
+            case "LOWER_EQUAL" -> "sle " + destination + ", " + operand1 + ", " + operand2;
+            case "GREATER" -> "sgt " + destination + ", " + operand1 + ", " + operand2;
+            case "GREATER_EQUAL" -> "sge " + destination + ", " + operand1 + ", " + operand2;
             default -> "";
         };
 
-        freeRegister(operand1);
-        freeRegister(operand2);
+        //Si no surt més endavant podem lliberar el registre
+        if(!isNeededLater(entry.getDestination(), entry)) {
+            freeRegister(destination);
+        }
+        if(!isNeededLater(entry.getOperand1(), entry)) {
+            freeRegister(operand1);
+        }
+        if(!isNeededLater(entry.getOperand2(), entry)) {
+            freeRegister(operand2);
+        }
+
         return mipsCode;
     }
 
-
     private String processConditional(TACEntry entry, BufferedWriter writer) throws IOException {
-        boolean isNegate = false;
-        if(entry.getOperand1().contains("!")) {
-            isNegate = true;
+        boolean isNegate = entry.getOperand1().contains("!");
+        String operand1 = entry.getOperand1().replace("!", ""); // Neteja el '!'
+        operand1 = varOrReg(operand1, writer);
+
+        String randomString = "temp" + UUID.randomUUID();
+        String tempReg = allocateRegister(randomString, writer);
+
+        String mipsCode = "";
+        // Si es negate, fem el NOT de la condició de l'operand1
+        if (isNegate) {
+            mipsCode += "xori " + tempReg + ", " + operand1 + ", 0x1\n";
+        } else {
+            mipsCode += "move " + tempReg + ", " + operand1 + "\n";
         }
 
-        String operand1 = varOrReg(entry.getOperand1(), writer);
-        String tempReg = allocateRegister("temp", writer);
-        String notCondition = "";
+        mipsCode += "bne " + tempReg + ", $zero, " + entry.getDestination();
 
-        //Si es negate, fem el not de la condició de l'operand1
-        if(isNegate) {
-            notCondition = "nor " + tempReg + ", " + operand1 + ", $zero\n";
+        if (!isNeededLater(entry.getDestination(), entry)) {
+            freeRegister(tempReg);
+        }
+        if (!isNeededLater(operand1, entry)) {
+            freeRegister(operand1);
         }
 
-        notCondition += "bne " + tempReg + ", $zero, " + entry.getDestination();
-        freeRegister(tempReg);
-        return notCondition;
+        return mipsCode;
     }
 
     private String processCall(TACEntry entry) {

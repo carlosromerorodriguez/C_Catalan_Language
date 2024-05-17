@@ -1,0 +1,13 @@
+proces Calçot() fer:
+    enter: nombre1 = 4, nombre2 = 5, nombre3 = 6 ç
+
+    enter: resultat = nombre1 + nombre2 + nombre3 ç
+    resultat = resultat * 2 ç
+
+    si(nombre2 < nombre1) fer:
+        resultat = 4 + 1 ç
+    fisi
+    sino fer:
+        resultat = 4 + 2 ç
+    fisino
+fi
