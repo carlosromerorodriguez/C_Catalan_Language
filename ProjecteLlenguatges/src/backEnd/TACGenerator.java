@@ -9,6 +9,7 @@ import java.util.*;
 public class TACGenerator {
     private TAC code;
     private TACBlock currentBlock;
+    private TACBlock lastBlock;
     private static int tempCounter;
     private Stack<String> conditionalLabels = new Stack<>();
     private Stack<HashMap<Boolean, String>> wasIterator = new Stack<>();
@@ -133,6 +134,7 @@ public class TACGenerator {
     }
 
     private void addEndElseBlock() {
+        lastBlock = currentBlock;
         // Creem un nou bloc
         TACBlock endBlock = new TACBlock();
         // Afegim el bloc a la llista de blocs i ens quedem amb l'etiqueta del bloc per al salt de la condició
@@ -166,6 +168,7 @@ public class TACGenerator {
     }
 
     private void addEndIfBlock() {
+        lastBlock = currentBlock;
         // Creem un nou bloc
         TACBlock endIfBlock = new TACBlock();
         // Afegim el bloc a la llista de blocs i ens quedem amb l'etiqueta del bloc per al salt de la condició
@@ -273,6 +276,7 @@ public class TACGenerator {
     }
 
     private void addEndBlock() {
+        lastBlock = currentBlock;
         if(!conditionalLabels.isEmpty()) {
             if(!wasIterator.isEmpty()) {
                 HashMap<Boolean, String> map = wasIterator.pop();
@@ -526,6 +530,7 @@ public class TACGenerator {
     }
 
     private void generateForCode(Node child) {
+        lastBlock = currentBlock;
         TACBlock forBlock = new TACBlock();
         String label = code.addBlock(forBlock, "LOOP");
         conditionalLabels.push(label);
@@ -543,12 +548,11 @@ public class TACGenerator {
         String value = node.getChildren().get(3).getValue().toString();
         String varName = node.getChildren().get(1).getValue().toString();
         TACEntry assignmentEntry = new TACEntry("", value, "", varName, Type.EQU);
-        currentBlock.add(assignmentEntry);
+        lastBlock.add(assignmentEntry);
 
         // Condition
         String condition = Type.LT.getType();
         String op2 = node.getChildren().get(5).getValue().toString();
-        String conditionOp = varName + " " + condition + " " + op2;
         String temp = generateTempVariable();
         TACEntry conditionEntry = new TACEntry("LOWER", varName, op2, temp, Type.LT);
         currentBlock.add(conditionEntry);
@@ -572,6 +576,7 @@ public class TACGenerator {
     }
 
     private void generateWhileCode(Node child) {
+        lastBlock = currentBlock;
         // Creem un nou bloc
         TACBlock whileBlock = new TACBlock();
         String label = code.addBlock(whileBlock, "LOOP");
@@ -583,7 +588,7 @@ public class TACGenerator {
     }
 
     private void generateElseCode(Node child) {
-        //Hem trobat un else per tant podem afegir el ultim endBlock la label actual
+        lastBlock = currentBlock;
 
         // Creem un nou bloc
         TACBlock elseBlock = new TACBlock();
@@ -598,6 +603,7 @@ public class TACGenerator {
     }
 
     private void generateIfCode(Node child) {
+        lastBlock = currentBlock;
         // Creem un nou bloc
         TACBlock ifBlock = new TACBlock();
         String label = code.addBlock(ifBlock, "false");

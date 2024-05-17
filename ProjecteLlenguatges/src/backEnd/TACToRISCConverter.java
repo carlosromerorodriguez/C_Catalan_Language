@@ -19,7 +19,8 @@ public class TACToRISCConverter {
     private LinkedHashMap<String, Integer> varNameToOffsetMap = new LinkedHashMap<>();
     private TACBlock currentBlock;
     private LinkedHashMap<String, TACBlock> code;
-    private HashMap<String, String> registerToValue = new HashMap<>();
+    private LinkedHashMap<String, String> registerToValue = new LinkedHashMap<>();
+    private List<String> registersToFree = new ArrayList<>();
 
     public TACToRISCConverter(String path) {
         this.MIPS_FILE_PATH = path;
@@ -50,6 +51,11 @@ public class TACToRISCConverter {
                 for (TACEntry entry : blockEntry.getValue().getEntries()) {
                     writer.write(translateToMIPS(entry, writer));
                 }
+
+                if(currentBlock.getLabel().contains("LOOP")) {
+                    freeDeadRegisters();
+                }
+
                 if(isLastBlock) {
                     writer.write("\nmove $sp, $fp\n");
                     writer.write("jr $ra\n");
@@ -61,6 +67,13 @@ public class TACToRISCConverter {
         }
 
         // Formatejar el codi per fer-ho més llegible
+    }
+
+    private void freeDeadRegisters() {
+        for(String reg: registersToFree) {
+            if (!freeRegisters.contains(reg)) freeRegister(reg);
+        }
+        registersToFree = new ArrayList<>();
     }
 
     private boolean checkLastBlock(String key) {
@@ -275,23 +288,24 @@ public class TACToRISCConverter {
 
         //Si no surt més endavant podem lliberar el registre
         if(!isNeededLater(entry.getDestination(), entry)) {
-            if (!freeRegisters.contains(destination)) freeRegister(destination);
+            if(currentBlock.getLabel().contains("LOOP")) registersToFree.add(destination);
+            else if (!freeRegisters.contains(destination)) freeRegister(destination);
         }
+
         if(!isNeededLater(entry.getOperand1(), entry)) {
-            if (!freeRegisters.contains(operand1)) freeRegister(operand1);
+            if(currentBlock.getLabel().contains("LOOP")) registersToFree.add(operand1);
+            else if (!freeRegisters.contains(operand1)) freeRegister(operand1);
         }
+
         if(!isNeededLater(entry.getOperand2(), entry)) {
-            if (!freeRegisters.contains(operand2)) freeRegister(operand2);
+            if(currentBlock.getLabel().contains("LOOP")) registersToFree.add(operand2);
+            else if (!freeRegisters.contains(operand2)) freeRegister(operand2);
         }
 
         return code;
     }
 
     private boolean isNeededLater(String checkValue, TACEntry currentEntry) {
-        if(currentBlock.getLabel().contains("LOOP")) {
-            return true;
-        }
-
         boolean dontCheck = false;
         boolean checkEntry = false;
         boolean isNeeded = false;
@@ -327,6 +341,10 @@ public class TACToRISCConverter {
         String operand2 = varOrReg(entry.getOperand2(), writer);
         String destination = varOrReg(entry.getDestination(), writer);
 
+        if(destination.startsWith("$")) {
+            registerToValue.put(destination, entry.getDestination());
+        }
+
         // Només podem fer operacions logiques amb registres, per tant si tenim un valor numeric el guardem a un registre
         if(isNumeric(operand1)) {
             String randomString = "temp" + UUID.randomUUID();
@@ -339,6 +357,14 @@ public class TACToRISCConverter {
             operand2 = allocateRegister(randomString, writer); //D'aquesta forma posteriorment sempre farem freeRegister
             writer.write("li " + operand2 + ", " + entry.getOperand2() + "\n");
 
+        }
+
+        if(operand1.startsWith("$")) {
+            registerToValue.put(operand1, entry.getOperand1());
+        }
+
+        if(operand2.startsWith("$")) {
+            registerToValue.put(operand2, entry.getOperand2());
         }
 
         String mipsCode = switch (entry.getOperation()) {
@@ -356,13 +382,16 @@ public class TACToRISCConverter {
 
         //Si no surt més endavant podem lliberar el registre
         if(!isNeededLater(entry.getDestination(), entry)) {
-            if (!freeRegisters.contains(destination)) freeRegister(destination);
+            if(currentBlock.getLabel().contains("LOOP")) registersToFree.add(destination);
+            else if (!freeRegisters.contains(destination)) freeRegister(destination);
         }
         if(!isNeededLater(entry.getOperand1(), entry)) {
-            if (!freeRegisters.contains(operand1)) freeRegister(operand1);
+            if(currentBlock.getLabel().contains("LOOP")) registersToFree.add(operand1);
+            else if (!freeRegisters.contains(operand1)) freeRegister(operand1);
         }
         if(!isNeededLater(entry.getOperand2(), entry)) {
-            if (!freeRegisters.contains(operand2)) freeRegister(operand2);
+            if(currentBlock.getLabel().contains("LOOP")) registersToFree.add(operand2);
+            else if (!freeRegisters.contains(operand2)) freeRegister(operand2);
         }
 
         return mipsCode;
@@ -372,6 +401,10 @@ public class TACToRISCConverter {
         boolean isNegate = entry.getOperand1().contains("!");
         String operand1 = entry.getOperand1().replace("!", ""); // Neteja el '!'
         operand1 = varOrReg(operand1, writer);
+
+        if(operand1.startsWith("$")) {
+            registerToValue.put(operand1, entry.getOperand1());
+        }
 
         String randomString = "temp" + UUID.randomUUID();
         String tempReg = allocateRegister(randomString, writer);
@@ -389,7 +422,8 @@ public class TACToRISCConverter {
         if (!freeRegisters.contains(tempReg)) freeRegister(tempReg);
 
         if (!isNeededLater(entry.getOperand1(), entry)) {
-            if (!freeRegisters.contains(operand1)) freeRegister(operand1);
+            if(currentBlock.getLabel().contains("LOOP")) registersToFree.add(operand1);
+            else if (!freeRegisters.contains(operand1)) freeRegister(operand1);
         }
 
         return mipsCode;
@@ -426,7 +460,9 @@ public class TACToRISCConverter {
     private String processAssignment(TACEntry entry, BufferedWriter writer) throws IOException {
         String src = entry.getOperand1();
         String dest = varOrReg(entry.getDestination(), writer);
-        registerToValue.put(dest, entry.getDestination());
+        if(dest.startsWith("$")) {
+            registerToValue.put(dest, entry.getDestination());
+        }
 
         //Mirem si la variable ja ha estat declarada a la funcio actual
         if(currentFunction != null) {
@@ -443,12 +479,17 @@ public class TACToRISCConverter {
 
         if (isNumeric(src)) {
             writer.write( "li " + dest + ", " + src+"\n");
+            if(!isNeededLater(entry.getDestination(), entry)) {
+                if(currentBlock.getLabel().contains("LOOP")) registersToFree.add(dest);
+                else if (!freeRegisters.contains(dest)) freeRegister(dest);
+            }
             return "";
             //return "sw " + dest + ", " + varNameToOffsetMap.get(entry.getDestination()) + "($fp)\n";
         } else {
             String srcReg = varOrReg(src, writer);
             if(!isNeededLater(src, entry)) {
-                if (!freeRegisters.contains(srcReg)) freeRegister(srcReg);
+                if(currentBlock.getLabel().contains("LOOP")) registersToFree.add(srcReg);
+                else if (!freeRegisters.contains(srcReg)) freeRegister(srcReg);
             }
 
             return "move " + dest + ", " + srcReg;
