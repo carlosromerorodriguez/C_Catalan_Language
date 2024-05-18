@@ -1,57 +1,52 @@
-j main
-
 FUNC_Fibonacci:
-sub $sp, $sp, 8
-sw $fp, 0($sp)
-sw $ra, 4($sp)
-move $fp, $sp
-sub $sp, $sp, 4
-move $t0, $a0
-sub $sp, $sp, 4
-li $t1, 0
+    sub $sp, $sp, 12      # Reserva espacio en la pila
+    sw $fp, 0($sp)        # Guarda el frame pointer
+    sw $ra, 4($sp)        # Guarda la dirección de retorno
+    sw $a0, 8($sp)        # Guarda el argumento a0
+    move $fp, $sp
 
-L0:
-li $t3, 2
-slt $t2, $t0, $t3
-xori $t2, $t2, 0x1
-bne $t2, $zero, L1
-move $t1, $t0
-j L3
+    li $t3, 2
+    slt $t2, $a0, $t3     # Si a0 < 2, t2 = 1; si no, t2 = 0
+    beq $t2, $zero, L1    # Si a0 >= 2, salta a L1
+    move $v0, $a0         # Si a0 < 2, v0 = a0
+    j L3
+
 L1:
-L2:
-addi $t2, $t0, -1
-move $a0, $t2
-sw $t1, -8($fp)
-sw $t0, -4($fp)
-jal FUNC_Fibonacci
-move $t0, $v0
+    sub $sp, $sp, 4       # Reserva espacio para guardar $a0
+    sw $a0, 0($sp)        # Guarda $a0
+    addi $a0, $a0, -1     # a0 = a0 - 1
+    jal FUNC_Fibonacci    # Llama recursivamente con a0 - 1
+    lw $a0, 0($sp)        # Restaura a0
+    addi $sp, $sp, 4      # Libera el espacio de la pila
+    move $t0, $v0         # t0 = resultado de Fibonacci(a0 - 1)
 
-lw $t1, 20($fp)
-addi $t2, $t1, -2
-move $a0, $t2
-sw $t1, -8($fp)
-jal FUNC_Fibonacci
-move $t2, $v0
+    sub $sp, $sp, 4       # Reserva espacio para guardar $t0
+    sw $t0, 0($sp)        # Guarda $t0
+    addi $a0, $a0, -2     # a0 = a0 - 2
+    jal FUNC_Fibonacci    # Llama recursivamente con a0 - 2
+    lw $t0, 0($sp)        # Restaura $t0
+    addi $sp, $sp, 4      # Libera el espacio de la pila
+    move $t2, $v0         # t2 = resultado de Fibonacci(a0 - 2)
 
-add $t4, $t1, $t2
-lw $t1, 16($fp)
-move $t1, $t4
+    add $v0, $t0, $t2     # v0 = Fibonacci(a0 - 1) + Fibonacci(a0 - 2)
+
 L3:
-addi $sp, $sp, 8 # Incrementem el que hem restat al stack 
-lw $fp, 0($sp)
-lw $ra, 4($sp)
-addi $sp, $sp, 8
-move $v0, $t1
-jr $ra
+    move $sp, $fp         # Restaura el puntero de la pila
+    lw $fp, 0($sp)        # Restaura el frame pointer
+    lw $ra, 4($sp)        # Restaura la dirección de retorno
+    lw $a0, 8($sp)        # Restaura el argumento a0
+    addi $sp, $sp, 12     # Libera espacio en la pila
+    jr $ra                # Retorna
 
 main:
-move $fp, $sp
-li $t0, 6
-move $a0, $t0
-jal FUNC_Fibonacci
-move $t0, $v0
+    move $fp, $sp
+    li $a0, 12             # Inicializa el argumento a0 con 6
+    jal FUNC_Fibonacci    # Llama a FUNC_Fibonacci
+    move $t0, $v0         # Mueve el resultado a t0
 
-sub $sp, $sp, 4
-move $t1, $t0
+    li $v0, 1
+    move $a0, $t0
+    syscall               # Imprime el resultado
 
-syscall # Finalitzem el programa
+    li $v0, 10            # Finaliza el programa
+    syscall
