@@ -1,13 +1,35 @@
+j main
+
+FUNC_SUMA2:
+sub $sp, $sp, 8
+sw $fp, 0($sp)
+sw $ra, 4($sp)
+move $fp, $sp
+sub $sp, $sp, 4
+move $t0, $a0
+sub $sp, $sp, 4
+move $t1, $t0
+addi $t2, $t1, 10
+move $v0, $t2
+jr $ra
+
 FUNC_SUMA:
 sub $sp, $sp, 8
 sw $fp, 0($sp)
 sw $ra, 4($sp)
-sub $sp, $sp, 4
-move $t0, $a0
 move $fp, $sp
 sub $sp, $sp, 4
-move $t1, $t0
-addi $t2, $t1, 20
+move $t0, $a0
+move $a0, $t0
+sw $t0, -8($fp)
+jal FUNC_SUMA2
+move $t0, $v0
+
+lw $t1, -8($fp)
+add $t2, $t1, $t0
+sub $sp, $sp, 4
+move $t0, $t2
+addi $t2, $t0, 20
 move $v0, $t2
 jr $ra
 
@@ -74,6 +96,7 @@ move $t2, $v0
 
 lw $t0, -40($fp)
 move $t0, $t2
+li $t0, 4
 
-move $sp, $fp
-jr $ra
+
+syscall # Finalitzem el programa

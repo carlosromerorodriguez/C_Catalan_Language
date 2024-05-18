@@ -1,5 +1,10 @@
-proces enter SUMA(enter: més_gran) fer:
+proces enter SUMA2(enter: més_gran) fer:
     enter: suma = més_gran ç
+    retorna suma + 10 ç
+fi
+
+proces enter SUMA(enter: més_gran) fer:
+    enter: suma = més_gran + SUMA2(més_gran) ç
     retorna suma + 20 ç
 fi
 
@@ -24,4 +29,5 @@ proces Calçot() fer:
     fisino
 
     nombre3 = SUMA(més_gran) ç
+    nombre3 = 4 ç
 fi

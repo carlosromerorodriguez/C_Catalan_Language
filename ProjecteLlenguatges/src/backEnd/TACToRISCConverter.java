@@ -5,10 +5,9 @@ import frontEnd.syntactic.symbolTable.VariableEntry;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.Writer;
 import java.util.*;
 
-public class TACToRISCConverter {
+public class  TACToRISCConverter {
     private final String MIPS_FILE_PATH;
     private Stack<String> freeRegisters; // Registres lliures
     private LinkedHashMap<String, String> variableToRegisterMap; // Mapa de variables a registres
@@ -48,6 +47,7 @@ public class TACToRISCConverter {
         code = blocks;
         boolean isLastBlock = false;
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(MIPS_FILE_PATH))) {
+            writer.write("j main\n\n");
             for (Map.Entry<String, TACBlock> blockEntry : blocks.entrySet()) {
                 writer.write(blockEntry.getKey() + ":\n");
                 saveStackAndFramePointerIfNeeded(blockEntry.getValue(), writer);
@@ -62,8 +62,7 @@ public class TACToRISCConverter {
                 }
 
                 if(isLastBlock) {
-                    writer.write("\nmove $sp, $fp\n");
-                    writer.write("jr $ra\n");
+                    writer.write("\nsyscall # Finalitzem el programa\n");
                 }
                 if(lastFunctionBlock()) {
                     clearAndReset();
@@ -137,18 +136,23 @@ public class TACToRISCConverter {
                 writer.write("sub $sp, $sp, 8\n");
                 writer.write("sw $fp, 0($sp)\n");
                 writer.write("sw $ra, 4($sp)\n");
+                writer.write("move $fp, $sp\n");
 
+                stackOffset -= 8;
                 // Declarar els arguments de la funció, move $t0, $a0, move $t1, $a1, ...
                 for(VariableEntry argument: value.getFunctionArguments()) {
                     String reg = allocateRegister(argument.getName(), writer);
                     writer.write("sub $sp, $sp, 4\n");
                     writer.write("move " + reg + ", $a" + paramCount + "\n");
                     registerToValue.put(reg, argument.getName());
+                    varNameToOffsetMap.put(argument.getName(), stackOffset);
+                    stackOffset -= 4;
                     paramCount++;
                 }
                 paramCount = 0;
+            } else {
+                writer.write("move $fp, $sp\n");
             }
-            writer.write("move $fp, $sp\n");
         }
     }
 
@@ -518,6 +522,8 @@ public class TACToRISCConverter {
             registerToValue.put(reg, entry.getDestination());
         }
 
+        paramCount = 0;
+
         return stringBuilder.toString();
     }
 
@@ -595,6 +601,10 @@ public class TACToRISCConverter {
         varNameToOffsetMap = new LinkedHashMap<>();
         variableToRegisterMap = new LinkedHashMap<>();
         stackOffset = 0;
+
+        //TODO:lw $fp, 0($sp)
+        //lw $ra, 4($sp)
+        //addi $sp, $sp, 16
 
         stringBuilder.append("jr $ra\n");
         return stringBuilder.toString();

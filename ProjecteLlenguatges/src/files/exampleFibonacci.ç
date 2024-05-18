@@ -1,0 +1,16 @@
+proces enter Fibonacci(enter: n) fer:
+    enter: retornValue = 0 ç
+    si(n < 2) fer:
+        retornValue = n ç
+    fisi
+    sino fer:
+        retornValue = Fibonacci(n - 1) + Fibonacci(n - 2) ç
+    fisino
+
+    retorna retornValue ç
+fi
+
+proces Calçot() fer:
+    enter: valorFibonacci = Fibonacci(6) ç
+    valorFibonacci = 4 ç
+fi
