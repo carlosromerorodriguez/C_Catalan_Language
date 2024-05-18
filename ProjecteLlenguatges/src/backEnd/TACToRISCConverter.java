@@ -21,6 +21,8 @@ public class TACToRISCConverter {
     private LinkedHashMap<String, TACBlock> code;
     private LinkedHashMap<String, String> registerToValue = new LinkedHashMap<>();
     private List<String> registersToFree = new ArrayList<>();
+    private int paramCount = 0;
+    private Map<String, Boolean> functionReturns = new HashMap<>();
 
     public TACToRISCConverter(String path) {
         this.MIPS_FILE_PATH = path;
@@ -454,6 +456,11 @@ public class TACToRISCConverter {
         }
 
         stringBuilder.append("jal ").append(entry.getOperand2()).append("\n");
+
+        //mirar si al hashmap de funcions retorna el valor assignat al nom de la funcio es true o fals
+        //if(functionReturns.get(entry.getOperand2()) ) {
+            //stringBuilder.append("move ").append(varOrReg(entry.getDestination(), null)).append(", $v0\n");
+        //}
         return stringBuilder.toString();
     }
 
@@ -499,7 +506,13 @@ public class TACToRISCConverter {
     private String processParameter(TACEntry entry, BufferedWriter writer) throws IOException {
         String param = varOrReg(entry.getOperand2(), writer);
         // Pot ser que tinguem més parametres, a0, a1, a2, a3
-        return "move $a0, $zero, " + param;
+        String paramReturn = "";
+        if (paramCount < 4) {
+             paramReturn = "move $a" + paramCount + ", " + param;
+            paramCount++;
+        }
+
+        return paramReturn;
     }
 
     private String processReturn(TACEntry entry, BufferedWriter writer) throws IOException {
