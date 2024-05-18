@@ -1,0 +1,28 @@
+proces enter HOLA(enter: més_gran, enter: nombre4, enter: nombre8) fer:
+    enter: b = 4 ç
+
+    retorna b ç
+fi
+
+proces Calçot() fer:
+    enter: més_gran = 0 ç
+    enter: nombre1 = 6 ç
+    enter: nombre4 = 2 ç
+    enter: nombre5 = 1 ç
+    enter: nombre6 = -2 ç
+    enter: nombre7 = 4 ç
+    enter: nombre8 = 6 ç
+    enter: nombre9 = 7 ç
+    enter: nombre10 = 6 ç
+    enter: nombre2 = 4 + nombre10 + 2 - nombre9 + 7 ç
+    enter: nombre3 = 0 ç
+
+    si (nombre1 > nombre2) fer:
+        més_gran = 1 ç
+    fisi
+    sino fer:
+        més_gran = 2 ç
+    fisino
+
+    nombre3 = nombre1 + nombre2 + HOLA(més_gran + 4, nombre4 - 2, 5) ç
+fi

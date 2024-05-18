@@ -506,13 +506,7 @@ public class TACGenerator {
     private String generateFunctionCallRecursive(Node node) {
         for(Node child : node.getChildren().getLast().getChildren()) {
             if(!child.getType().equalsIgnoreCase("(") && !child.getType().equalsIgnoreCase(")")) {
-                // Pel que retorni cada fill, afegir-lo al bloc actual
-                String result = generateExpressionTACRecursive(child);
-
-                //Afegir el resultat al bloc actual
-                //Ex: param tx
-                TACEntry tacEntry = new TACEntry(Type.PARAM.getType(), "", result, "", Type.PARAM);
-                currentBlock.add(tacEntry);
+               generateArgumentTACRecursive(child);
             }
         }
 
@@ -523,6 +517,35 @@ public class TACGenerator {
         currentBlock.add(tacEntry);
 
         return tempVar;
+    }
+
+    private void generateArgumentTACRecursive(Node child) {
+        if("arguments_dins_crida".equalsIgnoreCase(child.getType())) {
+            for(Node grandChild : child.getChildren()) {
+                if(grandChild.getType().equalsIgnoreCase("arguments_crida'")){
+                    generateArgumentTACRecursive(grandChild);
+                } else {
+                    String result = generateExpressionTACRecursive(grandChild);
+
+                    TACEntry tacEntry = new TACEntry(Type.PARAM.getType(), "", result, "", Type.PARAM);
+                    currentBlock.add(tacEntry);
+                }
+
+            }
+        } else if ("arguments_crida'".equalsIgnoreCase(child.getType())) {
+            for(Node grandChild : child.getChildren()) {
+                if(!grandChild.getType().equalsIgnoreCase(",")) {
+                    if(grandChild.getType().equalsIgnoreCase("arguments_crida'")) {
+                        generateArgumentTACRecursive(grandChild);
+                    } else {
+                        String result = generateExpressionTACRecursive(grandChild);
+
+                        TACEntry tacEntry = new TACEntry(Type.PARAM.getType(), "", result, "", Type.PARAM);
+                        currentBlock.add(tacEntry);
+                    }
+                }
+            }
+        }
     }
 
     private String generateTempVariable() {
