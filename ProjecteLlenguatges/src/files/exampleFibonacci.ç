@@ -12,5 +12,4 @@ fi
 
 proces Calçot() fer:
     enter: valorFibonacci = Fibonacci(6) ç
-    valorFibonacci = 4 ç
 fi

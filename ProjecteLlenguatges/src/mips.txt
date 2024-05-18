@@ -1,6 +1,6 @@
 j main
 
-FUNC_SUMA2:
+FUNC_Fibonacci:
 sub $sp, $sp, 8
 sw $fp, 0($sp)
 sw $ra, 4($sp)
@@ -8,95 +8,50 @@ move $fp, $sp
 sub $sp, $sp, 4
 move $t0, $a0
 sub $sp, $sp, 4
-move $t1, $t0
-addi $t2, $t1, 10
-move $v0, $t2
-jr $ra
+li $t1, 0
 
-FUNC_SUMA:
-sub $sp, $sp, 8
-sw $fp, 0($sp)
-sw $ra, 4($sp)
-move $fp, $sp
-sub $sp, $sp, 4
-move $t0, $a0
-move $a0, $t0
-sw $t0, -8($fp)
-jal FUNC_SUMA2
+L0:
+li $t3, 2
+slt $t2, $t0, $t3
+xori $t2, $t2, 0x1
+bne $t2, $zero, L1
+move $t1, $t0
+j L3
+L1:
+L2:
+addi $t2, $t0, -1
+move $a0, $t2
+sw $t1, -8($fp)
+sw $t0, -4($fp)
+jal FUNC_Fibonacci
 move $t0, $v0
 
-lw $t1, -8($fp)
-add $t2, $t1, $t0
-sub $sp, $sp, 4
-move $t0, $t2
-addi $t2, $t0, 20
-move $v0, $t2
+lw $t1, 20($fp)
+addi $t2, $t1, -2
+move $a0, $t2
+sw $t1, -8($fp)
+jal FUNC_Fibonacci
+move $t2, $v0
+
+add $t4, $t1, $t2
+lw $t1, 16($fp)
+move $t1, $t4
+L3:
+addi $sp, $sp, 8 # Incrementem el que hem restat al stack 
+lw $fp, 0($sp)
+lw $ra, 4($sp)
+addi $sp, $sp, 8
+move $v0, $t1
 jr $ra
 
 main:
 move $fp, $sp
-sub $sp, $sp, 4
-li $t0, 5
-
-sub $sp, $sp, 4
-li $t1, 6
-
-sub $sp, $sp, 4
-li $t2, 2
-
-sub $sp, $sp, 4
-li $t2, 1
-
-sub $sp, $sp, 4
-li $t2, -2
-
-sub $sp, $sp, 4
-li $t2, 4
-
-sub $sp, $sp, 4
-li $t2, 6
-
-sub $sp, $sp, 4
-li $t2, 7
-
-sub $sp, $sp, 4
-li $t3, 6
-
-addi $t4, $t2, 7
-sub $t4, $zero, $t4
-addi $t2, $t4, 2
-add $t4, $t3, $t2
-li $t2, 4
-add $t2, $t2, $t4
-sub $sp, $sp, 4
-move $t4, $t2
-sub $sp, $sp, 4
-li $t2, 0
-
-L0:
-sgt $t3, $t1, $t4
-xori $t4, $t3, 0x1
-bne $t4, $zero, L1
-li $t0, 1
-
-j L3
-L1:
-L2:
-li $t0, 2
-
-L3:
+li $t0, 6
 move $a0, $t0
-sw $t2, -40($fp)
-sw $t4, -36($fp)
-sw $t3, -32($fp)
-sw $t1, -4($fp)
-sw $t0, 0($fp)
-jal FUNC_SUMA
-move $t2, $v0
+jal FUNC_Fibonacci
+move $t0, $v0
 
-lw $t0, -40($fp)
-move $t0, $t2
-li $t0, 4
-
+sub $sp, $sp, 4
+move $t1, $t0
 
 syscall # Finalitzem el programa
