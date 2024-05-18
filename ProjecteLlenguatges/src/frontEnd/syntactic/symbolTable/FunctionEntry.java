@@ -62,4 +62,8 @@ public class FunctionEntry extends SymbolTableEntry {
         stringBuilder.append("  ".repeat(depth)).append("return='").append(returnValue).append("\n");
         return stringBuilder.toString();
     }
+
+    public List<VariableEntry> getArguments() {
+        return parameters;
+    }
 }

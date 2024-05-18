@@ -3,6 +3,7 @@
 package backEnd;
 
 import frontEnd.syntactic.Node;
+import frontEnd.syntactic.symbolTable.*;
 
 import java.util.*;
 
@@ -313,7 +314,8 @@ public class TACGenerator {
         }
 
         //Afegir el call al tac
-        TACEntry tacEntry = new TACEntry(Type.CALL.getType(), "" , node.getChildren().getFirst().getValue().toString(), "", Type.CALL);
+        String functionName = "FUNC_" + node.getChildren().getFirst().getValue().toString();
+        TACEntry tacEntry = new TACEntry(Type.CALL.getType(), "" , functionName, "", Type.CALL);
         currentBlock.add(tacEntry);
     }
 
@@ -513,7 +515,8 @@ public class TACGenerator {
         //Afegir el call al tac
         //Ex: tx = call node.getValue()
         String tempVar = generateTempVariable();
-        TACEntry tacEntry = new TACEntry(Type.CALL_EXP.getType(), "" , node.getChildren().getFirst().getValue().toString(), tempVar, Type.CALL_EXP);
+        String functionName = "FUNC_" + node.getChildren().getFirst().getValue().toString();
+        TACEntry tacEntry = new TACEntry(Type.CALL_EXP.getType(), "" , functionName, tempVar, Type.CALL_EXP);
         currentBlock.add(tacEntry);
 
         return tempVar;
@@ -545,6 +548,11 @@ public class TACGenerator {
                     }
                 }
             }
+        } else {
+            String result = generateExpressionTACRecursive(child);
+
+            TACEntry tacEntry = new TACEntry(Type.PARAM.getType(), "", result, "", Type.PARAM);
+            currentBlock.add(tacEntry);
         }
     }
 
@@ -642,6 +650,24 @@ public class TACGenerator {
     public void printTAC() {
         //code.removeEmptyBlocks();
         code.printTAC();
+    }
+
+    public void processFunctionArguments(SymbolTable symbolTable) {
+        Scope rootScope = symbolTable.getRootScope();
+        Map<String, SymbolTableEntry> rootScopeSymbolTable = rootScope.getSymbolTable();
+
+        for(Map.Entry<String, SymbolTableEntry> entry : rootScopeSymbolTable.entrySet()) {
+            if(entry.getValue() instanceof FunctionEntry functionEntry) {
+                List<VariableEntry> arguments = functionEntry.getArguments();
+                TACBlock block = code.getBlock("FUNC_" + functionEntry.getName());
+                if(block != null) {
+                    for(VariableEntry argument : arguments) {
+                        block.addArgument(argument);
+                    }
+                }
+            }
+        }
+
     }
 
     public LinkedHashMap<String, TACBlock> getTAC(){

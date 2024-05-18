@@ -1,8 +1,11 @@
 package backEnd;
 
+import frontEnd.syntactic.symbolTable.VariableEntry;
+
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.Writer;
 import java.util.*;
 
 public class TACToRISCConverter {
@@ -62,6 +65,9 @@ public class TACToRISCConverter {
                     writer.write("\nmove $sp, $fp\n");
                     writer.write("jr $ra\n");
                 }
+                if(lastFunctionBlock()) {
+                    clearAndReset();
+                }
             }
         } catch (IOException e) {
             System.out.println("Error Mips File: " + e.getMessage());
@@ -69,6 +75,39 @@ public class TACToRISCConverter {
         }
 
         // Formatejar el codi per fer-ho més llegible
+    }
+
+    private void clearAndReset() {
+        freeRegisters = new Stack<>();
+        variableToRegisterMap = new LinkedHashMap<>();
+        variableToStackOffsetMap = new LinkedHashMap<>();
+        usedRegisters = new Stack<>();
+        stackOffset = 0;
+        lastUsedTimeMap = new HashMap<>();
+        currentTime = 0;
+        currentFunction = null;
+        functionVariables = new HashSet<>();
+        varNameToOffsetMap = new LinkedHashMap<>();
+        registerToValue = new LinkedHashMap<>();
+        registersToFree = new ArrayList<>();
+        paramCount = 0;
+        functionReturns = new HashMap<>();
+        initializeRegisters();
+    }
+
+    private boolean lastFunctionBlock() {
+        boolean canCheck = false;
+        int canCheckCounter = 0;
+        for(TACBlock block: code.values()) {
+            if(block.getLabel().equals(currentBlock.getLabel())) {
+                canCheck = true;
+                continue;
+            }
+            if(canCheck) { //Mirem el seguent block desrpes del actual, si el seguent block comença per FUNC o es main es l'ultim block de la funcio
+                return block.getLabel().contains("FUNC") || block.getLabel().equals("main");
+            }
+        }
+        return false;
     }
 
     private void freeDeadRegisters() {
@@ -98,6 +137,16 @@ public class TACToRISCConverter {
                 writer.write("sub $sp, $sp, 8\n");
                 writer.write("sw $fp, 0($sp)\n");
                 writer.write("sw $ra, 4($sp)\n");
+
+                // Declarar els arguments de la funció, move $t0, $a0, move $t1, $a1, ...
+                for(VariableEntry argument: value.getFunctionArguments()) {
+                    String reg = allocateRegister(argument.getName(), writer);
+                    writer.write("sub $sp, $sp, 4\n");
+                    writer.write("move " + reg + ", $a" + paramCount + "\n");
+                    registerToValue.put(reg, argument.getName());
+                    paramCount++;
+                }
+                paramCount = 0;
             }
             writer.write("move $fp, $sp\n");
         }
@@ -122,7 +171,7 @@ public class TACToRISCConverter {
             case ADD, SUB, MUL, DIV -> processOperation(entry, writer);
             case AND, OR, EQ, NE, LT, LE, GT, GE -> processCondition(entry, writer);
             case CONDITION -> processConditional(entry, writer);
-            case CALL, CALL_EXP -> processCall(entry);
+            case CALL, CALL_EXP -> processCall(entry, writer);
             case EQU -> processAssignment(entry, writer);
             case PARAM -> processParameter(entry, writer);
             case RET -> processReturn(entry, writer);
@@ -273,7 +322,7 @@ public class TACToRISCConverter {
                     code += "\naddi " + destination + ", " + operand2 + ", " + entry.getOperand1();
                 } else if (isNumeric(entry.getOperand2())) {
                     //t5 = t3 - 2 -> t5 = t3 + (-2)
-                    code = "add1 " + destination + ", " + operand1 + ", -" + entry.getOperand2();
+                    code = "addi " + destination + ", " + operand1 + ", -" + entry.getOperand2();
                 } else {
                     code = "sub " + destination + ", " + operand1 + ", " + operand2;
                 }
@@ -431,7 +480,7 @@ public class TACToRISCConverter {
         return mipsCode;
     }
 
-    private String processCall(TACEntry entry) {
+    private String processCall(TACEntry entry, BufferedWriter writer) throws IOException {
         StringBuilder stringBuilder = new StringBuilder();
         List<String> removeRegisters = new ArrayList<>();
         Set<String> usedRegister = new HashSet<>();
@@ -455,12 +504,20 @@ public class TACToRISCConverter {
             if (!freeRegisters.contains(reg)) freeRegister(reg);
         }
 
-        stringBuilder.append("jal ").append(entry.getOperand2()).append("\n");
+        // Recorrem el registerToValue i buidem tot el que te cada registre per obligar a fer un lw quan es necessari
+        for(Map.Entry<String, String> entryReg: registerToValue.entrySet()) {
+            registerToValue.put(entryReg.getKey(), "");
+        }
 
-        //mirar si al hashmap de funcions retorna el valor assignat al nom de la funcio es true o fals
-        //if(functionReturns.get(entry.getOperand2()) ) {
-            //stringBuilder.append("move ").append(varOrReg(entry.getDestination(), null)).append(", $v0\n");
-        //}
+        String functionName = entry.getOperand2();
+        stringBuilder.append("jal ").append(functionName).append("\n");
+
+        if(entry.getDestination() != null) {
+            String reg = varOrReg(entry.getDestination(), writer);
+            stringBuilder.append("move ").append(reg).append(", $v0\n");
+            registerToValue.put(reg, entry.getDestination());
+        }
+
         return stringBuilder.toString();
     }
 
@@ -507,10 +564,18 @@ public class TACToRISCConverter {
         String param = varOrReg(entry.getOperand2(), writer);
         // Pot ser que tinguem més parametres, a0, a1, a2, a3
         String paramReturn = "";
+
+        if(isNumeric(param)) {
+            param = allocateRegister(param, writer);
+            writer.write("li " + param + ", " + entry.getOperand2() + "\n");
+        }
+
         if (paramCount < 4) {
-             paramReturn = "move $a" + paramCount + ", " + param;
+            paramReturn = "move $a" + paramCount + ", " + param;
             paramCount++;
         }
+
+        if(!freeRegisters.contains(param)) freeRegister(param);
 
         return paramReturn;
     }
@@ -531,7 +596,7 @@ public class TACToRISCConverter {
         variableToRegisterMap = new LinkedHashMap<>();
         stackOffset = 0;
 
-        stringBuilder.append("jr $ra");
+        stringBuilder.append("jr $ra\n");
         return stringBuilder.toString();
     }
 

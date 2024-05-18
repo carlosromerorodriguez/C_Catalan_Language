@@ -23,7 +23,11 @@ public class TAC {
             label = "L" + blockCounter++; // Si no es una funció o el main, el label es "L" + blockCounter
         }
         else {
-            label = name; // Si el label no es "false", el label es el nom de la funció o main
+            if(name.equals("main")) {
+                label = "main";
+            } else {
+                label = "FUNC_" + name; // Si el label no es "false", el label es "FUNC" + nom de la funció
+            }
         }
 
         block.setLabel(label);
@@ -89,4 +93,5 @@ public class TAC {
     public int getBlockCounter() {
         return blockCounter;
     }
+
 }

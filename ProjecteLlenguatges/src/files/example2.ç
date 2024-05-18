@@ -1,13 +1,3 @@
-proces enter HOLA(enter: u) fer:
-    siono: a = cert ç
-    decimal: c = 78.9 ç
-    si (a > c) fer:
-        siono: as = true ç
-    fisi
-
-    retorna 4 ç
-fi
-
 proces Calçot() fer:
     decimal: f = 45 * (8) + 1 - cert ç
     f = HOLA(cert) ç

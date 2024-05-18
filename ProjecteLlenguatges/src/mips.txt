@@ -1,17 +1,20 @@
-HOLA:
+FUNC_SUMA:
 sub $sp, $sp, 8
 sw $fp, 0($sp)
 sw $ra, 4($sp)
+sub $sp, $sp, 4
+move $t0, $a0
 move $fp, $sp
 sub $sp, $sp, 4
-li $t0, 4
-
-move $v0, $t0
+move $t1, $t0
+addi $t2, $t1, 20
+move $v0, $t2
 jr $ra
+
 main:
 move $fp, $sp
 sub $sp, $sp, 4
-li $t0, 0
+li $t0, 5
 
 sub $sp, $sp, 4
 li $t1, 6
@@ -20,37 +23,37 @@ sub $sp, $sp, 4
 li $t2, 2
 
 sub $sp, $sp, 4
-li $t3, 1
+li $t2, 1
 
 sub $sp, $sp, 4
-li $t3, -2
+li $t2, -2
 
 sub $sp, $sp, 4
-li $t3, 4
+li $t2, 4
+
+sub $sp, $sp, 4
+li $t2, 6
+
+sub $sp, $sp, 4
+li $t2, 7
 
 sub $sp, $sp, 4
 li $t3, 6
 
+addi $t4, $t2, 7
+sub $t4, $zero, $t4
+addi $t2, $t4, 2
+add $t4, $t3, $t2
+li $t2, 4
+add $t2, $t2, $t4
 sub $sp, $sp, 4
-li $t3, 7
-
+move $t4, $t2
 sub $sp, $sp, 4
-li $t4, 6
-
-addi $t5, $t3, 7
-sub $t5, $zero, $t5
-addi $t3, $t5, 2
-add $t5, $t4, $t3
-li $t3, 4
-add $t3, $t3, $t5
-sub $sp, $sp, 4
-move $t5, $t3
-sub $sp, $sp, 4
-li $t3, 0
+li $t2, 0
 
 L0:
-sgt $t4, $t1, $t5
-xori $t4, $t4, 0x1
+sgt $t3, $t1, $t4
+xori $t4, $t3, 0x1
 bne $t4, $zero, L1
 li $t0, 1
 
@@ -60,25 +63,17 @@ L2:
 li $t0, 2
 
 L3:
-addi $t4, $t0, 4
-move $a0, $zero, $t4
-add1 $t0, $t2, -2
-move $a0, $zero, $t0
-move $a0, $zero, 5
-sw $t3, -40($fp)
-sw $t5, -36($fp)
-sw $t4, -32($fp)
-sw $t2, -8($fp)
+move $a0, $t0
+sw $t2, -40($fp)
+sw $t4, -36($fp)
+sw $t3, -32($fp)
 sw $t1, -4($fp)
 sw $t0, 0($fp)
-jal HOLA
+jal FUNC_SUMA
+move $t2, $v0
 
-lw $t5, -36($fp)
-add $t1, $t5, $t0
-lw $t0, -4($fp)
-add $t4, $t0, $t1
-lw $t3, -40($fp)
-move $t3, $t4
+lw $t0, -40($fp)
+move $t0, $t2
 
 move $sp, $fp
 jr $ra

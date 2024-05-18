@@ -1,16 +1,10 @@
-proces enter HOLA(enter: més_gran, enter: nombre1, enter: nombre4) fer:
-    enter: b = 4 ç
-    si (més_gran == 1) fer:
-        b = nombre1 + nombre4 + b ç
-    fisi
-    sino fer:
-        b =  HOLA (més_gran, nombre1, nombre4) ç
-    fisino
-    retorna b ç
+proces enter SUMA(enter: més_gran) fer:
+    enter: suma = més_gran ç
+    retorna suma + 20 ç
 fi
 
 proces Calçot() fer:
-    enter: més_gran = 0 ç
+    enter: més_gran = 5 ç
     enter: nombre1 = 6 ç
     enter: nombre4 = 2 ç
     enter: nombre5 = 1 ç
@@ -29,5 +23,5 @@ proces Calçot() fer:
         més_gran = 2 ç
     fisino
 
-    nombre3 = nombre1 + nombre2 + HOLA(més_gran + 4, nombre4 - 2, 5) ç
+    nombre3 = SUMA(més_gran) ç
 fi

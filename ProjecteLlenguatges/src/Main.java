@@ -14,7 +14,7 @@ import java.util.List;
 
 
 public class Main {
-    private static final String FILE_PATH = "src/files/exemple11.ç";
+    private static final String FILE_PATH = "src/files/example12.ç";
     private static final String GRAMMAR_PATH = "src/files/grammar.json";
     private static final String MIPS_FILE_PATH = "src/mips.txt";
 
@@ -54,6 +54,7 @@ public class Main {
         TACGenerator tacGenerator = new TACGenerator();
         tacGenerator.generateTAC(parser.getSymbolTable().getAllTree());
         tacGenerator.printTAC();
+        tacGenerator.processFunctionArguments(parser.getSymbolTable());
         //errorHandler.printErrors();
 
         TACToRISCConverter tacToRISCConverter = new TACToRISCConverter(MIPS_FILE_PATH);

@@ -1,11 +1,14 @@
 package backEnd;
 
+import frontEnd.syntactic.symbolTable.VariableEntry;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class TACBlock {
     private List<TACEntry> entries;
     private String label;
+    private List<VariableEntry> functionArguments;
 
     public TACBlock() {
         entries = new ArrayList<>();
@@ -44,5 +47,14 @@ public class TACBlock {
 
     public List<TACEntry> getEntries() {
         return this.entries;
+    }
+
+    public void addArgument(VariableEntry argument) {
+        if(functionArguments == null) functionArguments = new ArrayList<>();
+        functionArguments.add(argument);
+    }
+
+    public List<VariableEntry> getFunctionArguments() {
+        return functionArguments;
     }
 }
