@@ -1,49 +1,24 @@
 j main
 
-FUNC_sumUp:
-	sub $sp, $sp, 16
-	sw $fp, 0($sp)
-	sw $ra, 4($sp)
-	sw $a0, 8($sp)
-	move $fp, $sp
-	L0:
-	li $t1, 0
-	seq $t0, $a0, $t1
-	xori $t0, $t0, 0x1
-	bne $t0, $zero, L1
-	li $t0, 0
-	j L3
-	L1:
-	L2:
-	addi $t2, $a0, -1
-	move $a0, $t2
-	sw $t0, 12($fp)
-	jal FUNC_sumUp
-	move $t0, $v0
-	
-	lw $a0, 8($fp)
-	add $t2, $a0, $t0
-	lw $t0, 12($fp)
-	move $t0, $t2
-	L3:
-	move $sp, $fp
-	lw $fp, 0($sp)
-	lw $ra, 4($sp)
-	addi $sp, $sp, 8
-	move $v0, $t0
-	jr $ra
-# END_FUNC
-
 main:
-	sub $sp, $sp, 4
+	sub $sp, $sp, 12
 	move $fp, $sp
-	li $t0, 200
-	move $a0, $t0
-	jal FUNC_sumUp
-	move $t0, $v0
-	
-	move $t1, $t0
+	li $t0, 0
+	li $t1, 10
+	li $t2, 0
+	LOOP0:
+	sgt $t3, $t1, $t0
+	xori $t4, $t3, 0x1
+	bne $t4, $zero, L1
+	add $t4, $t2, $t0
+	move $t2, $t4
+	addi $t5, $t0, 1
+	move $t0, $t5
+	j LOOP0
+	L1:
+	add $t5, $t2, $t1
+	move $t2, $t5
 	
 	li $v0, 10
 	syscall # Finalitzem el programa
-	addi $sp, $sp, 4
+	addi $sp, $sp, 12
