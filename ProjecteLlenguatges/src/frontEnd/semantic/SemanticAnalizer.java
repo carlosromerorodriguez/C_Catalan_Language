@@ -78,9 +78,13 @@ public class SemanticAnalizer {
 
     private void checkCall(Scope scope, CallEntry callEntry) {
         FunctionEntry functionEntry = (FunctionEntry) this.symbolTable.getRootScope().getEntry(callEntry.getName());
-        if(callEntry.getParameters().size() != 0){
-            checkParametersType(callEntry, functionEntry, scope);
+        if(callEntry.getParameters().size() == 0){
+            List<List<Object>> parameters = new ArrayList<>();
+            parameters.add(callEntry.getTempParameters());
+            callEntry.setParameters(parameters);
         }
+        checkParametersType(callEntry, functionEntry, scope);
+
         if (functionEntry.getParameters().size() != callEntry.getParameters().size()) {
             this.errorHandler.recordParameterMismatchError(callEntry.getName(), functionEntry.getParameters().size(), callEntry.getParameters().size(), callEntry.getLine());
         }
@@ -91,7 +95,6 @@ public class SemanticAnalizer {
         if(!checkBooleanExpression(condEntry.getCondition(), scope)){
            this.errorHandler.recordConditionError(condEntry.getLine());
         }
-        return;
     }
 
     private void checkFunction(Scope scope, FunctionEntry funcEntry) {

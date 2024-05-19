@@ -10,6 +10,8 @@
   - [External dependecies](#external-dependencies)
   - [Usage](#usage)
   - [File Examples](#file-examples)
+  - [Ç Basic Rules](#ç-basic-rules)
+  - [Reserved Keywords](#reserved-keywords)
   - [Group members](#group-members)
   - [References](#references)
 
@@ -64,6 +66,25 @@ Once the setup is complete, follow these steps to use our compiler:
 
 ## File Examples
 
+### Multiplication table
+```
+proces enter mostraTaulaMultiplicar(enter: numero) fer:
+    enter: iterador = 1 ç
+    enter: resultat = 0 ç
+    mentre (iterador <= 10) fer:
+        resultat = numero * iterador ç
+        mostra(numero + " * " + iterador + " = " + resultat + "\n") ç
+        iterador = iterador + 1 ç
+    fi
+
+    retorna numero ç
+fi
+
+proces Calçot() fer:
+    enter: n = 5 ç
+    enter: ignorar = mostraTaulaMultiplicar(n) ç
+fi
+```
 ### Recursive Fibonacci
 ```
 proces enter Fibonacci(enter: n) fer:
@@ -102,6 +123,32 @@ proces Calçot() fer:
 fi
 ```
 
+### Recursive Power
+```
+proces enter potencia(enter: x, enter: n) fer:
+    enter: resultat ç
+    si(n igual 0) fer:
+        resultat = 1 ç
+    fisi
+    sino fer:
+        si(x igual 0) fer:
+            resultat = 0 ç
+        fisi
+        sino fer:
+            resultat = x * potencia(x, n - 1) ç
+        fisino
+    fisino
+
+    retorna resultat ç
+fi
+
+proces Calçot () fer:
+    enter: a = 3 ç
+    enter: b = 3 ç
+    enter: resultatPotencia = potencia(a, b) ç
+fi
+```
+
 ## Ç Basic Rules
 + You can use two types of comments:
   + One-line comment:
@@ -114,9 +161,9 @@ fi
   + Multiline comment:
   ```
   proces Calçot() fer:
-  comenta enter: valorFactorial = 5 ç
-  enter: a = 10 ç
-  ficomenta
+    comenta enter: valorFactorial = 5 ç
+    enter: a = 10 ç
+    ficomenta
   fi
   ```
 + Variables must be initialized before using them.
@@ -124,6 +171,30 @@ fi
   + You can concatenate custom strings with "enter" varibles:
   ```mostra("El número a és igual a " + a)```
   + You can not add '(' or ')' inside 'mostra': ~~mostra("El valor de (a) és " + a)~~
++ Returns are only allowed at the end of functions:
+```
+proces siono mesGran(enter: a, enter: b) fer:
+  siono: resultat = fals ç
+  
+  si(a > b) fer:
+    resultat = cert ç
+  fisi
+  
+  sino fer:
+    resultat = fals ç
+  fisino
+  
+  retorna resultat ç
+fi
+
+proces Calçot() fer:
+    enter: a = 3 ç
+    enter: b = 5 ç
+
+    siono: resultat = mesGran(a, b) ç
+fi
+```
++ In 'si' and 'mentre' statements all members of condition have to be the same type.
 
 ## Reserved Keywords:
 
@@ -161,7 +232,7 @@ fi
 ### Matematical operators
 + ```+```
 + ```-```
-+ ```·```
++ ```*```
 + ```/```
 
 ### Boolean operators

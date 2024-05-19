@@ -1,21 +1,14 @@
-proces enter Fibonacci(enter: n) fer:
-    enter: retornValue = 0 ç
-    si(n < 2) fer:
-        retornValue = n ç
-    fisi
-    sino fer:
-        retornValue = Fibonacci(n - 1) + Fibonacci(n - 2) ç
-    fisino
-
-    retorna retornValue ç
-fi
-
 proces Calçot() fer:
+    enter: valor = 1 ç
     enter: iterador = 0 ç
-    enter: resultat = 0 ç
-    enter: numero = 0 ç
-    per iterador de 0 fins 10 sumant 1 fer:
-        resultat = Fibonacci(iterador) ç
-        mostra("Fibonacci de: " + iterador + " = " + resultat + "\n") ç
+    per iterador de 10 fins 50 sumant 10 fer:
+        si (iterador igual 20) fer:
+            valor = valor * 3 ç
+        fisi
+
+        mentre (valor > 100) fer:
+            valor = valor - 10 ç
+        fi
     fi
+    mostra(valor) ç
 fi

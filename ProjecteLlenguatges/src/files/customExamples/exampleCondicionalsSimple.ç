@@ -1,0 +1,8 @@
+proces Calçot() fer:
+    enter: x = 5 ç
+    si(x > 0) fer:
+        x = 1 ç
+    fisi
+
+    enter: resultat = x ç
+fi

@@ -14,7 +14,7 @@ import java.util.List;
 
 
 public class Main {
-    private static final String FILE_PATH = "src/files/customExamples/mostraSerieFibonacci.ç";
+    private static final String FILE_PATH = "src/files/customExamples/multiplicationTable.ç";
     private static final String GRAMMAR_PATH = "src/files/grammar.json";
     private static final String MIPS_FILE_PATH = "src/mips.asm";
 
@@ -52,6 +52,7 @@ public class Main {
 
         TACGenerator tacGenerator = new TACGenerator(parser.getTerminalSymbols());
         tacGenerator.generateTAC(parser.getSymbolTable().getAllTree());
+        tacGenerator.addReturnsIfNecessary();
         tacGenerator.printTAC();
         tacGenerator.processFunctionArguments(parser.getSymbolTable());
         //errorHandler.printErrors();

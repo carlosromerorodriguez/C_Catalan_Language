@@ -1,0 +1,14 @@
+proces res mostraTaulaMultiplicar(enter: numero) fer:
+    enter: iterador = 25 ç
+    enter: resultat = 0 ç
+    mentre (iterador <= 10) fer:
+        resultat = numero * iterador ç
+        mostra(numero + " * " + iterador + " = " + resultat + "\n") ç
+        iterador = iterador + 1 ç
+    fi
+fi
+
+proces Calçot() fer:
+    enter: n = 5 ç
+    mostraTaulaMultiplicar(n, 10, 9 + n) ç
+fi

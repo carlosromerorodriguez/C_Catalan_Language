@@ -1,0 +1,7 @@
+proces Calçot() fer:
+    enter: resultat = 0 ç
+    enter: iterador ç
+    per iterador de 1 fins 5 sumant 1 fer:
+        resultat = resultat + iterador * 2 ç
+    fi
+fi

@@ -11,6 +11,12 @@ proces enter Fibonacci(enter: n) fer:
 fi
 
 proces Calçot() fer:
+    enter: iterador ç
+    enter resultat ç
+    per iterador de 0 fins 10 sumant nombre fer:
+        resultat = Fibonacci(iterador) ç
+        mostra(resultat) ç
+    fi
     enter: valorFibonacci = Fibonacci(12) ç
     mostra("El valor es: " + valorFibonacci) ç
 fi

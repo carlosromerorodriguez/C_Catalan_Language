@@ -40,5 +40,11 @@ public class CallEntry extends SymbolTableEntry{
         }
     }
 
+    public List<Object> getTempParameters() {
+        return tempParameters;
+    }
 
+    public void setParameters(List<List<Object>> parameters) {
+        this.parameters = parameters;
+    }
 }
