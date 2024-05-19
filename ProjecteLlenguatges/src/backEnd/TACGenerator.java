@@ -701,6 +701,8 @@ public class TACGenerator {
     }
 
     public void processFunctionArguments(SymbolTable symbolTable) {
+        addReturnsIfNecessary();
+
         Scope rootScope = symbolTable.getRootScope();
         Map<String, SymbolTableEntry> rootScopeSymbolTable = rootScope.getSymbolTable();
 
