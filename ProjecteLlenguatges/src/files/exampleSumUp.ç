@@ -1,0 +1,15 @@
+proces enter sumUp(enter: n) fer:
+    enter: retornValue ç
+    si(n igual 0) fer:
+        retornValue = 0 ç
+    fisi
+    sino fer:
+        retornValue = n + sumUp(n - 1) ç
+    fisino
+
+    retorna retornValue ç
+fi
+
+proces Calçot() fer:
+    enter: result = sumUp(200) ç
+fi
