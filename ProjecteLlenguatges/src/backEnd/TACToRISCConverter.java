@@ -64,7 +64,7 @@ public class  TACToRISCConverter {
                 }
 
                 if(isLastBlock) {
-                    writer.write("\n\nli $v0, 10\n");
+                    writer.write("\nli $v0, 10\n");
                     writer.write("syscall # Finalitzem el programa\n");
                 }
                 if(lastFunctionBlock()) {
@@ -720,11 +720,12 @@ public class  TACToRISCConverter {
             String finalLine = line;
             boolean isFunctionStart = functionNames.stream().anyMatch(name -> finalLine.contains(name + ":"));
             boolean isFunctionEnd = line.trim().equals("# END_FUNC");
+            boolean isLabel = line.trim().matches("L\\d+:");  // Regex to match labels like L0:, L1:, etc.
 
             if (isFunctionStart) {
                 if (inFunction) {
-                    functionContent.add("sub $sp, $sp, " + totalSub);
-                    functionContent.add("addi $sp, $sp, " + totalSub);
+                    functionContent.add("\tsub $sp, $sp, " + totalSub);
+                    functionContent.add("\taddi $sp, $sp, " + totalSub);
                     for (String content : functionContent) {
                         writer.write(content + "\n");
                     }
@@ -732,15 +733,14 @@ public class  TACToRISCConverter {
                     totalSub = 0;
                 }
                 inFunction = true;
-                currentFunction = line.split(":")[0];
-                functionContent.add(line);
+                functionContent.add(line); // Start of the function label
                 continue;
             }
 
             if (inFunction && isFunctionEnd) {
-                functionContent.add(1, "sub $sp, $sp, " + totalSub);
-                functionContent.add("addi $sp, $sp, " + totalSub);
-                functionContent.add(line);
+                functionContent.add(1, "\tsub $sp, $sp, " + totalSub); // Insert at the start of the function content
+                functionContent.add("\taddi $sp, $sp, " + totalSub); // Add addi just before the end mark
+                functionContent.add(line); // End mark
                 for (String content : functionContent) {
                     writer.write(content + "\n");
                 }
@@ -754,17 +754,18 @@ public class  TACToRISCConverter {
                 Matcher subMatcher = Pattern.compile("sub\\s+\\$sp,\\s+\\$sp,\\s+(\\d+)").matcher(line);
                 if (subMatcher.find()) {
                     totalSub += Integer.parseInt(subMatcher.group(1));
-                    continue;
+                    continue; // Do not add sub lines to function content
                 }
-                functionContent.add(line);
+                functionContent.add((isLabel ? "\t" : "\t") + line); // Add a tab for labels and regular lines within function
             } else {
-                writer.write(line + "\n");
+                writer.write(line + "\n"); // Write non-function lines directly to file
             }
         }
 
+        // Write any remaining function content
         if (!functionContent.isEmpty()) {
-            functionContent.add(1, "sub $sp, $sp, " + totalSub); // Correct placement of the sub instruction
-            functionContent.add("addi $sp, $sp, " + totalSub);
+            functionContent.add(1, "\tsub $sp, $sp, " + totalSub); // Correct placement of the sub instruction
+            functionContent.add("\taddi $sp, $sp, " + totalSub);
             for (String content : functionContent) {
                 writer.write(content + "\n");
             }
