@@ -27,6 +27,7 @@ public class  TACToRISCConverter {
     private int paramCount = 0;
     private int stackDecrement;
     private List<String> functionNames = new ArrayList<>();
+    private List<VariableEntry> funcArguments = new ArrayList<>();
 
     public TACToRISCConverter(String path) {
         this.MIPS_FILE_PATH = path;
@@ -92,6 +93,7 @@ public class  TACToRISCConverter {
         registersToFree = new ArrayList<>();
         paramCount = 0;
         alreadyReservedStack = new HashMap<>();
+        funcArguments = new ArrayList<>();
         stackDecrement = 0;
         initializeRegisters();
     }
@@ -146,6 +148,7 @@ public class  TACToRISCConverter {
                 stackDecrement += 8;
 
                 for(VariableEntry argument: value.getFunctionArguments()) {
+                    funcArguments.add(argument);
                     String reg;
                     switch (paramCount) {
                         case 0: reg = "$a0"; break;
@@ -655,8 +658,26 @@ public class  TACToRISCConverter {
         writer.write("move $sp, $fp\n");
         writer.write("lw $fp, 0($sp)\n");
         writer.write("lw $ra, 4($sp)\n");
-        writer.write("lw $a0, 8($sp)\n");
-        writer.write("addi $sp, $sp, 12\n");
+        /*
+        //Fem el lw dels arguments de la funcio
+        paramCount = 0;
+        int lwValue = 8;
+        for(VariableEntry argument: funcArguments) {
+            String reg;
+            switch (paramCount) {
+                case 0: reg = "$a0"; break;
+                case 1: reg = "$a1"; break;
+                case 2: reg = "$a2"; break;
+                case 3: reg = "$a3"; break;
+                default: reg ="";
+            }
+            writer.write("lw " + reg + ", " + (lwValue + (paramCount * 4)) + "($sp)\n");
+            paramCount++;
+        }
+
+        int stackIncrement = 8 + (funcArguments.size() * 4);
+        writer.write("addi $sp, $sp, "+stackIncrement+"\n");*/
+        writer.write("addi $sp, $sp, "+8+"\n");
 
         stringBuilder.append("jr $ra\n");
         stringBuilder.append("# END_FUNC\n");
@@ -725,7 +746,7 @@ public class  TACToRISCConverter {
             if (isFunctionStart) {
                 if (inFunction) {
                     functionContent.add("\tsub $sp, $sp, " + totalSub);
-                    functionContent.add("\taddi $sp, $sp, " + totalSub);
+                    //functionContent.add("\taddi $sp, $sp, " + totalSub);
                     for (String content : functionContent) {
                         writer.write(content + "\n");
                     }
@@ -739,7 +760,7 @@ public class  TACToRISCConverter {
 
             if (inFunction && isFunctionEnd) {
                 functionContent.add(1, "\tsub $sp, $sp, " + totalSub); // Insert at the start of the function content
-                functionContent.add("\taddi $sp, $sp, " + totalSub); // Add addi just before the end mark
+                //functionContent.add("\taddi $sp, $sp, " + totalSub); // Add addi just before the end mark
                 functionContent.add(line); // End mark
                 for (String content : functionContent) {
                     writer.write(content + "\n");
