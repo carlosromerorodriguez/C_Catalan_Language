@@ -28,6 +28,7 @@ public class  TACToRISCConverter {
     private final List<String> functionNames = new ArrayList<>();
     private final Map<String, String> printStrings = new HashMap<>();
     private int printStringsCounters = 1;
+    private List<VariableEntry> currentArguments = new ArrayList<>();
 
     public TACToRISCConverter(String path) {
         this.MIPS_FILE_PATH = path;
@@ -114,6 +115,7 @@ public class  TACToRISCConverter {
         paramCount = 0;
         alreadyReservedStack = new HashMap<>();
         stackDecrement = 0;
+        currentArguments = new ArrayList<>();
         initializeRegisters();
     }
 
@@ -182,6 +184,7 @@ public class  TACToRISCConverter {
                     paramCount++;
                     //Fiquem els arguments a la pila
                     writer.write("sw " + reg + ", " + (stackDecrement - 4) + "($sp)\n");
+                    currentArguments.add(argument);
                 }
 
                 writer.write("move $fp, $sp\n");
@@ -225,6 +228,10 @@ public class  TACToRISCConverter {
             printString = "li $v0, 4\n";
             printString += "la $a0, " + this.printStrings.get(formatted) + "\n";
             printString += "syscall\n";
+        }
+
+        if(!currentArguments.isEmpty()) {
+            printString += "lw $a0, 8($sp)\n";
         }
 
         return printString;

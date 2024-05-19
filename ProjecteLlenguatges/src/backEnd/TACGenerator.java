@@ -711,4 +711,44 @@ public class TACGenerator {
     public LinkedHashMap<String, TACBlock> getTAC(){
         return this.code.getAllBlocks();
     }
+
+    public void addReturnsIfNecessary() {
+        //Ens guardem els labels dels blocks de la funció
+        List<String> labels = code.getAllBlocks().keySet().stream().toList();
+        int iterator = 0;
+        for(String label : labels) {
+            TACBlock block = code.getBlock(label);
+            if(block != null) {
+                if(!block.getEntries().isEmpty()) {
+                    boolean hasReturn = false;
+                    for(TACEntry entry : block.getEntries()) {
+                        if(entry.getType().equals(Type.RET)) {
+                            hasReturn = true;
+                            break;
+                        }
+                    }
+                    if(!hasReturn) {
+                        // Si no hi ha return, afegim un return
+                        if((iterator + 1) < labels.size() && labels.get(iterator + 1) != null) {
+                            // Si el següent bloc és una funció, afegim un return o main
+                            if (labels.get(iterator + 1).startsWith("FUNC_") || labels.get(iterator + 1).equals("main")) {
+                                TACEntry tacEntry = new TACEntry(Type.RET.getType(), "", "", "", Type.RET);
+                                block.add(tacEntry);
+                            }
+                        }
+                    }
+                } else {
+                    if((iterator + 1) < labels.size() && labels.get(iterator + 1) != null) {
+                        // Si el següent bloc és una funció, afegim un return o main
+                        if(labels.get(iterator + 1).startsWith("FUNC_") || labels.get(iterator + 1).equals("main")) {
+                            TACEntry tacEntry = new TACEntry(Type.RET.getType(), "", "", "", Type.RET);
+                            block.add(tacEntry);
+                        }
+                    }
+                }
+            }
+            iterator++;
+        }
+
+    }
 }
