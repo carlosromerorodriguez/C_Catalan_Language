@@ -1,0 +1,15 @@
+proces enter Mul(enter: a, enter: b) fer:
+    enter: retornValue = 0 ç
+    si(b igual 0) fer:
+        retornValue = 0 ç
+    fisi
+    sino fer:
+        retornValue = Mul(a, b - 1) + a ç
+    fisino
+
+    retorna retornValue ç
+fi
+
+proces Calçot() fer:
+    enter: result = Mul(40, 92) ç
+fi

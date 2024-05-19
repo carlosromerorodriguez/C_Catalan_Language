@@ -1,0 +1,12 @@
+proces Calçot() fer:
+    enter: a = 0 ç
+    enter: b = 10 ç
+    enter: resultat = 0 ç
+
+    mentre(b > a) fer:
+        resultat = resultat + a ç
+        a = a + 1 ç
+    fi
+
+    resultat = resultat + b ç
+fi
