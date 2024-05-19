@@ -14,9 +14,9 @@ import java.util.List;
 
 
 public class Main {
-    private static final String FILE_PATH = "src/files/example4.ç";
+    private static final String FILE_PATH = "src/files/exampleFibonacci.ç";
     private static final String GRAMMAR_PATH = "src/files/grammar.json";
-    private static final String MIPS_FILE_PATH = "src/mips.txt";
+    private static final String MIPS_FILE_PATH = "src/mips.asm";
 
     public static void  main(String[] args) {
         // 1. Classe per convertir els tokens a la nostra representació interna

@@ -1,8 +1,13 @@
+proces enter RESFUNC(enter: a, enter: b) fer:
+    a = 4 ç
+    retorna a ç
+fi
+
 proces Calçot() fer:
     enter: a = 3 ç
     a = 5 ç
     a = 7 ç
 
-    retorna a ç
+    enter: b = RESFUNC(a, 4) ç
 fi
 
