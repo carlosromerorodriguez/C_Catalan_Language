@@ -7,6 +7,7 @@ import java.util.UUID;
 public class VariableEntry extends SymbolTableEntry {
     private String type;
     private List<Object> expression;
+    private List<List<Object>> pastExpressions;
     private final Boolean isArgument;
     private Boolean expressionAlreadyAssigned;
 
@@ -16,6 +17,7 @@ public class VariableEntry extends SymbolTableEntry {
         expression = new ArrayList<>();
         this.isArgument = isArgument;
         expressionAlreadyAssigned = false;
+        pastExpressions = new ArrayList<>();
     }
 
     public String getType() {
@@ -44,6 +46,7 @@ public class VariableEntry extends SymbolTableEntry {
 
     public void appendExpressionValue(Object value) {
         if(expressionAlreadyAssigned){
+            pastExpressions.add(expression);
             expression = new ArrayList<>();
             expressionAlreadyAssigned = false;
         }

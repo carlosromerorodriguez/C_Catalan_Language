@@ -14,30 +14,28 @@ import java.util.List;
 
 
 public class Main {
-    private static final String FILE_PATH = "src/files/example12.ç";
+    private static final String FILE_PATH = "src/files/exampleFibonacci.ç";
     private static final String GRAMMAR_PATH = "src/files/grammar.json";
-    private static final String MIPS_FILE_PATH = "src/mips.txt";
+    private static final String MIPS_FILE_PATH = "src/mips.asm";
 
     public static void  main(String[] args) {
-        // 1. Clase para convertir el input del usuario a token de nuestro lenguaje
+        // 1. Classe per convertir els tokens a la nostra representació interna
         TokenConverter tokenConverter = new TokenConverter();
 
-        // 2. Clase para almacenar los errores del proceso de compilación
+        // 2. Classe per gestionar els errors
         ErrorHandler errorHandler = new ErrorHandler();
 
-        // 3. Clase para preprocesar el archivo de entrada y eliminar comentarios
+        // 3. Classe per llegir el fitxer d'entrada i eliminar els comentaris
         PreProcessing preProcessing = new PreProcessing(errorHandler, FILE_PATH);
         List<CodeLine> linesWithOutComments = preProcessing.readFile();
 
-        // 4. Clase para convertir el archivo de entrada (sin comentarios) a tokens
+        // 4. Classe per convertir el fitxer d'entrada en tokens
         Lexer lexer = new Lexer(tokenConverter, errorHandler, linesWithOutComments);
         lexer.showTokens();
-        //errorHandler.printErrors();
 
-        // 5. Clase para cargar la gramática y construir la tabla de análisis sintáctico
+        // 5. Classe per carregar la gramàtica i omplir la taula de parsing
         FirstFollow inputFirstFollow = new FirstFollow(preProcessing.loadGrammar(GRAMMAR_PATH));
         Parser parser = new Parser(inputFirstFollow, tokenConverter, errorHandler, inputFirstFollow.getGrammar());
-            //parser.printParseTable();
         parser.buildParsingTree(lexer.getTokens());
         parser.optimizeTree();
         parser.printTree();

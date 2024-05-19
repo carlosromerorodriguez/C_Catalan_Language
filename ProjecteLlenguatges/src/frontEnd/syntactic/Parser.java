@@ -268,10 +268,6 @@ public class Parser {
         }
     }
 
-    private void evaluateSemanticRules(Node newNode, List<String> production) {
-
-    }
-
     public void processTopSymbol(Node topNode, String tokenName, Token token) {
         System.out.println(parserControlVariables.context);
         if (tokenName.equals("LITERAL") || tokenName.equals("VAR_NAME") || tokenName.equals("FUNCTION_NAME")) {
@@ -398,6 +394,13 @@ public class Parser {
                     else if(parserControlVariables.argumentsInFunctionSentence) currentVar.appendExpressionValue(node.getType());
                     else if(!node.getType().equals(",")) currentVar.appendExpressionValue(node.getType());
 
+                } else {
+                    if(parserControlVariables.isCall) {
+                        if(node.getType().equals("(") || node.getType().equals(")")) return;
+                        if(node.getType().equals("+") || node.getType().equals("/") || node.getType().equals("-") || node.getType().equals("*") || node.getType().equals(",")) parserControlVariables.currentCallEntry.addParameter(node.getType());
+                        else parserControlVariables.currentCallEntry.addParameter(node.getValue());
+                        return;
+                    }
                 }
                 if (parserControlVariables.retornSeen) {
                     // Guardem el que trobem al retornValue de la functionEntry del scope actual

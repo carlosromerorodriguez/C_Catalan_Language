@@ -305,11 +305,7 @@ public class TACGenerator {
         for(Node child : node.getChildren().getLast().getChildren()) {
             if(!child.getType().equalsIgnoreCase("(") && !child.getType().equalsIgnoreCase(")")) {
                 // Pel que retorni cada fill, afegir-lo al bloc actual
-                String result = generateExpressionTACRecursive(child);
-                //Afegir el resultat al bloc actual
-                //Ex: param tx
-                TACEntry tacEntry = new TACEntry(Type.PARAM.getType(), "", result, "", Type.PARAM);
-                currentBlock.add(tacEntry);
+                generateArgumentTACRecursive(child);
             }
         }
 
