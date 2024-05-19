@@ -2,10 +2,10 @@ package backEnd;
 
 import frontEnd.syntactic.symbolTable.VariableEntry;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class  TACToRISCConverter {
     private final String MIPS_FILE_PATH;
@@ -26,7 +26,7 @@ public class  TACToRISCConverter {
     private HashMap<String, Boolean> alreadyReservedStack = new HashMap<>();
     private int paramCount = 0;
     private int stackDecrement;
-    private int initStackDecrement;
+    private List<String> functionNames = new ArrayList<>();
 
     public TACToRISCConverter(String path) {
         this.MIPS_FILE_PATH = path;
@@ -75,8 +75,6 @@ public class  TACToRISCConverter {
             System.out.println("Error Mips File: " + e.getMessage());
             System.exit(0);
         }
-
-        // Formatejar el codi per fer-ho més llegible
     }
 
     private void clearAndReset() {
@@ -137,7 +135,7 @@ public class  TACToRISCConverter {
             currentFunction = value.getLabel();
             stackDecrement = 0;
             stackOffset = 0;
-            initStackDecrement = 0;
+            functionNames.add(currentFunction);
             if(!currentFunction.equals("main")) {
                 int size = value.getFunctionArguments().size();
                 int currentStack = 8 + (size * 4);
@@ -169,21 +167,7 @@ public class  TACToRISCConverter {
 
                 writer.write("move $fp, $sp\n");
                 stackOffset -= 4;
-                initStackDecrement = stackDecrement;
 
-                // Declarar els arguments de la funció, move $t0, $a0, move $t1, $a1, ...
-                /*for(VariableEntry argument: value.getFunctionArguments()) {
-                    String reg = allocateRegister(argument.getName(), writer);
-                    writer.write("sub $sp, $sp, 4\n");
-                    writer.write("move " + reg + ", $a" + paramCount + "\n");
-                    registerToValue.put(reg, argument.getName());
-                    varNameToOffsetMap.put(argument.getName(), stackOffset);
-                    stackOffset -= 4;
-                    stackDecrement += 4;
-                    paramCount++;
-                    //Fiquem els arguments a la pila
-                    writer.write("sw " + reg + ", " + varNameToOffsetMap.get(argument.getName()) + "($fp)\n");
-                }*/
                 paramCount = 0;
             } else {
                 writer.write("move $fp, $sp\n");
@@ -548,8 +532,6 @@ public class  TACToRISCConverter {
         // Invertim l'ordre de la llista
         Collections.reverse(keys);
 
-        // Ara recorrem la llista invertida
-        int count = 0;
         for (String var : keys) {
             String reg = variableToRegisterMap.get(var);
             //Si el reg es un $a l'omitim
@@ -562,7 +544,6 @@ public class  TACToRISCConverter {
                 }
                 stringBuilder.append("sw ").append(reg).append(", ").append(varNameToOffsetMap.get(var)).append("($fp)\n");
                 removeRegisters.add(reg);
-                count++;
             }
         }
 
@@ -591,8 +572,6 @@ public class  TACToRISCConverter {
 
         paramCount = 0;
 
-        //if(count > 0) stringBuilder.append("addi $sp, $sp, ").append(count * 4).append("\n");
-
         return stringBuilder.toString();
     }
 
@@ -619,13 +598,12 @@ public class  TACToRISCConverter {
         }
 
         if (isNumeric(src)) {
-            writer.write( "li " + dest + ", " + src+"\n");
+            writer.write( "li " + dest + ", " + src);
             if(!isNeededLater(entry.getDestination(), entry)) {
                 if(currentBlock.getLabel().contains("LOOP")) registersToFree.add(dest);
                 else if (!freeRegisters.contains(dest)) freeRegister(dest);
             }
             return "";
-            //return "sw " + dest + ", " + varNameToOffsetMap.get(entry.getDestination()) + "($fp)\n";
         } else {
             String srcReg = varOrReg(src, writer);
             if(!isNeededLater(src, entry)) {
@@ -681,6 +659,7 @@ public class  TACToRISCConverter {
         writer.write("addi $sp, $sp, 12\n");
 
         stringBuilder.append("jr $ra\n");
+        stringBuilder.append("# END_FUNC\n");
         return stringBuilder.toString();
     }
 
@@ -724,5 +703,90 @@ public class  TACToRISCConverter {
         int realOffset = offset; // Si hem decrementat el stack, cal ajustar l'offset
         String reg = allocateRegister(var, writer);
         return "lw " + reg + ", " + realOffset + "($sp)";
+    }
+
+    private void reprocessFunction() throws IOException {
+        File inputFile = new File(this.MIPS_FILE_PATH);
+        File tempFile = new File(this.MIPS_FILE_PATH + ".temp");
+        BufferedReader reader = new BufferedReader(new FileReader(inputFile));
+        BufferedWriter writer = new BufferedWriter(new FileWriter(tempFile));
+
+        String line;
+        boolean inFunction = false;
+        int totalSub = 0;
+        List<String> functionContent = new ArrayList<>();
+
+        while ((line = reader.readLine()) != null) {
+            String finalLine = line;
+            boolean isFunctionStart = functionNames.stream().anyMatch(name -> finalLine.contains(name + ":"));
+            boolean isFunctionEnd = line.trim().equals("# END_FUNC");
+
+            if (isFunctionStart) {
+                if (inFunction) {
+                    functionContent.add("sub $sp, $sp, " + totalSub);
+                    functionContent.add("addi $sp, $sp, " + totalSub);
+                    for (String content : functionContent) {
+                        writer.write(content + "\n");
+                    }
+                    functionContent.clear();
+                    totalSub = 0;
+                }
+                inFunction = true;
+                currentFunction = line.split(":")[0];
+                functionContent.add(line);
+                continue;
+            }
+
+            if (inFunction && isFunctionEnd) {
+                functionContent.add(1, "sub $sp, $sp, " + totalSub);
+                functionContent.add("addi $sp, $sp, " + totalSub);
+                functionContent.add(line);
+                for (String content : functionContent) {
+                    writer.write(content + "\n");
+                }
+                functionContent.clear();
+                inFunction = false;
+                totalSub = 0;
+                continue;
+            }
+
+            if (inFunction) {
+                Matcher subMatcher = Pattern.compile("sub\\s+\\$sp,\\s+\\$sp,\\s+(\\d+)").matcher(line);
+                if (subMatcher.find()) {
+                    totalSub += Integer.parseInt(subMatcher.group(1));
+                    continue;
+                }
+                functionContent.add(line);
+            } else {
+                writer.write(line + "\n");
+            }
+        }
+
+        if (!functionContent.isEmpty()) {
+            functionContent.add(1, "sub $sp, $sp, " + totalSub); // Correct placement of the sub instruction
+            functionContent.add("addi $sp, $sp, " + totalSub);
+            for (String content : functionContent) {
+                writer.write(content + "\n");
+            }
+        }
+
+        reader.close();
+        writer.close();
+
+        if (!inputFile.delete()) {
+            System.out.println("Could not delete the original file");
+            return;
+        }
+        if (!tempFile.renameTo(inputFile)) {
+            System.out.println("Could not rename the temp file");
+        }
+    }
+
+    public void reprocessSubValues() {
+        try {
+            reprocessFunction();
+        } catch (IOException e) {
+            System.out.println("Error reprocessing MIPS file");
+        }
     }
 }

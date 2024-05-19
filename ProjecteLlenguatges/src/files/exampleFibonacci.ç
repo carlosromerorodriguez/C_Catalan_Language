@@ -11,5 +11,5 @@ proces enter Fibonacci(enter: n) fer:
 fi
 
 proces Calçot() fer:
-    enter: valorFibonacci = Fibonacci(6) ç
+    enter: valorFibonacci = Fibonacci(12) ç
 fi

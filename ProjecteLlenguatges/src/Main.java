@@ -14,7 +14,7 @@ import java.util.List;
 
 
 public class Main {
-    private static final String FILE_PATH = "src/files/exampleFibonacci.ç";
+    private static final String FILE_PATH = "src/files/example12.ç";
     private static final String GRAMMAR_PATH = "src/files/grammar.json";
     private static final String MIPS_FILE_PATH = "src/mips.txt";
 
@@ -59,6 +59,7 @@ public class Main {
 
         TACToRISCConverter tacToRISCConverter = new TACToRISCConverter(MIPS_FILE_PATH);
         tacToRISCConverter.convertTAC(tacGenerator.getTAC());
+        tacToRISCConverter.reprocessSubValues();
 
     }
 

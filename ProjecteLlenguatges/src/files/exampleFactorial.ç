@@ -1,0 +1,15 @@
+proces enter Factorial(enter: n) fer:
+    enter: retornValue = 0 ç
+    si(n igual 0) fer:
+        retornValue = 1 ç
+    fisi
+    sino fer:
+        retornValue = n * Factorial(n - 1) ç
+    fisino
+
+    retorna retornValue ç
+fi
+
+proces Calçot() fer:
+    enter: valorFactorial = Factorial(5) ç
+fi

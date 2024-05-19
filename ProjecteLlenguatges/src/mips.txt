@@ -1,42 +1,63 @@
 j main
 
-FUNC_Fibonacci:
-sub $sp, $sp, 12
+FUNC_SUMA3:
+sub $sp, $sp, 16
 sw $fp, 0($sp)
 sw $ra, 4($sp)
 sw $a0, 8($sp)
 move $fp, $sp
-sub $sp, $sp, 4
-li $t0, 0
-
-L0:
-li $t2, 2
-slt $t1, $a0, $t2
-xori $t1, $t1, 0x1
-bne $t1, $zero, L1
 move $t0, $a0
-j L3
-L1:
-L2:
-addi $t1, $a0, -1
-move $a0, $t1
-sw $t0, 12($fp)
-jal FUNC_Fibonacci
+addi $t1, $t0, 10
+move $sp, $fp
+lw $fp, 0($sp)
+lw $ra, 4($sp)
+lw $a0, 8($sp)
+addi $sp, $sp, 12
+move $v0, $t1
+jr $ra
+addi $sp, $sp, 16
+# END_FUNC
+
+FUNC_SUMA2:
+sub $sp, $sp, 16
+sw $fp, 0($sp)
+sw $ra, 4($sp)
+sw $a0, 8($sp)
+move $fp, $sp
+move $t0, $a0
+addi $t1, $t0, 10
+move $sp, $fp
+lw $fp, 0($sp)
+lw $ra, 4($sp)
+lw $a0, 8($sp)
+addi $sp, $sp, 12
+move $v0, $t1
+jr $ra
+addi $sp, $sp, 16
+# END_FUNC
+
+FUNC_SUMA:
+sub $sp, $sp, 20
+sw $fp, 0($sp)
+sw $ra, 4($sp)
+sw $a0, 8($sp)
+move $fp, $sp
+move $a0, $a0
+jal FUNC_SUMA2
 move $t0, $v0
 
 lw $a0, 8($fp)
-addi $t1, $a0, -2
-move $a0, $t1
-sub $sp, $sp, 4
-sw $t0, 16($fp)
-jal FUNC_Fibonacci
+move $a0, $a0
+sw $t0, 12($fp)
+jal FUNC_SUMA3
 move $t0, $v0
 
-lw $t1, 16($fp)
-add $t3, $t1, $t0
-lw $t0, 12($fp)
-move $t0, $t3
-L3:
+lw $t1, 12($fp)
+add $t2, $t1, $t0
+lw $a0, 8($fp)
+add $t0, $a0, $t2
+move $t2, $t0
+addi $t0, $t2, 20
 move $sp, $fp
 lw $fp, 0($sp)
 lw $ra, 4($sp)
@@ -44,17 +65,52 @@ lw $a0, 8($sp)
 addi $sp, $sp, 12
 move $v0, $t0
 jr $ra
+addi $sp, $sp, 20
+# END_FUNC
 
 main:
+sub $sp, $sp, 44
 move $fp, $sp
-li $t0, 6
+li $t0, 5
+li $t1, 6
+li $t2, 2
+li $t2, 1
+li $t2, -2
+li $t2, 4
+li $t2, 6
+li $t2, 7
+li $t3, 6
+addi $t4, $t2, 7
+sub $t4, $zero, $t4
+addi $t2, $t4, 2
+add $t4, $t3, $t2
+li $t2, 4
+add $t2, $t2, $t4
+move $t4, $t2
+li $t2, 0
+L0:
+sgt $t3, $t1, $t4
+xori $t4, $t3, 0x1
+bne $t4, $zero, L1
+li $t0, 1
+j L3
+L1:
+L2:
+li $t0, 2
+L3:
 move $a0, $t0
-jal FUNC_Fibonacci
-move $t0, $v0
+sw $t2, 40($fp)
+sw $t4, 36($fp)
+sw $t3, 32($fp)
+sw $t1, 4($fp)
+sw $t0, 0($fp)
+jal FUNC_SUMA
+move $t2, $v0
 
-sub $sp, $sp, 4
-move $t1, $t0
+lw $t0, 40($fp)
+move $t0, $t2
 
 
 li $v0, 10
 syscall # Finalitzem el programa
+addi $sp, $sp, 44
