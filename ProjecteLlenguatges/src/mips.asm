@@ -1,7 +1,7 @@
 .data
-	$z1101: .asciiz "Fibonacci de "
-	$z1102: .asciiz "\n"
-	$z1103: .asciiz " = "
+	$msg1: .asciiz "Fibonacci de: "
+	$msg2: .asciiz "\n"
+	$msg3: .asciiz " = "
 .text
 j main
 
@@ -70,7 +70,7 @@ main:
 	lw $t2, 4($fp)
 	move $t2, $t1
 	li $v0, 4
-	la $a0, $z1101
+	la $a0, $msg1
 	syscall
 	
 	lw $t0, 0($fp)
@@ -79,7 +79,7 @@ main:
 	syscall
 	
 	li $v0, 4
-	la $a0, $z1103
+	la $a0, $msg3
 	syscall
 	
 	li $v0, 1
@@ -87,7 +87,7 @@ main:
 	syscall
 	
 	li $v0, 4
-	la $a0, $z1102
+	la $a0, $msg2
 	syscall
 	
 	j LOOP4

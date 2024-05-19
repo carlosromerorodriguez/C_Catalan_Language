@@ -16,6 +16,6 @@ proces Calçot() fer:
     enter: numero = 0 ç
     per iterador de 0 fins 10 sumant 1 fer:
         resultat = Fibonacci(iterador) ç
-        mostra("Fibonacci de " + iterador + " = " + resultat + "\n") ç
+        mostra("Fibonacci de: " + iterador + " = " + resultat + "\n") ç
     fi
 fi
