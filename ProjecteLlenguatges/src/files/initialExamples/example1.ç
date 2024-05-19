@@ -1,9 +1,5 @@
-proces res SUMA(enter: numero1, enter: numero2) fer:
-    enter: resultat = 0 ç
-    resultat = numero1 + numero2 ç
-fi
-
 proces Calçot() fer:
     enter: numero1 = 0 ç
-    SUMA(5, 3) ç
+    numero1 = 4 + 2 ç
+    mostra("El resultado es: " + numero1 + " calçots" + " y " + numero1 + " salsa romesco") ç
 fi

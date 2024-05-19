@@ -28,6 +28,9 @@ public class  TACToRISCConverter {
     private int stackDecrement;
     private List<String> functionNames = new ArrayList<>();
     private List<VariableEntry> funcArguments = new ArrayList<>();
+    private Map<String, String> printStrings = new HashMap<>();
+    private Map<String, String> printVariables = new HashMap<>();
+    private int printStringsCounters = 1101;
 
     public TACToRISCConverter(String path) {
         this.MIPS_FILE_PATH = path;
@@ -50,6 +53,8 @@ public class  TACToRISCConverter {
         code = blocks;
         boolean isLastBlock = false;
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(MIPS_FILE_PATH))) {
+            preprocessPrints(blocks, writer);
+
             writer.write("j main\n\n");
             for (Map.Entry<String, TACBlock> blockEntry : blocks.entrySet()) {
                 writer.write(blockEntry.getKey() + ":\n");
@@ -76,6 +81,31 @@ public class  TACToRISCConverter {
             System.out.println("Error Mips File: " + e.getMessage());
             System.exit(0);
         }
+    }
+
+    private void preprocessPrints(LinkedHashMap<String, TACBlock> blocks, BufferedWriter writer) throws IOException {
+        for (Map.Entry<String, TACBlock> blockEntry : blocks.entrySet()) {
+            for (TACEntry entry : blockEntry.getValue().getEntries()) {
+                if(entry.getType().equals(Type.PRINT)) {
+                    // Si emnmpieza con comillas es un string
+                    if (entry.toString().startsWith("PRINT VAR_NAME")) {
+                        String formatted = entry.toString().replace("PRINT VAR_NAME(", "").replace(")", "");
+                        printVariables.put(formatted, "");
+                    } else {
+                        String formatted = entry.toString().replace("PRINT ", "");
+                        printStrings.put(formatted, "");
+                    }
+                }
+            }
+        }
+
+        writer.write(".data\n");
+        for (String printString : printStrings.keySet()) {
+            this.printStrings.put(printString, "$z" + printStringsCounters);
+            writer.write("\t$z" + printStringsCounters + ": .asciiz " + printString + "\n");
+            printStringsCounters++;
+        }
+        writer.write(".text\n");
     }
 
     private void clearAndReset() {
@@ -149,14 +179,13 @@ public class  TACToRISCConverter {
 
                 for(VariableEntry argument: value.getFunctionArguments()) {
                     funcArguments.add(argument);
-                    String reg;
-                    switch (paramCount) {
-                        case 0: reg = "$a0"; break;
-                        case 1: reg = "$a1"; break;
-                        case 2: reg = "$a2"; break;
-                        case 3: reg = "$a3"; break;
-                        default: reg ="";
-                    }
+                    String reg = switch (paramCount) {
+                        case 0 -> "$a0";
+                        case 1 -> "$a1";
+                        case 2 -> "$a2";
+                        case 3 -> "$a3";
+                        default -> "";
+                    };
                     alreadyReservedStack.put(argument.getName(), true);
                     registerToValue.put(reg, argument.getName());
                     varNameToOffsetMap.put(argument.getName(), stackDecrement);
@@ -202,10 +231,41 @@ public class  TACToRISCConverter {
             case PARAM -> processParameter(entry, writer);
             case RET -> processReturn(entry, writer);
             case GOTO -> processGoto(entry);
+            case PRINT -> processPrint(entry, writer);
             default -> "";
         }).append("\n");
 
         return localBuilder.toString();
+    }
+
+    private String processPrint(TACEntry entry, BufferedWriter writer) throws IOException {
+        String printString;
+        if (entry.toString().startsWith("PRINT VAR_NAME")) {
+            String formatted = entry.toString().replace("PRINT VAR_NAME(", "").replace(")", "");
+            printString = "li $v0, 1\n";
+            printString += "move $a0, " + foundVariableRegister(formatted, writer) + "\n";
+            printString += "syscall\n";
+        } else {
+            String formatted = entry.toString().replace("PRINT ", "");
+            printString = "li $v0, 4\n";
+            printString += "la $a0, " + this.printStrings.get(formatted) + "\n";
+            printString += "syscall\n";
+        }
+
+        return printString;
+    }
+
+    private String foundVariableRegister(String formatted, BufferedWriter writer) throws IOException {
+        System.out.println(variableToRegisterMap);
+        for (Map.Entry<String, String> entry : variableToRegisterMap.entrySet()) {
+            if (entry.getKey().equals(formatted)) {
+                if (registerToValue.get(entry.getValue()).equals(formatted)) {
+                    return entry.getValue();
+                }
+                return varOrReg(formatted, writer);
+            }
+        }
+        return "";
     }
 
     private String varOrReg(String operand, BufferedWriter writer) throws IOException {
@@ -463,16 +523,15 @@ public class  TACToRISCConverter {
             registerToValue.put(operand2, entry.getOperand2());
         }
 
-        String mipsCode = switch (entry.getOperation()) {
-            case "and" -> "and " + operand1 + ", " + operand1 + ", " + operand2;
-            case "or" -> "or " + operand1 + ", " + operand1 + ", " + operand2;
-
+        String mipsCode = switch (entry.getOperation().toLowerCase()) {
+            case "and" -> "and " + destination + ", " + operand1 + ", " + operand2;
+            case "or" -> "or " + destination + ", " + operand1 + ", " + operand2;
             case "==" -> "seq " + destination + ", " + operand1 + ", " + operand2;
             case "!=" -> "sne " + destination + ", " + operand1 + ", " + operand2;
-            case "LOWER" -> "slt " + destination + ", " + operand1 + ", " + operand2;
-            case "LOWER_EQUAL" -> "sle " + destination + ", " + operand1 + ", " + operand2;
-            case "GREATER" -> "sgt " + destination + ", " + operand1 + ", " + operand2;
-            case "GREATER_EQUAL" -> "sge " + destination + ", " + operand1 + ", " + operand2;
+            case "lower" -> "slt " + destination + ", " + operand1 + ", " + operand2;
+            case "lower_equal" -> "sle " + destination + ", " + operand1 + ", " + operand2;
+            case "greater" -> "sgt " + destination + ", " + operand1 + ", " + operand2;
+            case "greater_equal" -> "sge " + destination + ", " + operand1 + ", " + operand2;
             default -> "";
         };
 

@@ -15,9 +15,11 @@ public class TACGenerator {
     private Stack<String> conditionalLabels = new Stack<>();
     private Stack<HashMap<Boolean, String>> wasIterator = new Stack<>();
     private Stack<TACBlock> endIfs = new Stack<>();
+    private Set<String> terminalSymbols;
 
-    public TACGenerator() {
+    public TACGenerator(Set<String> terminalSymbols) {
         this.code = new TAC();
+        this.terminalSymbols = terminalSymbols;
     }
 
     public void generateTAC(Node rootNode) {
@@ -129,8 +131,39 @@ public class TACGenerator {
             case "endelse":
                 addEndElseBlock();
                 break;
+            case "print":
+                generatePrintCode(child);
+                break;
             default: //Si no és cap dels anteriors, cridem recursivament la funció per el node actual
                 buildTAC(child);
+        }
+    }
+
+    private void generatePrintCode(Node node) {
+        if (node.getType().equalsIgnoreCase("string") || node.getType().equalsIgnoreCase("var_name")) {
+            TACEntry tacEntry;
+            if (node.getType().equalsIgnoreCase("var_name")) {
+                tacEntry = new TACEntry(Type.PRINT.getType(), "", node.getType() + "(" + node.getValue().toString() + ")", "", Type.PRINT);
+            } else {
+                tacEntry = new TACEntry(Type.PRINT.getType(), "", node.getValue().toString(), "", Type.PRINT);
+            }
+            this.currentBlock.add(tacEntry);
+        }
+        for(Node child : node.getChildren()) {
+            if(!child.getType().equalsIgnoreCase("(") && !child.getType().equalsIgnoreCase(")")) {
+                if (child.getType().equalsIgnoreCase("string") || child.getType().equalsIgnoreCase("var_name")) {
+                    TACEntry tacEntry;
+                    if (child.getType().equalsIgnoreCase("var_name")) {
+                        tacEntry = new TACEntry(Type.PRINT.getType(), "", child.getType() + "(" + child.getValue().toString() + ")", "", Type.PRINT);
+                    } else {
+                        tacEntry = new TACEntry(Type.PRINT.getType(), "", child.getValue().toString(), "", Type.PRINT);
+                    }
+                    this.currentBlock.add(tacEntry);
+                }
+                for (Node grandChild : child.getChildren()) {
+                    generatePrintCode(grandChild);
+                }
+            }
         }
     }
 

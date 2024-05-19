@@ -14,7 +14,7 @@ import java.util.List;
 
 
 public class Main {
-    private static final String FILE_PATH = "src/files/customExamples/exampleRecursiveMul.ç";
+    private static final String FILE_PATH = "src/files/customExamples/mostraSerieFibonacci.ç";
     private static final String GRAMMAR_PATH = "src/files/grammar.json";
     private static final String MIPS_FILE_PATH = "src/mips.asm";
 
@@ -35,6 +35,7 @@ public class Main {
 
         // 5. Classe per carregar la gramàtica i omplir la taula de parsing
         FirstFollow inputFirstFollow = new FirstFollow(preProcessing.loadGrammar(GRAMMAR_PATH));
+
         Parser parser = new Parser(inputFirstFollow, tokenConverter, errorHandler, inputFirstFollow.getGrammar());
         parser.buildParsingTree(lexer.getTokens());
         parser.optimizeTree();
@@ -49,7 +50,7 @@ public class Main {
             return;
         }
 
-        TACGenerator tacGenerator = new TACGenerator();
+        TACGenerator tacGenerator = new TACGenerator(parser.getTerminalSymbols());
         tacGenerator.generateTAC(parser.getSymbolTable().getAllTree());
         tacGenerator.printTAC();
         tacGenerator.processFunctionArguments(parser.getSymbolTable());
@@ -58,7 +59,5 @@ public class Main {
         TACToRISCConverter tacToRISCConverter = new TACToRISCConverter(MIPS_FILE_PATH);
         tacToRISCConverter.convertTAC(tacGenerator.getTAC());
         tacToRISCConverter.reprocessSubValues();
-
     }
-
 }

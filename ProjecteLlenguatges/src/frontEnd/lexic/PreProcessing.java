@@ -20,7 +20,6 @@ public class PreProcessing {
     private final String filePath;
     private final ErrorHandler errorHandler;
     private final HashMap<String, String> tokensDictionary;
-    int a;
 
     public PreProcessing(ErrorHandler errorHandler, String filePath) {
         this.filePath = filePath;
