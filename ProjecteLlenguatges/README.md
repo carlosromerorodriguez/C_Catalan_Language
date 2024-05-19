@@ -100,10 +100,37 @@ fi
 proces Calçot() fer:
     enter: valorFactorial = Factorial(5) ç
 fi
-
 ```
 
+## Ç Basic Rules
++ You can use two types of comments:
+  + One-line comment:
+  ```
+  proces Calçot() fer:
+    xiuxiueja enter: valorFactorial = 5 ç
+    enter: a = 10 ç
+  fi
+  ```
+  + Multiline comment:
+  ```
+  proces Calçot() fer:
+  comenta enter: valorFactorial = 5 ç
+  enter: a = 10 ç
+  ficomenta
+  fi
+  ```
++ Variables must be initialized before using them.
++ In 'mostra' operations there are special rule: 
+  + You can concatenate custom strings with "enter" varibles:
+  ```mostra("El número a és igual a " + a)```
+  + You can not add '(' or ')' inside 'mostra': ~~mostra("El valor de (a) és " + a)~~
+
 ## Reserved Keywords:
+
+### Comments 
++ ```xiuxiueja```
++ ```comenta```
++ ```ficomenta```
 
 ### Vartypes
 + ```enter```
@@ -160,7 +187,7 @@ fi
 
 
 ## Group members
-Joaquim Angás Jordana  - joaquim.angas@students.salle.url.edu
+Joaquim Angàs Jordana - joaquim.angas@students.salle.url.edu
 
 Pol Cardenal Granell - pol.cardenal@students.salle.url.edu
 
