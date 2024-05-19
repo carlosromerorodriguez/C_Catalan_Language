@@ -240,6 +240,9 @@ public class TACGenerator {
 
     private String generateConditionTACRecursive(Node node) {
         if ("literal".equalsIgnoreCase(node.getType()) || "var_name".equalsIgnoreCase(node.getType())) {
+            if(node.getValue() instanceof Boolean) {
+                return node.getValue() == Boolean.TRUE ? "1" : "0";
+            }
             return node.getValue().toString();
         } else if ("assignacio_crida".equalsIgnoreCase(node.getType())) {
             return generateFunctionCallRecursive(node);
@@ -355,6 +358,9 @@ public class TACGenerator {
 
     private String generateReturnExpressionTACRecursive(Node node) {
         if ("literal".equalsIgnoreCase(node.getType()) || "var_name".equalsIgnoreCase(node.getType())) {
+            if(node.getValue() instanceof Boolean) {
+                return node.getValue() == Boolean.TRUE ? "1" : "0";
+            }
             return node.getValue().toString();
         } else if ("assignacio_crida".equalsIgnoreCase(node.getType())) {
             return generateFunctionCallRecursive(node);
@@ -476,6 +482,9 @@ public class TACGenerator {
 
     private String generateExpressionTACRecursive(Node node) {
         if ("literal".equalsIgnoreCase(node.getType()) || "var_name".equalsIgnoreCase(node.getType())) {
+            if(node.getValue() instanceof Boolean) {
+                return node.getValue() == Boolean.TRUE ? "1" : "0";
+            }
             return node.getValue().toString();
         } else if ("assignacio_crida".equalsIgnoreCase(node.getType())) {
             return generateFunctionCallRecursive(node);
