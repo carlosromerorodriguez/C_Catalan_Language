@@ -119,6 +119,7 @@ fi
 + ```fer```
 + ```fi```
 + ```fisino```
++ ```ç```
 
 ### Conditional
 + ```si``` 
@@ -149,9 +150,13 @@ fi
 
 ### Misc
 + ```Calçot```
++ ```mostra```
++ ```=```
++ ```:```
++ ```(```
++ ```)```
 + Words containing ç or ñ
-+ ```·```
-+ ```/```
+
 
 
 ## Group members
