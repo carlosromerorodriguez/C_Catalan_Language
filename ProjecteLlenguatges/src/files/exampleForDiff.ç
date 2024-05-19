@@ -1,0 +1,13 @@
+proces Calçot() fer:
+    enter: valor = 1 ç
+    enter: iterador = 0 ç
+    per iterador de 10 fins 50 sumant 10 fer:
+        si (iterador igual 20) fer:
+            valor = valor * 3 ç
+        fi
+
+        mentre (valor > 100) fer:
+            valor = valor - 10 ç
+        fi
+    fi
+fi
