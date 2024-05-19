@@ -64,6 +64,12 @@ public class  TACToRISCConverter {
                 }
 
                 if(isLastBlock) {
+                    writer.write("""
+                            \n# Print the result
+                            move $a0, $t0    \s
+                            li $v0, 1         \s
+                            syscall
+                            """);
                     writer.write("\n\nli $v0, 10\n");
                     writer.write("syscall # Finalitzem el programa\n");
                 }
@@ -699,8 +705,7 @@ public class  TACToRISCConverter {
         if (!variableToStackOffsetMap.containsKey(var)) {
             throw new IllegalStateException("Attempting to load a variable that was not spilled.");
         }
-        int offset = variableToStackOffsetMap.get(var);
-        int realOffset = offset; // Si hem decrementat el stack, cal ajustar l'offset
+        int realOffset = variableToStackOffsetMap.get(var); // Si hem decrementat el stack, cal ajustar l'offset
         String reg = allocateRegister(var, writer);
         return "lw " + reg + ", " + realOffset + "($sp)";
     }

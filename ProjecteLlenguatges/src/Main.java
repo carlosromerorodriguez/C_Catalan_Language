@@ -14,7 +14,7 @@ import java.util.List;
 
 
 public class Main {
-    private static final String FILE_PATH = "src/files/example12.ç";
+    private static final String FILE_PATH = "src/files/exampleFibonacci.ç";
     private static final String GRAMMAR_PATH = "src/files/grammar.json";
     private static final String MIPS_FILE_PATH = "src/mips.txt";
 
@@ -37,7 +37,7 @@ public class Main {
         // 5. Clase para cargar la gramática y construir la tabla de análisis sintáctico
         FirstFollow inputFirstFollow = new FirstFollow(preProcessing.loadGrammar(GRAMMAR_PATH));
         Parser parser = new Parser(inputFirstFollow, tokenConverter, errorHandler, inputFirstFollow.getGrammar());
-            //parser.printParseTable();
+            parser.printParseTable();
         parser.buildParsingTree(lexer.getTokens());
         parser.optimizeTree();
         parser.printTree();
@@ -46,21 +46,20 @@ public class Main {
         semanticAnalizer.analizeSymbolTable();
 
         // Si trobem errors al frontend no continuem amb el backend
-        /*if(errorHandler.hasErrors()) {
+        if(errorHandler.hasErrors()) {
             errorHandler.printErrors();
             return;
-        }*/
+        }
 
         TACGenerator tacGenerator = new TACGenerator();
         tacGenerator.generateTAC(parser.getSymbolTable().getAllTree());
         tacGenerator.printTAC();
         tacGenerator.processFunctionArguments(parser.getSymbolTable());
-        //errorHandler.printErrors();
+        errorHandler.printErrors();
 
         TACToRISCConverter tacToRISCConverter = new TACToRISCConverter(MIPS_FILE_PATH);
         tacToRISCConverter.convertTAC(tacGenerator.getTAC());
         tacToRISCConverter.reprocessSubValues();
-
     }
 
 }
