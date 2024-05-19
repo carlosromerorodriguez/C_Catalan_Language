@@ -4,7 +4,7 @@ proces enter Fibonacci(enter: n) fer:
         retornValue = n ç
     fisi
     sino fer:
-        retornValue = Fibonacci(n - 1) + Fibonacci(n - 2) ç
+        retornValue = (Fibonacci(n - 1) + Fibonacci(n - 2)) ç
     fisino
 
     retorna retornValue ç

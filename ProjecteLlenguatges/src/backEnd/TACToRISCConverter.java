@@ -64,7 +64,8 @@ public class  TACToRISCConverter {
                 }
 
                 if(isLastBlock) {
-                    writer.write("\nsyscall # Finalitzem el programa\n");
+                    writer.write("\n\nli $v0, 10\n");
+                    writer.write("syscall # Finalitzem el programa\n");
                 }
                 if(lastFunctionBlock()) {
                     clearAndReset();
@@ -93,6 +94,7 @@ public class  TACToRISCConverter {
         registersToFree = new ArrayList<>();
         paramCount = 0;
         alreadyReservedStack = new HashMap<>();
+        stackDecrement = 0;
         initializeRegisters();
     }
 
@@ -137,9 +139,13 @@ public class  TACToRISCConverter {
             stackOffset = 0;
             initStackDecrement = 0;
             if(!currentFunction.equals("main")) {
-                writer.write("sub $sp, $sp, 12\n");
+                int size = value.getFunctionArguments().size();
+                int currentStack = 8 + (size * 4);
+                writer.write("sub $sp, $sp, "+currentStack+"\n");
                 writer.write("sw $fp, 0($sp)\n");
                 writer.write("sw $ra, 4($sp)\n");
+
+                stackDecrement += 8;
 
                 for(VariableEntry argument: value.getFunctionArguments()) {
                     String reg;
@@ -150,18 +156,19 @@ public class  TACToRISCConverter {
                         case 3: reg = "$a3"; break;
                         default: reg ="";
                     }
+                    alreadyReservedStack.put(argument.getName(), true);
                     registerToValue.put(reg, argument.getName());
-                    varNameToOffsetMap.put(argument.getName(), stackDecrement + 4);
+                    varNameToOffsetMap.put(argument.getName(), stackDecrement);
                     variableToRegisterMap.put(argument.getName(), reg);
+                    //usedRegisters.push(reg);
                     stackDecrement += 4;
                     paramCount++;
                     //Fiquem els arguments a la pila
-                    writer.write("sw " + reg + ", " + (stackDecrement + 4) + "($sp)\n");
+                    writer.write("sw " + reg + ", " + (stackDecrement - 4) + "($sp)\n");
                 }
 
                 writer.write("move $fp, $sp\n");
                 stackOffset -= 4;
-                stackDecrement += 8;
                 initStackDecrement = stackDecrement;
 
                 // Declarar els arguments de la funció, move $t0, $a0, move $t1, $a1, ...
@@ -218,14 +225,22 @@ public class  TACToRISCConverter {
         if (variableToRegisterMap.containsKey(operand)) {
             //Si el registre es $a0, $a1, $a2, $a3 retornar el registre
             if(variableToRegisterMap.get(operand).matches("\\$a\\d+")) {
-                return variableToRegisterMap.get(operand);
+                if(registerToValue.get(variableToRegisterMap.get(operand)).equals(operand)) {
+                    return variableToRegisterMap.get(operand);
+                } else {
+                    String reg = variableToRegisterMap.get(operand);
+                    writer.write("lw " + reg + ", " + varNameToOffsetMap.get(operand) + "($fp)\n");
+                    variableToRegisterMap.put(operand, reg);
+                    registerToValue.put(reg, operand);
+                    return reg;
+                }
             }
 
             if(!usedRegisters.contains(variableToRegisterMap.get(operand))) {
                 //Si el seu registre esta free ficar el seu registre, sino fer allocateRegister
                 if(freeRegisters.contains(variableToRegisterMap.get(operand))) {
                     if (!operand.matches("t\\d+")) {
-                        int realOffset = varNameToOffsetMap.get(operand) + stackDecrement; // Si hem decrementat el stack, cal ajustar l'offset
+                        int realOffset = varNameToOffsetMap.get(operand); // Si hem decrementat el stack, cal ajustar l'offset
                         writer.write("lw " + variableToRegisterMap.get(operand) + ", " + realOffset + "($fp)\n");
                     }
                     usedRegisters.push(variableToRegisterMap.get(operand));
@@ -235,7 +250,7 @@ public class  TACToRISCConverter {
                     String reg = allocateRegister(operand, writer);
                     variableToRegisterMap.put(operand, reg);
                     if (!operand.matches("t\\d+")) {
-                        int realOffset = varNameToOffsetMap.get(operand) + stackDecrement; // Si hem decrementat el stack, cal ajustar l'offset
+                        int realOffset = varNameToOffsetMap.get(operand); // Si hem decrementat el stack, cal ajustar l'offset
                         writer.write("lw " + variableToRegisterMap.get(operand) + ", " + realOffset + "($fp)\n");
                     }
                     updateRegisterUsage(reg);
@@ -244,7 +259,7 @@ public class  TACToRISCConverter {
             } else if (!registerToValue.get(variableToRegisterMap.get(operand)).equals(operand)) {
                 if(freeRegisters.contains(variableToRegisterMap.get(operand))) {
                     if (!operand.matches("t\\d+")) {
-                        int realOffset = varNameToOffsetMap.get(operand) + stackDecrement; // Si hem decrementat el stack, cal ajustar l'offset
+                        int realOffset = varNameToOffsetMap.get(operand); // Si hem decrementat el stack, cal ajustar l'offset
                         writer.write("lw " + variableToRegisterMap.get(operand) + ", " + realOffset + "($fp)\n");
                     }
                     usedRegisters.push(variableToRegisterMap.get(operand));
@@ -254,7 +269,7 @@ public class  TACToRISCConverter {
                     String reg = allocateRegister(operand, writer);
                     variableToRegisterMap.put(operand, reg);
                     //teniem un match amb tnum
-                    int realOffset = varNameToOffsetMap.get(operand) + stackDecrement; // Si hem decrementat el stack, cal ajustar l'offset
+                    int realOffset = varNameToOffsetMap.get(operand); // Si hem decrementat el stack, cal ajustar l'offset
                     writer.write("lw " + variableToRegisterMap.get(operand) + ", " + realOffset + "($fp)\n");
 
                     updateRegisterUsage(reg);
@@ -303,10 +318,12 @@ public class  TACToRISCConverter {
         String leastUsedReg = null;
         int oldestTime = Integer.MAX_VALUE;
         for (String reg : usedRegisters) {
-            Integer lastUsedTime = lastUsedTimeMap.get(reg);
-            if (lastUsedTime != null && lastUsedTime < oldestTime) {
-                oldestTime = lastUsedTime;
-                leastUsedReg = reg;
+            if(!reg.matches("a\\d+")) { //Si es un registre $a no el tenim en compte
+                Integer lastUsedTime = lastUsedTimeMap.get(reg);
+                if (lastUsedTime != null && lastUsedTime < oldestTime) {
+                    oldestTime = lastUsedTime;
+                    leastUsedReg = reg;
+                }
             }
         }
         return leastUsedReg;
@@ -532,13 +549,21 @@ public class  TACToRISCConverter {
         Collections.reverse(keys);
 
         // Ara recorrem la llista invertida
+        int count = 0;
         for (String var : keys) {
             String reg = variableToRegisterMap.get(var);
             //Si el reg es un $a l'omitim
+            if(reg.matches("\\$a\\d+")) continue;
             if (!usedRegister.contains(reg)) {
                 usedRegister.add(reg);
+                if(!alreadyReservedStack.containsKey(var)) {
+                    stringBuilder.append("sub $sp, $sp, 4\n");
+                    stringBuilder.append("move $fp, $sp\n");
+                    alreadyReservedStack.put(var, true);
+                }
                 stringBuilder.append("sw ").append(reg).append(", ").append(varNameToOffsetMap.get(var)).append("($fp)\n");
                 removeRegisters.add(reg);
+                count++;
             }
         }
 
@@ -554,17 +579,20 @@ public class  TACToRISCConverter {
             reg = varOrReg(entry.getDestination(), writer);
             stringBuilder.append("move ").append(reg).append(", $v0\n");
             registerToValue.put(reg, entry.getDestination());
-            varNameToOffsetMap.put(entry.getDestination(), stackOffset);
+            varNameToOffsetMap.put(entry.getDestination(), stackDecrement);
             stackOffset -= 4;
         }
 
+        List<String> regs = new ArrayList<>(registerToValue.keySet());
+
         // Recorrem el registerToValue i buidem tot el que te cada registre per obligar a fer un lw quan es necessari
-        /*for(Map.Entry<String, String> entryReg: registerToValue.entrySet()) {
-            if(entryReg.getValue().equalsIgnoreCase(reg)) continue;
-            registerToValue.put(entryReg.getKey(), "");
-        }*/
+        for (String reg2: regs) {
+            if(!reg2.equalsIgnoreCase(reg)) registerToValue.put(reg2, "");
+        }
 
         paramCount = 0;
+
+        //if(count > 0) stringBuilder.append("addi $sp, $sp, ").append(count * 4).append("\n");
 
         return stringBuilder.toString();
     }
@@ -583,6 +611,7 @@ public class  TACToRISCConverter {
             if(!functionVariables.contains(functionVariablesMap)) {
                 functionVariables.add(functionVariablesMap);
                 writer.write("sub $sp, $sp, 4\n");
+                writer.append("move $fp, $sp\n");
                 varNameToOffsetMap.put(entry.getDestination(), stackDecrement);
                 variableToRegisterMap.put(entry.getDestination(), dest);
                 stackOffset -= 4; // Cada posició de la pila ocupa 4 bytes
@@ -647,11 +676,11 @@ public class  TACToRISCConverter {
         variableToRegisterMap = new LinkedHashMap<>();
         stackOffset = 0;
 
-
-        writer.write("addi $sp, $sp, " + (stackDecrement - initStackDecrement) + " # Incrementem el que hem restat al stack \n");
+        writer.write("move $sp, $fp\n");
         writer.write("lw $fp, 0($sp)\n");
         writer.write("lw $ra, 4($sp)\n");
-        writer.write("addi $sp, $sp, "+initStackDecrement+"\n");
+        writer.write("lw $a0, 8($sp)\n");
+        writer.write("addi $sp, $sp, 12\n");
 
         stringBuilder.append("jr $ra\n");
         return stringBuilder.toString();
@@ -667,6 +696,12 @@ public class  TACToRISCConverter {
 
     private void spillRegisterToStack(String reg, BufferedWriter writer) throws IOException {
         int offset = varNameToOffsetMap.get(getVarnameFromRegister(reg));
+
+        if(!alreadyReservedStack.containsKey(getVarnameFromRegister(reg))) {
+            alreadyReservedStack.put(getVarnameFromRegister(reg), true);
+            writer.write("sub $sp, $sp, 4\n");
+            writer.write("move $fp, $sp\n");
+        }
 
         String code = "sw " + reg + ", " + offset + "($fp)\n";
         writer.write(code);  // Escrivim el codi MIPS per fer el spill
@@ -689,7 +724,7 @@ public class  TACToRISCConverter {
             throw new IllegalStateException("Attempting to load a variable that was not spilled.");
         }
         int offset = variableToStackOffsetMap.get(var);
-        int realOffset = offset + stackDecrement; // Si hem decrementat el stack, cal ajustar l'offset
+        int realOffset = offset; // Si hem decrementat el stack, cal ajustar l'offset
         String reg = allocateRegister(var, writer);
         return "lw " + reg + ", " + realOffset + "($sp)";
     }
