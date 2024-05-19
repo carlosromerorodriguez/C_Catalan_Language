@@ -268,10 +268,6 @@ public class Parser {
         }
     }
 
-    private void evaluateSemanticRules(Node newNode, List<String> production) {
-
-    }
-
     public void processTopSymbol(Node topNode, String tokenName, Token token) {
         System.out.println(parserControlVariables.context);
         if (tokenName.equals("LITERAL") || tokenName.equals("VAR_NAME") || tokenName.equals("FUNCTION_NAME")) {

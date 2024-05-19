@@ -14,7 +14,7 @@ import java.util.List;
 
 
 public class Main {
-    private static final String FILE_PATH = "src/files/exampleFactorial.ç";
+    private static final String FILE_PATH = "src/files/example4.ç";
     private static final String GRAMMAR_PATH = "src/files/grammar.json";
     private static final String MIPS_FILE_PATH = "src/mips.txt";
 
