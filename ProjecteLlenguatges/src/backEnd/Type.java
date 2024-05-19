@@ -20,8 +20,8 @@ public enum Type{
     GT("GT"),
     GE("GE"),
     RET("RET"),
-    UNDEFINED("UNDEFINED");
-
+    UNDEFINED("UNDEFINED"),
+    PRINT("PRINT"),
     ;
 
     private final String type;

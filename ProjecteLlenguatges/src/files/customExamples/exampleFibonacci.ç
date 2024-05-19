@@ -12,4 +12,5 @@ fi
 
 proces Calçot() fer:
     enter: valorFibonacci = Fibonacci(12) ç
+    mostra("El valor es: " + valorFibonacci) ç
 fi

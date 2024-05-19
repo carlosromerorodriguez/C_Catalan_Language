@@ -11,9 +11,8 @@ public class  TACToRISCConverter {
     private final String MIPS_FILE_PATH;
     private Stack<String> freeRegisters; // Registres lliures
     private LinkedHashMap<String, String> variableToRegisterMap; // Mapa de variables a registres
-    private LinkedHashMap<String, Integer> variableToStackOffsetMap; // Mapa de variables a offsets de la pila
     private Stack<String> usedRegisters; // Registres que estan en us
-    private int stackOffset; // Offset de la pila
+    // Offset de la pila
     private Map<String, Integer> lastUsedTimeMap = new HashMap<>(); // Mapa de temps de l'últim ús de cada registre
     private int currentTime = 0; //Contador de temps per veure el last used register
     private String currentFunction = null;
@@ -26,16 +25,15 @@ public class  TACToRISCConverter {
     private HashMap<String, Boolean> alreadyReservedStack = new HashMap<>();
     private int paramCount = 0;
     private int stackDecrement;
-    private List<String> functionNames = new ArrayList<>();
-    private List<VariableEntry> funcArguments = new ArrayList<>();
+    private final List<String> functionNames = new ArrayList<>();
+    private final Map<String, String> printStrings = new HashMap<>();
+    private int printStringsCounters = 1;
 
     public TACToRISCConverter(String path) {
         this.MIPS_FILE_PATH = path;
         this.freeRegisters = new Stack<>();
         this.variableToRegisterMap = new LinkedHashMap<>();
-        this.variableToStackOffsetMap = new LinkedHashMap<>();
         this.usedRegisters = new Stack<>();
-        this.stackOffset = 0;
         initializeRegisters();
     }
 
@@ -50,6 +48,8 @@ public class  TACToRISCConverter {
         code = blocks;
         boolean isLastBlock = false;
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(MIPS_FILE_PATH))) {
+            preprocessPrints(blocks, writer);
+
             writer.write("j main\n\n");
             for (Map.Entry<String, TACBlock> blockEntry : blocks.entrySet()) {
                 writer.write(blockEntry.getKey() + ":\n");
@@ -78,12 +78,32 @@ public class  TACToRISCConverter {
         }
     }
 
+    private void preprocessPrints(LinkedHashMap<String, TACBlock> blocks, BufferedWriter writer) throws IOException {
+        for (Map.Entry<String, TACBlock> blockEntry : blocks.entrySet()) {
+            for (TACEntry entry : blockEntry.getValue().getEntries()) {
+                if(entry.getType().equals(Type.PRINT)) {
+                    // Si emnmpieza con comillas es un string
+                    if (!entry.toString().startsWith("PRINT VAR_NAME")) {
+                        String formatted = entry.toString().replace("PRINT ", "");
+                        printStrings.put(formatted, "");
+                    }
+                }
+            }
+        }
+
+        writer.write(".data\n");
+        for (String printString : printStrings.keySet()) {
+            this.printStrings.put(printString, "$msg" + printStringsCounters);
+            writer.write("\t$msg" + printStringsCounters + ": .asciiz " + printString + "\n");
+            printStringsCounters++;
+        }
+        writer.write(".text\n");
+    }
+
     private void clearAndReset() {
         freeRegisters = new Stack<>();
         variableToRegisterMap = new LinkedHashMap<>();
-        variableToStackOffsetMap = new LinkedHashMap<>();
         usedRegisters = new Stack<>();
-        stackOffset = 0;
         lastUsedTimeMap = new HashMap<>();
         currentTime = 0;
         currentFunction = null;
@@ -93,7 +113,6 @@ public class  TACToRISCConverter {
         registersToFree = new ArrayList<>();
         paramCount = 0;
         alreadyReservedStack = new HashMap<>();
-        funcArguments = new ArrayList<>();
         stackDecrement = 0;
         initializeRegisters();
     }
@@ -136,7 +155,6 @@ public class  TACToRISCConverter {
         if(!value.getLabel().matches("L\\d+") && !value.getLabel().contains("LOOP")) {
             currentFunction = value.getLabel();
             stackDecrement = 0;
-            stackOffset = 0;
             functionNames.add(currentFunction);
             if(!currentFunction.equals("main")) {
                 int size = value.getFunctionArguments().size();
@@ -148,15 +166,13 @@ public class  TACToRISCConverter {
                 stackDecrement += 8;
 
                 for(VariableEntry argument: value.getFunctionArguments()) {
-                    funcArguments.add(argument);
-                    String reg;
-                    switch (paramCount) {
-                        case 0: reg = "$a0"; break;
-                        case 1: reg = "$a1"; break;
-                        case 2: reg = "$a2"; break;
-                        case 3: reg = "$a3"; break;
-                        default: reg ="";
-                    }
+                    String reg = switch (paramCount) {
+                        case 0 -> "$a0";
+                        case 1 -> "$a1";
+                        case 2 -> "$a2";
+                        case 3 -> "$a3";
+                        default -> "";
+                    };
                     alreadyReservedStack.put(argument.getName(), true);
                     registerToValue.put(reg, argument.getName());
                     varNameToOffsetMap.put(argument.getName(), stackDecrement);
@@ -169,7 +185,6 @@ public class  TACToRISCConverter {
                 }
 
                 writer.write("move $fp, $sp\n");
-                stackOffset -= 4;
 
                 paramCount = 0;
             } else {
@@ -181,17 +196,6 @@ public class  TACToRISCConverter {
     private String translateToMIPS(TACEntry entry, BufferedWriter writer) throws IOException {
         StringBuilder localBuilder = new StringBuilder();
 
-        // Carregar les variables del stack a registres si cal
-        if (variableToStackOffsetMap.containsKey(entry.getOperand1())) {
-            localBuilder.append(loadFromStack(entry.getOperand1(), writer)).append("\n");
-        }
-        if (variableToStackOffsetMap.containsKey(entry.getOperand2())) {
-            localBuilder.append(loadFromStack(entry.getOperand2(), writer)).append("\n");
-        }
-        if (variableToStackOffsetMap.containsKey(entry.getDestination())) {
-            localBuilder.append(loadFromStack(entry.getDestination(), writer)).append("\n");
-        }
-
         // Afeegim el codi MIPS corresponent a l'entrada TAC
         localBuilder.append(switch (entry.getType()) {
             case ADD, SUB, MUL, DIV -> processOperation(entry, writer);
@@ -202,10 +206,41 @@ public class  TACToRISCConverter {
             case PARAM -> processParameter(entry, writer);
             case RET -> processReturn(entry, writer);
             case GOTO -> processGoto(entry);
+            case PRINT -> processPrint(entry, writer);
             default -> "";
         }).append("\n");
 
         return localBuilder.toString();
+    }
+
+    private String processPrint(TACEntry entry, BufferedWriter writer) throws IOException {
+        String printString;
+        if (entry.toString().startsWith("PRINT VAR_NAME")) {
+            String formatted = entry.toString().replace("PRINT VAR_NAME(", "").replace(")", "");
+            printString = "li $v0, 1\n";
+            printString += "move $a0, " + foundVariableRegister(formatted, writer) + "\n";
+            printString += "syscall\n";
+        } else {
+            String formatted = entry.toString().replace("PRINT ", "");
+            printString = "li $v0, 4\n";
+            printString += "la $a0, " + this.printStrings.get(formatted) + "\n";
+            printString += "syscall\n";
+        }
+
+        return printString;
+    }
+
+    private String foundVariableRegister(String formatted, BufferedWriter writer) throws IOException {
+        System.out.println(variableToRegisterMap);
+        for (Map.Entry<String, String> entry : variableToRegisterMap.entrySet()) {
+            if (entry.getKey().equals(formatted)) {
+                if (registerToValue.get(entry.getValue()).equals(formatted)) {
+                    return entry.getValue();
+                }
+                return varOrReg(formatted, writer);
+            }
+        }
+        return "";
     }
 
     private String varOrReg(String operand, BufferedWriter writer) throws IOException {
@@ -463,16 +498,15 @@ public class  TACToRISCConverter {
             registerToValue.put(operand2, entry.getOperand2());
         }
 
-        String mipsCode = switch (entry.getOperation()) {
-            case "and" -> "and " + operand1 + ", " + operand1 + ", " + operand2;
-            case "or" -> "or " + operand1 + ", " + operand1 + ", " + operand2;
-
+        String mipsCode = switch (entry.getOperation().toLowerCase()) {
+            case "and" -> "and " + destination + ", " + operand1 + ", " + operand2;
+            case "or" -> "or " + destination + ", " + operand1 + ", " + operand2;
             case "==" -> "seq " + destination + ", " + operand1 + ", " + operand2;
             case "!=" -> "sne " + destination + ", " + operand1 + ", " + operand2;
-            case "LOWER" -> "slt " + destination + ", " + operand1 + ", " + operand2;
-            case "LOWER_EQUAL" -> "sle " + destination + ", " + operand1 + ", " + operand2;
-            case "GREATER" -> "sgt " + destination + ", " + operand1 + ", " + operand2;
-            case "GREATER_EQUAL" -> "sge " + destination + ", " + operand1 + ", " + operand2;
+            case "lower" -> "slt " + destination + ", " + operand1 + ", " + operand2;
+            case "lower_equal" -> "sle " + destination + ", " + operand1 + ", " + operand2;
+            case "greater" -> "sgt " + destination + ", " + operand1 + ", " + operand2;
+            case "greater_equal" -> "sge " + destination + ", " + operand1 + ", " + operand2;
             default -> "";
         };
 
@@ -563,7 +597,6 @@ public class  TACToRISCConverter {
             stringBuilder.append("move ").append(reg).append(", $v0\n");
             registerToValue.put(reg, entry.getDestination());
             varNameToOffsetMap.put(entry.getDestination(), stackDecrement);
-            stackOffset -= 4;
         }
 
         List<String> regs = new ArrayList<>(registerToValue.keySet());
@@ -594,7 +627,6 @@ public class  TACToRISCConverter {
                 writer.write("sub $sp, $sp, 4\n");
                 varNameToOffsetMap.put(entry.getDestination(), stackDecrement);
                 variableToRegisterMap.put(entry.getDestination(), dest);
-                stackOffset -= 4; // Cada posició de la pila ocupa 4 bytes
                 stackDecrement += 4;
                 alreadyReservedStack.put(entry.getDestination(), true);
             }
@@ -653,30 +685,10 @@ public class  TACToRISCConverter {
 
         varNameToOffsetMap = new LinkedHashMap<>();
         variableToRegisterMap = new LinkedHashMap<>();
-        stackOffset = 0;
 
         writer.write("move $sp, $fp\n");
         writer.write("lw $fp, 0($sp)\n");
         writer.write("lw $ra, 4($sp)\n");
-        /*
-        //Fem el lw dels arguments de la funcio
-        paramCount = 0;
-        int lwValue = 8;
-        for(VariableEntry argument: funcArguments) {
-            String reg;
-            switch (paramCount) {
-                case 0: reg = "$a0"; break;
-                case 1: reg = "$a1"; break;
-                case 2: reg = "$a2"; break;
-                case 3: reg = "$a3"; break;
-                default: reg ="";
-            }
-            writer.write("lw " + reg + ", " + (lwValue + (paramCount * 4)) + "($sp)\n");
-            paramCount++;
-        }
-
-        int stackIncrement = 8 + (funcArguments.size() * 4);
-        writer.write("addi $sp, $sp, "+stackIncrement+"\n");*/
         writer.write("addi $sp, $sp, "+8+"\n");
 
         stringBuilder.append("jr $ra\n");
@@ -714,16 +726,6 @@ public class  TACToRISCConverter {
             }
         }
         return null;
-    }
-
-    private String loadFromStack(String var, BufferedWriter writer) throws IOException {
-        if (!variableToStackOffsetMap.containsKey(var)) {
-            throw new IllegalStateException("Attempting to load a variable that was not spilled.");
-        }
-        int offset = variableToStackOffsetMap.get(var);
-        int realOffset = offset; // Si hem decrementat el stack, cal ajustar l'offset
-        String reg = allocateRegister(var, writer);
-        return "lw " + reg + ", " + realOffset + "($sp)";
     }
 
     private void reprocessFunction() throws IOException {

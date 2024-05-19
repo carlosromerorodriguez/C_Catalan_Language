@@ -66,6 +66,9 @@ public class TokenConverter {
         tokensDictionary.put("crida", "call ");
         tokensDictionary.put("fisi", "endif");
         tokensDictionary.put("fisino", "endelse");
+
+        // Print
+        tokensDictionary.put("mostra", "print");
     }
 
     /**

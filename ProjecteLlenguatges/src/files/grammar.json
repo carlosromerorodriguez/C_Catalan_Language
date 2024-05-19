@@ -39,7 +39,8 @@
     ["condicionals"],
     ["iteratives"],
     ["crida", ";"],
-    ["assignació", ";"]
+    ["assignació", ";"],
+    ["print", ";"]
   ],
   "retorn": [
     ["RETORN", "return_expression", ";"]
@@ -68,6 +69,20 @@
     ["assignacio_crida"],
     ["VAR_NAME"],
     ["LITERAL"]
+  ],
+  "print": [
+    ["PRINT", "(", "print_content", ")"]
+  ],
+  "print_content": [
+    ["print_argument", "print_content'"]
+  ],
+  "print_content'": [
+    ["+", "print_argument", "print_content'"],
+    ["ε"]
+  ],
+  "print_argument": [
+    ["STRING"],
+    ["VAR_NAME"]
   ],
   "crida": [
     ["assignacio_crida"]

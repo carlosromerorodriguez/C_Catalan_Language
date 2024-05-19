@@ -24,7 +24,8 @@ public class Parser {
     Set<String> terminalSymbols = new HashSet<>(Arrays.asList(
             "+", "-", "*", "/", "=", ";", ",", ":", "(", ")", "{", "}", "GREATER", "LOWER", "LOWER_EQUAL", "GREATER_EQUAL", "!", "==", "!=",
             "RETORN", "FUNCTION", "START", "END", "LITERAL", "VAR_NAME", "FOR", "DE", "FINS", "VAR_TYPE", "IF",
-            "ELSE", "WHILE", "CALL", "FUNCTION_NAME", "AND", "OR", "CALÇOT", "VOID", "FUNCTION_MAIN", "SUMANT", "RESTANT", "ENDELSE", "ENDIF"
+            "ELSE", "WHILE", "CALL", "FUNCTION_NAME", "AND", "OR", "CALÇOT", "VOID", "FUNCTION_MAIN", "SUMANT", "RESTANT", "ENDELSE", "ENDIF",
+            "PRINT", "STRING"
     ));
 
     public Parser(FirstFollow firstFollow, TokenConverter tokenConverter, ErrorHandler errorHandler, Map<String, List<List<String>>> grammar) {
@@ -120,6 +121,7 @@ public class Parser {
 
             Token token = tokens.get(tokenIndex);
             String tokenName = token.getStringToken().toUpperCase().trim();
+            System.out.println("Token: " + tokenName + " - Top symbol: " + topSymbol);
 
             if (terminalSymbols.contains(topSymbol)) {
                 if (!topSymbol.equals(tokenName)) {
@@ -131,9 +133,8 @@ public class Parser {
 
                 parserControlVariables.lastTopSymbol = parserControlVariables.currentTopSymbol;
                 parserControlVariables.currentTopSymbol = topSymbol;
-
                 switch (topSymbol) {
-                    case "LITERAL", "VAR_NAME", "FUNCTION_NAME":
+                    case "LITERAL", "VAR_NAME", "FUNCTION_NAME", "STRING":
                         topNode.setValue(token.getValue());
                         topNode.setLine(token.getLine());
                         break;
@@ -196,7 +197,8 @@ public class Parser {
                     parserControlVariables.lastTopNode = parserControlVariables.currentTopNode;
                     parserControlVariables.currentTopNode = topNode;
                     List<String> production = mappings.get(tokenName);
-                    System.out.println(production);
+
+                    System.out.println("Production____----_____: " + production);
                     //System.out.println("\033[33mSelected production: " + tokenName + "=" + production + "\033[0m");
                     if (production != null) {
                         printTreeStructure(depth, tokenName, production + " (" + token.getLine() + ") ", "\033[33m");
@@ -227,7 +229,6 @@ public class Parser {
                 }
             }
         }
-        return;
     }
 
     private boolean doesBelongToProduction(Node topNode) {
@@ -270,7 +271,7 @@ public class Parser {
 
     public void processTopSymbol(Node topNode, String tokenName, Token token) {
         System.out.println(parserControlVariables.context);
-        if (tokenName.equals("LITERAL") || tokenName.equals("VAR_NAME") || tokenName.equals("FUNCTION_NAME")) {
+        if (tokenName.equals("LITERAL") || tokenName.equals("VAR_NAME") || tokenName.equals("FUNCTION_NAME") || tokenName.equals("STRING")) {
             topNode.setValue(token.getValue());
             topNode.setLine(token.getLine());
         } else if (tokenName.equals("VAR_TYPE")) {
@@ -349,6 +350,9 @@ public class Parser {
             case "VAR_NAME": // enter: b = 12, a = 12 + b;
                 handleVarname(node);
                 break;
+            case "STRING":
+                handleString(node);
+                break;
             case "=":
                 parserControlVariables.equalSeen = true; // Ja hem vist =, podem guardar tots els tokens fins equalUnseen a currentVarname
                 break;
@@ -415,6 +419,10 @@ public class Parser {
                 }
                 break;
         }
+    }
+
+    private void handleString(Node node) {
+
     }
 
     private void handleConditional(Node node) {
@@ -646,6 +654,10 @@ public class Parser {
 
     public SymbolTable getSymbolTable() {
         return symbolTable;
+    }
+
+    public Set<String> getTerminalSymbols() {
+        return this.terminalSymbols;
     }
 }
 

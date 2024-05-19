@@ -54,8 +54,8 @@ public class TAC {
             case "-" -> Type.SUB;
             case "*" -> Type.MUL;
             case "/" -> Type.DIV;
-            case "&&" -> Type.AND;
-            case "||" -> Type.OR;
+            case "AND" -> Type.AND;
+            case "OR" -> Type.OR;
             case "==" -> Type.EQ;
             case "!=" -> Type.NE;
             case "GREATER" -> Type.LT;
@@ -64,7 +64,6 @@ public class TAC {
             case "LOWER_EQUAL" -> Type.GE;
             case "RETORN" -> Type.RET;
             default -> Type.UNDEFINED;
-            //Altre casos...
         };
     }
 

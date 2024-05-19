@@ -17,7 +17,7 @@ import java.util.regex.Pattern;
  */
 public class Lexer {
     private final String tokenPattern =
-            "\\b(si|cert|fals|sino|mentre|per|fer|fi|fisi|fisino|enter|decimal|lletra|lletres|siono|res|Calçot|proces|retorn|crida|de|fins)\\b\n|" + // Palabras reservadas
+            "\\b(si|cert|fals|sino|mentre|per|fer|fi|fisi|fisino|enter|decimal|lletra|lletres|siono|res|Calçot|proces|retorn|crida|de|fins|mostra)\\b\n|" + // Palabras reservadas
             "([A-Za-zÀ-ú][A-Za-zÀ-ú0-9_]*)|" + // Identificadores
             "(\\d+(\\.\\d+)?)|" + // Números (decimales y enteros)
             "(!|==|!=|<=|>=|\\+|-|\\*|/|=|<|>|\\(|\\)|;|,|:)"; // Operadores y símbolos
@@ -75,6 +75,54 @@ public class Lexer {
                     Boolean value = lexeme.equals("cert");
                     this.tokens.add(new Token<Boolean>("literal", codeLine.getLine(), value, lexeme));
                 }
+                // Verificar si es un print
+                else if (lexeme.equals("mostra")) {
+                    // Agregar el token 'print'
+                    this.tokens.add(new Token<String>("print", codeLine.getLine(), lexeme, lexeme));
+
+                    // Capturar todo lo que esté dentro de los paréntesis
+                    int start = matcher.end(); // Coger el índice del primer paréntesis
+                    int end = line.indexOf(")", start); // Coger el índice del último paréntesis
+                    if (end != -1) {
+                        this.tokens.add(new Token<String>("(", codeLine.getLine(), "(", "("));
+                        String printContent = line.substring(start + 1, end); // +1 para omitir el primer paréntesis
+
+                        // Dividir el contenido por los operadores de concatenación (+)
+                        String[] printParts = printContent.split("\\+");
+                        int cont = 0;
+                        for (String part : printParts) {
+                            part = part.trim();
+                            // Verificar si es una cadena
+                            if (part.matches("\"[^\"]*\"")) {
+                                this.tokens.add(new Token<String>("string", codeLine.getLine(), part, part));
+                                if (cont + 1 < printParts.length) this.tokens.add(new Token<String>("+", codeLine.getLine(), "+", "+"));
+                            }
+
+                            // Verificar si es una variable
+                            else if (part.matches("[a-zA-Z_][a-zA-Z0-9_]*")) {
+                                this.tokens.add(new Token<String>("var_name", codeLine.getLine(), part, part));
+                                if (cont + 1 < printParts.length) this.tokens.add(new Token<String>("+", codeLine.getLine(), "+", "+"));
+                            } else {
+                                errorHandler.recordError("Invalid print content: " + part, codeLine.getLine());
+                            }
+                            cont++;
+                        }
+                        lastMatchEnd = end + 1;
+                    } else {
+                        errorHandler.recordError("Missing closing parenthesis for print statement.", codeLine.getLine());
+                        break;
+                    }
+
+                    // Avanzar a la siguiente linea
+                    this.tokens.add(new Token<String>(")", codeLine.getLine(), ")", ")"));
+                    line = line.replaceFirst(Pattern.quote(line.substring(start, end + 1)), "");
+                    line = line.replace("mostra ç", "");
+                    continue;
+                }
+                // Verificar si es un literal de cadena
+                else if (lexeme.matches("\"[^\"]*\"")) {  // Añadir esta condición para cadenas
+                    this.tokens.add(new Token<String>("string", codeLine.getLine(), lexeme, lexeme));
+                }
                 // Si no es un número, operador, símbolo o booleano, se verifica si es una palabra reservada
                 else {
                     // Si el token no es igual al lexema, se agrega un token con el lexema
@@ -99,6 +147,7 @@ public class Lexer {
 
             //Si encara queden coses a la linia ens guardem l'error
             if (!line.trim().isEmpty()) {
+                System.out.println("Linea: " + line);
                 errorHandler.recordError(line + " is not a statement.", codeLine.getLine());
             }
         }
