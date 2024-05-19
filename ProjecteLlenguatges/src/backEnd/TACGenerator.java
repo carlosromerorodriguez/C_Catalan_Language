@@ -633,15 +633,25 @@ public class TACGenerator {
         op2 = node.getChildren().get(7).getValue().toString();
         String inc = node.getChildren().get(6).getType();
         Type type;
+        String reverseCondition;
+        Type reverseType;
         if(inc.equals("SUMANT")) {
             condition = "+";
+            reverseCondition = "-";
             type = Type.ADD;
+            reverseType = Type.SUB;
         } else {
             condition = "-";
+            reverseCondition = "+";
             type = Type.SUB;
+            reverseType = Type.ADD;
         }
         TACEntry incrementEntry = new TACEntry(condition, varName, op2, varName, type);
         currentBlock.add(incrementEntry);
+
+        // Decrementem el contador de la condició abans d'entrar al for
+        TACEntry decrementEntry = new TACEntry(reverseCondition, varName, op2, varName, reverseType);
+        lastBlock.add(decrementEntry);
     }
 
     private void generateWhileCode(Node child) {
