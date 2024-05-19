@@ -103,6 +103,61 @@ fi
 
 ```
 
+## Reserved Keywords:
+
+### Vartypes
++ ```enter```
++ ```decimal```
++ ```siono```
++ ```res```
+
+### Functions
++ ```proces```
++ ```retorna```
+
+### Inicializers and terminators
++ ```fer```
++ ```fi```
++ ```fisino```
++ ```ç```
+
+### Conditional
++ ```si``` 
++ ```sino``` 
+
+### Iterator
++ ```mentre``` 
++ ```per```
++ ```sumant```
++ ```restant```
+
+### Matematical operators
++ ```+```
++ ```-```
++ ```·```
++ ```/```
+
+### Boolean operators
++ ```i```
++ ```o```
++ ```no```
++ ```>```
++ ```>=```
++ ```<```
++ ```<=```
++ ```igual```
++ ```diferent```
+
+### Misc
++ ```Calçot```
++ ```mostra```
++ ```=```
++ ```:```
++ ```(```
++ ```)```
++ Words containing ç or ñ
+
+
 
 ## Group members
 Joaquim Angás Jordana  - joaquim.angas@students.salle.url.edu

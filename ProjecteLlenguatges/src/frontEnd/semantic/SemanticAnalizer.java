@@ -127,6 +127,15 @@ public class SemanticAnalizer {
                 this.errorHandler.recordTypeMismatchError("assignation", varEntry.getType().toUpperCase(), varEntry.getLine());
             }
         }
+
+        for (List<Object> list : varEntry.getPastExpressions()) {
+            for (Object term : list) {
+                newType = getTermType(term, scope);
+                if (newType != Vartype.UNASSIGNED && newType != currentType) {
+                    this.errorHandler.recordTypeMismatchError("assignation", varEntry.getType().toUpperCase(), varEntry.getLine());
+                }
+            }
+        }
     }
 
     private Vartype getTermType(Object term, Scope scope) {

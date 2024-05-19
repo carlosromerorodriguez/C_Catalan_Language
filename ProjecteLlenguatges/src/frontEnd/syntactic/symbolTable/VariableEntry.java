@@ -64,6 +64,8 @@ public class VariableEntry extends SymbolTableEntry {
         return stringBuilder.toString();
     }
 
-
+    public List<List<Object>> getPastExpressions() {
+        return pastExpressions;
+    }
 }
 
