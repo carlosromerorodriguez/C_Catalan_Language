@@ -558,7 +558,6 @@ public class  TACToRISCConverter {
                 usedRegister.add(reg);
                 if(!alreadyReservedStack.containsKey(var)) {
                     stringBuilder.append("sub $sp, $sp, 4\n");
-                    stringBuilder.append("move $fp, $sp\n");
                     alreadyReservedStack.put(var, true);
                 }
                 stringBuilder.append("sw ").append(reg).append(", ").append(varNameToOffsetMap.get(var)).append("($fp)\n");
@@ -611,7 +610,6 @@ public class  TACToRISCConverter {
             if(!functionVariables.contains(functionVariablesMap)) {
                 functionVariables.add(functionVariablesMap);
                 writer.write("sub $sp, $sp, 4\n");
-                writer.append("move $fp, $sp\n");
                 varNameToOffsetMap.put(entry.getDestination(), stackDecrement);
                 variableToRegisterMap.put(entry.getDestination(), dest);
                 stackOffset -= 4; // Cada posició de la pila ocupa 4 bytes
@@ -700,7 +698,6 @@ public class  TACToRISCConverter {
         if(!alreadyReservedStack.containsKey(getVarnameFromRegister(reg))) {
             alreadyReservedStack.put(getVarnameFromRegister(reg), true);
             writer.write("sub $sp, $sp, 4\n");
-            writer.write("move $fp, $sp\n");
         }
 
         String code = "sw " + reg + ", " + offset + "($fp)\n";
