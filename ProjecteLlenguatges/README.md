@@ -38,7 +38,7 @@ The compiler relies on the following external dependency:
 
 ## Installation and setup
 #### 1. Download our project
-#### 2. Configure the JDK we've used (JDK-21):
+#### 2. Configure the JDK we've used (JDK-21)
 #### 3. Navigate to directory:
 ```bash
 cd ProjecteLlenguatges
