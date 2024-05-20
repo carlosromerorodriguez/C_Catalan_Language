@@ -1,6 +1,6 @@
 package frontEnd.syntactic;
 
-import frontEnd.syntactic.symbolTable.CallEntry;
+import frontEnd.syntactic.symbolTable.entries.CallEntry;
 
 import java.util.Stack;
 

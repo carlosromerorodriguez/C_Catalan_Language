@@ -1,6 +1,6 @@
 package backEnd;
 
-import frontEnd.syntactic.symbolTable.VariableEntry;
+import frontEnd.syntactic.symbolTable.entries.VariableEntry;
 
 import java.util.ArrayList;
 import java.util.List;

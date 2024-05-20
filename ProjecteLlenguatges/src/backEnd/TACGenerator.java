@@ -4,6 +4,9 @@ package backEnd;
 
 import frontEnd.syntactic.Node;
 import frontEnd.syntactic.symbolTable.*;
+import frontEnd.syntactic.symbolTable.entries.FunctionEntry;
+import frontEnd.syntactic.symbolTable.entries.SymbolTableEntry;
+import frontEnd.syntactic.symbolTable.entries.VariableEntry;
 
 import java.util.*;
 

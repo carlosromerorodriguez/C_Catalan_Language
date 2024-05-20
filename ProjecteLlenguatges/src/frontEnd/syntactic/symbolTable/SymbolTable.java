@@ -2,62 +2,114 @@ package frontEnd.syntactic.symbolTable;
 
 
 import frontEnd.syntactic.Node;
+import frontEnd.syntactic.symbolTable.entries.SymbolTableEntry;
 
-import java.util.HashSet;
 import java.util.List;
 
+/**
+ * The Symbol table.
+ */
 public class SymbolTable {
+    /**
+     * The Root scope.
+     */
     private Scope rootScope;
+    /**
+     * The Current scope.
+     */
     private Scope currentScope;
+    /**
+     * All tree.
+     */
     private Node allTree;
 
+    /**
+     * Instantiates a new Symbol table.
+     */
     public SymbolTable() {
         this.rootScope = new Scope();
         this.currentScope = rootScope;
     }
 
-
-   public Scope getRootScope(){
+    /**
+     * Get root scope scope.
+     *
+     * @return the scope
+     */
+    public Scope getRootScope(){
         return this.rootScope;
    }
 
-   public Scope getCurrentScope() {
+    /**
+     * Gets current scope.
+     *
+     * @return the current scope
+     */
+    public Scope getCurrentScope() {
         return this.currentScope;
    }
 
-   public List<Scope> getChildScopes() {
+    /**
+     * Gets child scopes.
+     *
+     * @return the child scopes
+     */
+    public List<Scope> getChildScopes() {
         return this.currentScope.getChildScopes();
    }
 
-   public void addScope(){
+    /**
+     * Adds a new scope.
+     */
+    public void addScope(){
         Scope newScope = new Scope(this.currentScope);
         this.currentScope.addChildScope(newScope);
         this.currentScope = newScope;
         this.currentScope.setSymbolTable();
    }
 
-   public void enterScope(int i){
-        this.currentScope = this.currentScope.getChildScopes().get(i);
-   }
 
-   public void leaveScope(){
+    /**
+     * Leaves current scope.
+     */
+    public void leaveScope(){
         if (this.currentScope != this.rootScope) {
             this.currentScope = this.currentScope.getParentScope();
         }
    }
 
+    /**
+     * Sets all tree.
+     *
+     * @param allTree the all tree
+     */
     public void setAllTree(Node allTree) {
         this.allTree = allTree;
     }
 
+    /**
+     * Gets all tree.
+     *
+     * @return the all tree
+     */
     public Node getAllTree() {
         return allTree;
     }
 
+    /**
+     * Adds a symbol entry to current scope.
+     *
+     * @param newEntry the new entry
+     */
     public void addSymbolEntry(SymbolTableEntry newEntry){
         this.currentScope.addEntry(newEntry);
    }
 
+    /**
+     * To string method.
+     *
+     * @return the string
+     */
    @Override
    public String toString(){
        System.out.println("-------------SYMBOL TABLE-------------");

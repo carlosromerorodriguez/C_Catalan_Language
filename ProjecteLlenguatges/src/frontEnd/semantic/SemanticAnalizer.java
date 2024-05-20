@@ -2,31 +2,65 @@ package frontEnd.semantic;
 
 import frontEnd.global.ErrorHandler;
 import frontEnd.syntactic.symbolTable.*;
+import frontEnd.syntactic.symbolTable.entries.*;
 
-import java.lang.reflect.Parameter;
-import java.math.BigDecimal;
 import java.util.*;
-//import com.udojava.evalex.Expression;
 
-
+/**
+ * The SemanticAnalizer class is responsible for checking the semantic correctness of the code based on the symbol table.
+ */
 public class SemanticAnalizer {
+    /**
+     * The enum Vartype.
+     */
     public enum Vartype {
+        /**
+         * Enter vartype.
+         */
         ENTER,
+        /**
+         * Decimal vartype.
+         */
         DECIMAL,
+        /**
+         * Siono vartype.
+         */
         SIONO,
+        /**
+         * Lletres vartype.
+         */
         LLETRES,
+        /**
+         * Unassigned vartype.
+         */
         UNASSIGNED,
+        /**
+         * Res vartype.
+         */
         RES
     }
 
+    /**
+     * The Symbol table.
+     */
     private SymbolTable symbolTable;
+
+    /**
+     * The Error handler to record the semantic errors.
+     */
     private ErrorHandler errorHandler;
+
+    /**
+     * Operators list.
+     */
     private List<String> operators;
-    private static final List<String> mathOps = List.of("+", "-", "*", "/");
 
-    // Lista de operadores booleanos
-    private static final List<String> boolOps = List.of("&&", "||", "!");
-
+    /**
+     * Instantiates a new Semantic analizer.
+     *
+     * @param symbolTable  the symbol table
+     * @param errorHandler the error handler
+     */
     public SemanticAnalizer(SymbolTable symbolTable, ErrorHandler errorHandler) {
         this.symbolTable = symbolTable;
         this.errorHandler = errorHandler;
@@ -35,6 +69,9 @@ public class SemanticAnalizer {
         );
     }
 
+    /**
+     * String type to type Vartype.
+     */
     private Vartype stringToType(String type) {
         switch (type) {
             case "enter" -> {
@@ -55,11 +92,20 @@ public class SemanticAnalizer {
         }
     }
 
+    /**
+     * Analizes symbol table.
+     */
     public void analizeSymbolTable() {
         analizeScopes(symbolTable.getRootScope());
     }
 
+    /**
+     * Analize each symbol table contained in each scope.
+     *
+     * @param currentScope the current scope
+     */
     private void analizeScopes(Scope currentScope) {
+        // Check each entry in the symbol table
         for (Map.Entry<String, SymbolTableEntry> entry : currentScope.getSymbolTable().entrySet()) {
             if (entry.getValue() instanceof VariableEntry tableEntry) {
                 checkVariable(currentScope, tableEntry);
@@ -71,11 +117,17 @@ public class SemanticAnalizer {
                 checkCall(currentScope, tableEntry);
             }
         }
+        // Recursive call to analize the child scopes
         for (Scope scope : currentScope.getChildScopes()) {
             analizeScopes(scope);
         }
     }
-
+    /**
+     * Check call entry of symbol table.
+     *
+     * @param scope     the scope
+     * @param callEntry the call entry
+     */
     private void checkCall(Scope scope, CallEntry callEntry) {
         FunctionEntry functionEntry = (FunctionEntry) this.symbolTable.getRootScope().getEntry(callEntry.getName());
         if(callEntry.getParameters().size() == 0){
@@ -88,13 +140,24 @@ public class SemanticAnalizer {
         }
     }
 
-
+    /**
+     * Check conditional entry of symbol table.
+     *
+     * @param scope     the scope
+     * @param condEntry the conditional entry
+     */
     private void checkConditional(Scope scope, ConditionalEntry condEntry) {
         if(!checkBooleanExpression(condEntry.getCondition(), scope)){
            this.errorHandler.recordConditionError(condEntry.getLine());
         }
     }
 
+    /**
+     * Check function entry of symbol table.
+     *
+     * @param scope    the scope
+     * @param funcEntry the func entry
+     */
     private void checkFunction(Scope scope, FunctionEntry funcEntry) {
         Vartype functionType = stringToType(funcEntry.getReturnType());
         Vartype newType;
@@ -119,9 +182,16 @@ public class SemanticAnalizer {
         }
     }
 
+    /**
+     * Check variable entry of symbol table.
+     *
+     * @param scope    the scope
+     * @param varEntry the variable entry
+     */
     private void checkVariable(Scope scope, VariableEntry varEntry) {
         Vartype currentType = stringToType(varEntry.getType());
         Vartype newType;
+        // Check the current expression types
         for (Object term : varEntry.getExpression()) {
             newType = getTermType(term, scope);
             if (newType != Vartype.UNASSIGNED && newType != currentType) {
@@ -129,6 +199,7 @@ public class SemanticAnalizer {
             }
         }
 
+        // Check the past expressions types
         for (List<Object> list : varEntry.getPastExpressions()) {
             for (Object term : list) {
                 newType = getTermType(term, scope);
@@ -139,6 +210,13 @@ public class SemanticAnalizer {
         }
     }
 
+    /**
+     * Get type of a term (number, boolean, variable...).
+     *
+     * @param term  the term
+     * @param scope the scope
+     * @return the term Vartype
+     */
     private Vartype getTermType(Object term, Scope scope) {
         if (term instanceof Integer) return Vartype.ENTER;
         if (term instanceof Float) return Vartype.DECIMAL;
@@ -155,6 +233,13 @@ public class SemanticAnalizer {
         return Vartype.UNASSIGNED;
     }
 
+    /**
+     * Get function Vartype of a call entry.
+     *
+     * @param call  the call
+     * @param scope the scope
+     * @return the function type
+     */
     private Vartype getFunctionType(CallEntry call, Scope scope) {
         SymbolTableEntry entry = this.symbolTable.getRootScope().getEntry(call.getName());
         if (entry instanceof FunctionEntry functionEntry) {
@@ -169,6 +254,13 @@ public class SemanticAnalizer {
 
     }
 
+    /**
+     * Check parameters Vartype of a call entry.
+     *
+     * @param call          the call
+     * @param functionEntry the function entry
+     * @param scope         the scope
+     */
     private void checkParametersType(CallEntry call, FunctionEntry functionEntry, Scope scope) {
         Vartype functionParameterType = Vartype.UNASSIGNED;
         Vartype callParameterType = Vartype.UNASSIGNED;
@@ -186,6 +278,13 @@ public class SemanticAnalizer {
         }
     }
 
+    /**
+     * Get variable Vartype.
+     *
+     * @param scope the scope
+     * @param var   the var
+     * @return the variable type
+     */
     private Vartype getVariableType(Scope scope, String var) {
         if (scope == null) return Vartype.UNASSIGNED;
         SymbolTableEntry entry = scope.getSymbolTable().get(var);
@@ -200,11 +299,19 @@ public class SemanticAnalizer {
     }
 
 
+    /**
+     * Check boolean expression boolean.
+     *
+     * @param expr  the expr
+     * @param scope the scope
+     * @return the boolean
+     */
     public boolean checkBooleanExpression(List<Object> expr, Scope scope) {
         Vartype previousType = Vartype.UNASSIGNED;
         Vartype currentType = Vartype.UNASSIGNED;
         boolean first = true;
 
+        // Check the current boolean expression types
         for (Object token : expr) {
             currentType = getTermType(token, scope);
             if (first){
@@ -217,16 +324,4 @@ public class SemanticAnalizer {
         }
         return true;
     }
-
-    private boolean isOperator(String token) {
-        return token.equals("+") || token.equals("-") || token.equals("*") || token.equals("/") || token.equals("not")
-                || isBooleanOperator(token);
-    }
-
-    private boolean isBooleanOperator(String token) {
-        return token.equals("and") || token.equals("or") || token.equals("GREATER") || token.equals("<") || token.equals("<=")
-                || token.equals(">=") || token.equals("==") || token.equals("!=");
-    }
-
-
 }

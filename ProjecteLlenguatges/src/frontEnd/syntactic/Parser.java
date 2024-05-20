@@ -4,6 +4,7 @@ import frontEnd.global.ErrorHandler;
 import frontEnd.lexic.Token;
 import frontEnd.lexic.TokenConverter;
 import frontEnd.syntactic.symbolTable.*;
+import frontEnd.syntactic.symbolTable.entries.*;
 
 import java.util.*;
 
