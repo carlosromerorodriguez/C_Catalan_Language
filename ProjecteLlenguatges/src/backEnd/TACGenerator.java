@@ -7,21 +7,52 @@ import frontEnd.syntactic.symbolTable.*;
 
 import java.util.*;
 
+/**
+ * TACGenerator class that generates the TAC of the program from the Syntax Tree.
+ */
 public class TACGenerator {
-    private TAC code;
+    /**
+     * TAC object that contains the TAC of the program.
+     */
+    private final TAC code;
+    /**
+     * TACBlock object that contains the current block.
+     */
     private TACBlock currentBlock;
+    /**
+     * TACBlock object that contains the last block.
+     */
     private TACBlock lastBlock;
+    /**
+     * Integer variable that contains the counter of the temporary variables.
+     */
     private static int tempCounter;
-    private Stack<String> conditionalLabels = new Stack<>();
-    private Stack<HashMap<Boolean, String>> wasIterator = new Stack<>();
-    private Stack<TACBlock> endIfs = new Stack<>();
-    private Set<String> terminalSymbols;
+    /**
+     * Stack that contains the labels of the conditionals.
+     */
+    private final Stack<String> conditionalLabels;
+    /**
+     * Stack that contains the labels of the iterators.
+     */
+    private final Stack<HashMap<Boolean, String>> wasIterator;
+    /**
+     * Stack that contains the endIf blocks.
+     */
+    private final Stack<TACBlock> endIfs = new Stack<>();
 
-    public TACGenerator(Set<String> terminalSymbols) {
+    /**
+     * Constructor of the TACGenerator class.
+     */
+    public TACGenerator() {
         this.code = new TAC();
-        this.terminalSymbols = terminalSymbols;
+        this.conditionalLabels = new Stack<>();
+        this.wasIterator = new Stack<>();
     }
 
+    /**
+     * Method to generate the TAC of the program.
+     * @param rootNode It is the root node of the Parse Tree.
+     */
     public void generateTAC(Node rootNode) {
         if (rootNode.getType().equals("sortida")) {
             for (Node child : rootNode.getChildren()) {
@@ -50,6 +81,11 @@ public class TACGenerator {
         }
     }
 
+    /**
+     * Method to get the name of the function.
+     * @param child It is the node that contains the function name.
+     * @return The name of the function.
+     */
     private String getFunctionName(Node child) {
         for (Node grandChild : child.getChildren()) {
             if (grandChild.getType().equalsIgnoreCase("FUNCTION_NAME")) {
@@ -59,6 +95,10 @@ public class TACGenerator {
         return null;
     }
 
+    /**
+     * Method to generate the TAC for the functions.
+     * @param node It is the node that contains the functions.
+     */
     private void generateTACForFunctions(Node node) {
         for (Node child : node.getChildren()) {
             if(child.getType().equalsIgnoreCase("funcio")) { // Si és funció generem el tac per la funció
@@ -77,29 +117,37 @@ public class TACGenerator {
         }
     }
 
+    /**
+     * Method to build the TAC of the program.
+     * @param node It is the node that is going to be processed.
+     */
     private void buildTAC(Node node) {
         for (Node child : node.getChildren()) {
             processNode(child);
         }
     }
 
+    /**
+     * Method to process the node of the Syntax Tree.
+     * @param child It is the node that is going to be processed.
+     */
     private void processNode(Node child) {
         // Casos que hem de controlar segons el tipus de node
         switch (child.getType().toLowerCase()) {
             case "condicionals": // If
-                generateIfCode(child); //DONE
+                generateIfCode(); //DONE
                 for(Node grandChild : child.getChildren()) {
                     processNode(grandChild);
                 }
                 break;
             case "condicional'": // Else
-                generateElseCode(child); //DONE
+                generateElseCode(); //DONE
                 for(Node grandChild : child.getChildren()) {
                     processNode(grandChild);
                 }
                 break;
             case "mentre": // While
-                generateWhileCode(child); //DONE
+                generateWhileCode(); //DONE
                 for(Node grandChild : child.getChildren()) {
                     processNode(grandChild);
                 }
@@ -139,6 +187,10 @@ public class TACGenerator {
         }
     }
 
+    /**
+     * Method to generate the TAC for the Print instruction of the program.
+     * @param node It is the node that contains the print instruction.
+     */
     private void generatePrintCode(Node node) {
         if (node.getType().equalsIgnoreCase("string") || node.getType().equalsIgnoreCase("var_name")) {
             TACEntry tacEntry;
@@ -167,6 +219,9 @@ public class TACGenerator {
         }
     }
 
+    /**
+     * Method to calculate the end of the else block.
+     */
     private void addEndElseBlock() {
         lastBlock = currentBlock;
         // Creem un nou bloc
@@ -201,6 +256,9 @@ public class TACGenerator {
         }
     }
 
+    /**
+     * Method to generate the TAC for the If instruction of the program.
+     */
     private void addEndIfBlock() {
         lastBlock = currentBlock;
         // Creem un nou bloc
@@ -216,6 +274,10 @@ public class TACGenerator {
         currentBlock = endIfBlock; //El bloc actual passa a ser el bloc final
     }
 
+    /**
+     * Method to generate the TAC for the If-Else instruction of the program.
+     * @param child It is the node that contains the If instruction.
+     */
     private void generateConditionCode(Node child) {
         // Generem el codi de la condició explorant recursivament aquella part de l'arbre
         // Mètode especific recursiu per a la condició
@@ -238,6 +300,10 @@ public class TACGenerator {
         currentBlock.add(tacEntry);
     }
 
+    /**
+     * Method to generate the TAC for the If-Else instruction of the program.
+     * @param node It is the node that contains the If-Else instruction.
+     */
     private String generateConditionTACRecursive(Node node) {
         if ("literal".equalsIgnoreCase(node.getType()) || "var_name".equalsIgnoreCase(node.getType())) {
             if(node.getValue() instanceof Boolean) {
@@ -312,6 +378,9 @@ public class TACGenerator {
         return "";
     }
 
+    /**
+     * Method to add the end block.
+     */
     private void addEndBlock() {
         lastBlock = currentBlock;
         if(!conditionalLabels.isEmpty()) {
@@ -337,6 +406,10 @@ public class TACGenerator {
 
     }
 
+    /**
+     * Method to generate the call instruction of the program.
+     * @param node It is the node that contains the call instruction.
+     */
     private void generateCallCode(Node node) {
         for(Node child : node.getChildren().getLast().getChildren()) {
             if(!child.getType().equalsIgnoreCase("(") && !child.getType().equalsIgnoreCase(")")) {
@@ -351,11 +424,20 @@ public class TACGenerator {
         currentBlock.add(tacEntry);
     }
 
+    /**
+     * Method to generate the Return instruction of the function.
+     * @param node It is the node that contains the Return instruction.
+     */
     private void generateReturnCode(Node node) {
         TACEntry tacEntry = new TACEntry(Type.RET.getType(), "", generateReturnExpressionTACRecursive(node.getChildren().get(1)), "", Type.RET);
         currentBlock.add(tacEntry);
     }
 
+    /**
+     * Method to generate the Return expression of the function.
+     * @param node It is the node that contains the Return expression.
+     * @return The Return expression in a String format.
+     */
     private String generateReturnExpressionTACRecursive(Node node) {
         if ("literal".equalsIgnoreCase(node.getType()) || "var_name".equalsIgnoreCase(node.getType())) {
             if(node.getValue() instanceof Boolean) {
@@ -419,15 +501,24 @@ public class TACGenerator {
         return "";
     }
 
+    /**
+     * Method to make an assignment of a variable.
+     * @param child It is the node that contains the assignment.
+     */
     private void generateAssignmentCode(Node child) {
         //Si assignació no té assignació final, no cal generar codi ja que es una declaració
         if(canDiscardAssignment(child)) {
             return;
         }
 
-        generateAssigmentTACRecursive(child);
+        generateAssignmentTACRecursive(child);
     }
 
+    /**
+     * Method to know if the assignment can be discarded.
+     * @param child It is the node that contains the assignment.
+     * @return True if the assignment can be discarded, false otherwise.
+     */
     private boolean canDiscardAssignment(Node child) {
         for(Node grandChild : child.getChildren()) {
             if(grandChild.getType().equalsIgnoreCase("assignació_final")) {
@@ -437,6 +528,11 @@ public class TACGenerator {
         return true;
     }
 
+    /**
+     * Method to get the final assignation of the node.
+     * @param node It is the node that contains the assignation.
+     * @return Node that contains the final assignation.
+     */
     private Node getFinalAssignation(Node node) {
         for(Node child : node.getChildren()) {
             if(child.getType().equalsIgnoreCase("assignació_final")) {
@@ -446,7 +542,11 @@ public class TACGenerator {
         return node;
     }
 
-    private void generateAssigmentTACRecursive(Node node) {
+    /**
+     * Method to generate the TAC for the If instruction of the program.
+     * @param node It is the node that contains the If instruction.
+     */
+    private void generateAssignmentTACRecursive(Node node) {
         //Explorem recursivament fins trobar un node que com a fill tingui VAR_NAME i assignació_final
         if(isAssignation(node)) {
             String varname = getVarName(node);
@@ -454,10 +554,15 @@ public class TACGenerator {
             currentBlock.add(tacEntry);
         }
         for(Node child : node.getChildren()) {
-            generateAssigmentTACRecursive(child);
+            generateAssignmentTACRecursive(child);
         }
     }
 
+    /**
+     * Method to know if it is a final assignation.
+     * @param node It is the node that contains the final assignation.
+     * @return True if it is a final assignation, false otherwise.
+     */
     private Boolean isAssignation(Node node) {
         int count = 0;
         for(Node child : node.getChildren()) {
@@ -471,6 +576,11 @@ public class TACGenerator {
         return false;
     }
 
+    /**
+     * Method to get the varname of the current node.
+     * @param node It is the node that contains the varname.
+     * @return The varname in a String format.
+     */
     private String getVarName(Node node) {
         for(Node child : node.getChildren()) {
             if(child.getType().equalsIgnoreCase("VAR_NAME")) {
@@ -480,6 +590,11 @@ public class TACGenerator {
         return "";
     }
 
+    /**
+     * Method to generate the TAC for the expression given on the current node.
+     * @param node It is the node that contains the expression.
+     * @return The expression in a String format.
+     */
     private String generateExpressionTACRecursive(Node node) {
         if ("literal".equalsIgnoreCase(node.getType()) || "var_name".equalsIgnoreCase(node.getType())) {
             if(node.getValue() instanceof Boolean) {
@@ -543,6 +658,12 @@ public class TACGenerator {
         return "";
     }
 
+    /**
+     * Method to generate the TAC for the Call instruction of the program.
+     * @param node It is the node that contains the Call instruction.
+     *
+     * @return The Call instruction in a String format.
+     */
     private String generateFunctionCallRecursive(Node node) {
         for(Node child : node.getChildren().getLast().getChildren()) {
             if(!child.getType().equalsIgnoreCase("(") && !child.getType().equalsIgnoreCase(")")) {
@@ -560,6 +681,10 @@ public class TACGenerator {
         return tempVar;
     }
 
+    /**
+     * Method to generate the TAC for the arguments of the Call instruction of the program.
+     * @param child It is the node that contains the arguments.
+     */
     private void generateArgumentTACRecursive(Node child) {
         if("arguments_dins_crida".equalsIgnoreCase(child.getType())) {
             for(Node grandChild : child.getChildren()) {
@@ -594,10 +719,18 @@ public class TACGenerator {
         }
     }
 
+    /**
+     * Method to generate a temporary variable.
+     * @return The temporary variable in a String format.
+     */
     private String generateTempVariable() {
         return "t" + (tempCounter++);
     }
 
+    /**
+     * Method to generate the TAC for the For instruction of the program.
+     * @param child It is the node that contains the For instruction.
+     */
     private void generateForCode(Node child) {
         lastBlock = currentBlock;
         TACBlock forBlock = new TACBlock();
@@ -612,6 +745,10 @@ public class TACGenerator {
         wasIterator.push(map);
     }
 
+    /**
+     * Method to generate the TAC for the For condition of the program.
+     * @param node It is the node that contains the For condition.
+     */
     private void generateForTACCondition(Node node) {
         // Assignment
         String value = node.getChildren().get(3).getValue().toString();
@@ -654,7 +791,10 @@ public class TACGenerator {
         lastBlock.add(decrementEntry);
     }
 
-    private void generateWhileCode(Node child) {
+    /**
+     * Method to generate the TAC for the While instruction of the program.
+     */
+    private void generateWhileCode() {
         lastBlock = currentBlock;
         // Creem un nou bloc
         TACBlock whileBlock = new TACBlock();
@@ -666,7 +806,10 @@ public class TACGenerator {
         wasIterator.push(map);
     }
 
-    private void generateElseCode(Node child) {
+    /**
+     * Method to generate the TAC for the Else instruction of the program.
+     */
+    private void generateElseCode() {
         lastBlock = currentBlock;
 
         // Creem un nou bloc
@@ -681,7 +824,10 @@ public class TACGenerator {
         wasIterator.push(map);
     }
 
-    private void generateIfCode(Node child) {
+    /**
+     * Method to generate the TAC for the If instruction of the program.
+     */
+    private void generateIfCode() {
         lastBlock = currentBlock;
         // Creem un nou bloc
         TACBlock ifBlock = new TACBlock();
@@ -695,6 +841,9 @@ public class TACGenerator {
         wasIterator.push(map);
     }
 
+    /**
+     * Method to print the TAC of the program.
+     */
     public void printTAC() {
         System.out.println("************************************************************************\n" +
                 "* TAC:\n" +
@@ -702,6 +851,10 @@ public class TACGenerator {
         code.printTAC();
     }
 
+    /**
+     * Method to process the function arguments of the program.
+     * @param symbolTable It is the symbol table of the program.
+     */
     public void processFunctionArguments(SymbolTable symbolTable) {
         addReturnsIfNecessary();
 
@@ -722,10 +875,17 @@ public class TACGenerator {
 
     }
 
+    /**
+     * Method to get the TAC of the program.
+     * @return The TAC of the program.
+     */
     public LinkedHashMap<String, TACBlock> getTAC(){
         return this.code.getAllBlocks();
     }
 
+    /**
+     * Method to add the returns if it is necessary based on the blocks of the program.
+     */
     public void addReturnsIfNecessary() {
         //Ens guardem els labels dels blocks de la funció
         List<String> labels = code.getAllBlocks().keySet().stream().toList();
@@ -763,6 +923,5 @@ public class TACGenerator {
             }
             iterator++;
         }
-
     }
 }
