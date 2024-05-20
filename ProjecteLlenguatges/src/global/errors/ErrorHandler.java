@@ -1,4 +1,4 @@
-package frontEnd.global;
+package global.errors;
 
 import frontEnd.syntactic.Node;
 

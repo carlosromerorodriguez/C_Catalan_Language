@@ -1,4 +1,4 @@
-package frontEnd.syntactic.symbolTable.entries;
+package global.symbolTable.entries;
 
 import java.util.ArrayList;
 import java.util.List;

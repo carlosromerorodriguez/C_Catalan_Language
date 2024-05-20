@@ -1,6 +1,9 @@
 package backEnd;
 
-import frontEnd.syntactic.symbolTable.entries.VariableEntry;
+import frontEnd.intermediateCode.TACBlock;
+import frontEnd.intermediateCode.TACEntry;
+import frontEnd.intermediateCode.Type;
+import global.symbolTable.entries.VariableEntry;
 
 import java.io.*;
 import java.util.*;

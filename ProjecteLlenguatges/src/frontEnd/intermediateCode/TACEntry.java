@@ -1,4 +1,4 @@
-package backEnd;
+package frontEnd.intermediateCode;
 
 /**
  * TACEntry class that contains the operation, the operands and the destination of the TACEntry.

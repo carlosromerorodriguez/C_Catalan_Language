@@ -1,8 +1,8 @@
 package frontEnd.semantic;
 
-import frontEnd.global.ErrorHandler;
-import frontEnd.syntactic.symbolTable.*;
-import frontEnd.syntactic.symbolTable.entries.*;
+import global.errors.ErrorHandler;
+import global.symbolTable.*;
+import global.symbolTable.entries.*;
 
 import java.util.*;
 

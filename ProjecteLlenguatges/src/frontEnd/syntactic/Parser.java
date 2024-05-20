@@ -1,10 +1,10 @@
 package frontEnd.syntactic;
 
-import frontEnd.global.ErrorHandler;
+import global.errors.ErrorHandler;
 import frontEnd.lexic.Token;
 import frontEnd.lexic.TokenConverter;
-import frontEnd.syntactic.symbolTable.*;
-import frontEnd.syntactic.symbolTable.entries.*;
+import global.symbolTable.*;
+import global.symbolTable.entries.*;
 
 import java.util.*;
 

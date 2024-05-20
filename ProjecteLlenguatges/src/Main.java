@@ -1,7 +1,6 @@
-import backEnd.TAC;
-import backEnd.TACGenerator;
+import frontEnd.intermediateCode.TACGenerator;
 import backEnd.TACToRISCConverter;
-import frontEnd.global.ErrorHandler;
+import global.errors.ErrorHandler;
 import frontEnd.lexic.CodeLine;
 import frontEnd.lexic.Lexer;
 import frontEnd.lexic.PreProcessing;

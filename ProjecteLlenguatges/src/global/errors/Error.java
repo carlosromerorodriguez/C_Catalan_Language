@@ -1,4 +1,4 @@
-package frontEnd.global;
+package global.errors;
 
 /**
  * Error clas that represents an error in the code

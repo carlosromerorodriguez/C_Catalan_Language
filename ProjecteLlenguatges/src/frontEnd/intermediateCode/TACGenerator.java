@@ -1,12 +1,12 @@
 //TODO: Revertir condicions nor $t0, $t1, $zero
 
-package backEnd;
+package frontEnd.intermediateCode;
 
 import frontEnd.syntactic.Node;
-import frontEnd.syntactic.symbolTable.*;
-import frontEnd.syntactic.symbolTable.entries.FunctionEntry;
-import frontEnd.syntactic.symbolTable.entries.SymbolTableEntry;
-import frontEnd.syntactic.symbolTable.entries.VariableEntry;
+import global.symbolTable.*;
+import global.symbolTable.entries.FunctionEntry;
+import global.symbolTable.entries.SymbolTableEntry;
+import global.symbolTable.entries.VariableEntry;
 
 import java.util.*;
 

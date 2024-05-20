@@ -1,4 +1,4 @@
-package backEnd;
+package frontEnd.intermediateCode;
 
 /**
  * Enum that contains the types of the TACEntries.

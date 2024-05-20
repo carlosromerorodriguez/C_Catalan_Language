@@ -3,7 +3,7 @@ package frontEnd.lexic;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
-import frontEnd.global.ErrorHandler;
+import global.errors.ErrorHandler;
 
 import java.io.FileReader;
 import java.io.IOException;

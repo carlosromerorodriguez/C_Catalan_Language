@@ -1,8 +1,8 @@
-package frontEnd.syntactic.symbolTable;
+package global.symbolTable;
 
 
 import frontEnd.syntactic.Node;
-import frontEnd.syntactic.symbolTable.entries.SymbolTableEntry;
+import global.symbolTable.entries.SymbolTableEntry;
 
 import java.util.List;
 
