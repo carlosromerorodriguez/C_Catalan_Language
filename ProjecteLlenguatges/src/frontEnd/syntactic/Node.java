@@ -4,12 +4,33 @@ import frontEnd.lexic.Token;
 
 import java.util.*;
 
+/**
+ * Node class that represents a node in the AST
+ */
 public class Node {
+    /**
+     * The Type of the node.
+     */
     private String type;
+    /**
+     * The Children of the node.
+     */
     private List<Node> children;
+    /**
+     * The Parent of the node.
+     */
     private Node parent;
+    /**
+     * The Line where the node is in the code file
+     */
     private int line;
+    /**
+     * The Value of the node.
+     */
     private Object value;
+    /**
+     * The Terminal symbols.
+     */
     Set<String> terminalSymbols = new HashSet<>(Arrays.asList(
             "+", "-", "*", "/", "=", ";", ",", ":", "(", ")", "{", "}", "GREATER", "LOWER", "LOWER_EQUAL", "GREATER_EQUAL", "!", "==", "!=",
             "RETORN", "FUNCTION", "START", "END", "LITERAL", "VAR_NAME", "FOR", "DE", "FINS", "VAR_TYPE", "IF",
@@ -17,6 +38,12 @@ public class Node {
             "PRINT", "STRING"
     ));
 
+    /**
+     * Instantiates a new Node.
+     *
+     * @param type the type
+     * @param line the line
+     */
     public Node(String type, int line) {
         this.type = type;
         this.children = new ArrayList<>();
@@ -24,6 +51,11 @@ public class Node {
         this.line = line;
     }
 
+    /**
+     * Adds a child to the node.
+     *
+     * @param child the child
+     */
     public void addChild(Node child) {
         if(terminalSymbols.contains(type)) {
             return;
@@ -32,22 +64,43 @@ public class Node {
         child.parent = this;
     }
 
+    /**
+     * Gets children.
+     *
+     * @return the children
+     */
     public List<Node> getChildren() {
         return children;
     }
 
+    /**
+     * Gets type.
+     *
+     * @return the type
+     */
     public String getType() {
         return type;
     }
 
+    /**
+     * Sets value.
+     *
+     * @param value the value
+     */
     public void setValue(Object value) {
         this.value = value;
     }
 
+    /**
+     * Prints the node
+     */
     public void printTree() {
         print("", true);
     }
 
+    /**
+     * Prints the node
+     */
     private void print(String prefix, boolean isTail) {
         // Definición de colores ANSI
         String cyan = "\u001B[36m";
@@ -66,36 +119,37 @@ public class Node {
         }
     }
 
-    public Node getParent() {
-        return this.parent;
-    }
+
+    /**
+     * Get line int.
+     *
+     * @return the int
+     */
     public int getLine(){
         return this.line;
     }
+
+    /**
+     * Sets line.
+     *
+     * @param line the line
+     */
     public void setLine(int line) {
         this.line = line;
     }
 
+    /**
+     * Gets value.
+     *
+     * @return the value
+     */
     public Object getValue() {
         return this.value;
     }
 
-    public void setParent(Node topNode) {
-        this.parent = topNode;
-    }
-
-    public Boolean contains(Node node) {
-        if (this == node) {
-            return true;
-        }
-        for (Node child : children) {
-            if (child.contains(node)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
+    /**
+     * Prunes epsilon paths of the node
+     */
     public void pruneEpsilonPaths() {
         Iterator<Node> iterator = children.iterator();
         while (iterator.hasNext()) {
@@ -116,14 +170,27 @@ public class Node {
         }
     }
 
+    /**
+     * Method to check if the node should be removed when empty
+     *
+     * @return boolean indicating if the node should be removed when empty
+     */
     private boolean shouldBeRemovedWhenEmpty() {
         return !terminalSymbols.contains(type);
     }
 
+    /**
+     * Collapses single child nodes.
+     */
     public void collapseSingleChildNodes() {
         collapseHelper(this);
     }
 
+    /**
+     * Helper method to collapse single child nodes.
+     *
+     * @param node the node
+     */
     private void collapseHelper(Node node) {
         for (Node child : node.children) {
             // Se colapsan recusivamente todos los hijos del hijo actual
@@ -144,19 +211,20 @@ public class Node {
         }
     }
 
+    /**
+     * Method to check if a node is crucial and we cant collapse it
+     *
+     * @param node the node to check
+     *
+     * @return boolean indicating if the node is crucial
+     */
     private boolean isCrucialNode(Node node) {
         return node.type.equalsIgnoreCase("if") || node.type.equalsIgnoreCase("while") || node.type.equalsIgnoreCase("for") || node.type.equalsIgnoreCase("function") || node.type.equalsIgnoreCase("crida") || node.type.equalsIgnoreCase("condició");
     }
 
-    public Token<Object> findChildByType(String varName) {
-        for (Node child : children) {
-            if (child.getType().equals(varName)) {
-                return new Token<>((String) child.getValue(), child.getLine());
-            }
-        }
-        return null;
-    }
-
+    /**
+     * Optimizes tree by reversing the children list
+     */
     public void optimizeTree() {
         //Girem la llista de fills per a que quedin en ordre invers
         Collections.reverse(children);
