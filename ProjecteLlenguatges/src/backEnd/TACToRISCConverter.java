@@ -354,7 +354,6 @@ public class  TACToRISCConverter {
      * @throws IOException If an I/O error occurs.
      */
     private String foundVariableRegister(String formatted, BufferedWriter writer) throws IOException {
-        System.out.println(variableToRegisterMap);
         for (Map.Entry<String, String> entry : variableToRegisterMap.entrySet()) {
             if (entry.getKey().equals(formatted)) {
                 if (registerToValue.get(entry.getValue()).equals(formatted)) {

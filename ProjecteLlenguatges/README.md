@@ -69,21 +69,19 @@ Once the setup is complete, follow these steps to use our compiler:
 
 ### Multiplication table
 ```
-proces enter mostraTaulaMultiplicar(enter: numero) fer:
-    enter: iterador = 1 ç
+proces res mostraTaulaMultiplicar(enter: numero) fer:
+    enter: iterador = 0 ç
     enter: resultat = 0 ç
     mentre (iterador <= 10) fer:
         resultat = numero * iterador ç
         mostra(numero + " * " + iterador + " = " + resultat + "\n") ç
         iterador = iterador + 1 ç
     fi
-
-    retorna numero ç
 fi
 
 proces Calçot() fer:
     enter: n = 5 ç
-    enter: ignorar = mostraTaulaMultiplicar(n) ç
+    mostraTaulaMultiplicar(n) ç
 fi
 ```
 ### Recursive Fibonacci
@@ -101,7 +99,9 @@ proces enter Fibonacci(enter: n) fer:
 fi
 
 proces Calçot() fer:
-    enter: valorFibonacci = Fibonacci(12) ç
+    enter: num = 12 ç
+    enter: valorFibonacci = Fibonacci(num) ç
+    mostra("El valor de Fibonacci de " + num + " es " + valorFibonacci) ç
 fi
 ```
 
@@ -113,14 +113,18 @@ proces enter Factorial(enter: n) fer:
         retornValue = 1 ç
     fisi
     sino fer:
+        enter: num = n ç
         retornValue = n * Factorial(n - 1) ç
+        mostra("Calculant factorial de " + num + ": " + retornValue + "\n") ç
     fisino
 
     retorna retornValue ç
 fi
 
 proces Calçot() fer:
-    enter: valorFactorial = Factorial(5) ç
+    enter: num = 12 ç
+    enter: valorFactorial = Factorial(num) ç
+    mostra("\nEl factorial de " + num + " és: " + valorFactorial + "\n") ç
 fi
 ```
 
@@ -136,7 +140,9 @@ proces enter potencia(enter: x, enter: n) fer:
             resultat = 0 ç
         fisi
         sino fer:
+            enter: base = x, exponent = n ç
             resultat = x * potencia(x, n - 1) ç
+            mostra("Calculant potencia de " + base + " elevat a " + exponent + ": " + resultat + "\n") ç
         fisino
     fisino
 
@@ -144,9 +150,10 @@ proces enter potencia(enter: x, enter: n) fer:
 fi
 
 proces Calçot () fer:
-    enter: a = 3 ç
-    enter: b = 3 ç
+    enter: a = 4 ç
+    enter: b = 12 ç
     enter: resultatPotencia = potencia(a, b) ç
+    mostra("\nEl resultat de la potencia de " + a + " elevat a " + b + " és: " + resultatPotencia) ç
 fi
 ```
 
