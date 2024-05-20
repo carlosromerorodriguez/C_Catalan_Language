@@ -1,8 +1,0 @@
-proces enter Funció() fer:
-    enter: resultat = 10
-    retorna resultat
-fi 
-
-proces Calçot() fer:
-    enter: a = Funció() ç
-fi
