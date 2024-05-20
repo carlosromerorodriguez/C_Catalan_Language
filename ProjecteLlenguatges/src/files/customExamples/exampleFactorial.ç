@@ -4,12 +4,16 @@ proces enter Factorial(enter: n) fer:
         retornValue = 1 ç
     fisi
     sino fer:
+        enter: num = n ç
         retornValue = n * Factorial(n - 1) ç
+        mostra("Calculant factorial de " + num + ": " + retornValue + "\n") ç
     fisino
 
     retorna retornValue ç
 fi
 
 proces Calçot() fer:
-    enter: valorFactorial = Factorial(5) ç
+    enter: num = 12 ç
+    enter: valorFactorial = Factorial(num) ç
+    mostra("\nEl factorial de " + num + " és: " + valorFactorial + "\n") ç
 fi

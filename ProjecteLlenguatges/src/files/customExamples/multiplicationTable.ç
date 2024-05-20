@@ -1,5 +1,5 @@
 proces res mostraTaulaMultiplicar(enter: numero) fer:
-    enter: iterador = 25 ç
+    enter: iterador = 0 ç
     enter: resultat = 0 ç
     mentre (iterador <= 10) fer:
         resultat = numero * iterador ç
@@ -10,5 +10,5 @@ fi
 
 proces Calçot() fer:
     enter: n = 5 ç
-    mostraTaulaMultiplicar(n, 10, 9 + n) ç
+    mostraTaulaMultiplicar(n) ç
 fi
