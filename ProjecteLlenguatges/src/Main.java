@@ -41,6 +41,7 @@ public class Main {
         parser.optimizeTree();
         parser.printTree();
 
+        // 6. Classe per analitzar semànticament el codi
         SemanticAnalizer semanticAnalizer = new SemanticAnalizer(parser.getSymbolTable(), errorHandler);
         semanticAnalizer.analizeSymbolTable();
 
@@ -50,11 +51,13 @@ public class Main {
             return;
         }
 
+        // 7. Classe per generar el TAC
         TACGenerator tacGenerator = new TACGenerator(parser.getTerminalSymbols());
         tacGenerator.generateTAC(parser.getSymbolTable().getAllTree());
         tacGenerator.processFunctionArguments(parser.getSymbolTable());
         tacGenerator.printTAC();
 
+        // 8. Classe per convertir el TAC a MIPS
         TACToRISCConverter tacToRISCConverter = new TACToRISCConverter(MIPS_FILE_PATH);
         tacToRISCConverter.convertTAC(tacGenerator.getTAC());
         tacToRISCConverter.reprocessSubValues();
