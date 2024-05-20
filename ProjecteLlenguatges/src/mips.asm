@@ -1,63 +1,39 @@
 .data
-	$msg1: .asciiz " * "
-	$msg2: .asciiz "\n"
-	$msg3: .asciiz " = "
 .text
 j main
 
-FUNC_mostraTaulaMultiplicar:
-	sub $sp, $sp, 20
+FUNC_Factorial:
+	sub $sp, $sp, 16
 	sw $fp, 0($sp)
 	sw $ra, 4($sp)
 	sw $a0, 8($sp)
 	move $fp, $sp
-	li $t0, 25
-	li $t1, 0
-	LOOP0:
-	li $t3, 10
-	sle $t2, $t0, $t3
-	xori $t4, $t2, 0x1
-	bne $t4, $zero, L1
-	mul $t4, $a0, $t0
-	move $t1, $t4
-	li $v0, 1
-	move $a0, $a0
-	syscall
-	lw $a0, 8($sp)
-	
-	li $v0, 4
-	la $a0, $msg1
-	syscall
-	lw $a0, 8($sp)
-	
-	li $v0, 1
-	move $a0, $t0
-	syscall
-	lw $a0, 8($sp)
-	
-	li $v0, 4
-	la $a0, $msg3
-	syscall
-	lw $a0, 8($sp)
-	
-	li $v0, 1
-	move $a0, $t1
-	syscall
-	lw $a0, 8($sp)
-	
-	li $v0, 4
-	la $a0, $msg2
-	syscall
-	lw $a0, 8($sp)
-	
-	addi $t5, $t0, 1
-	move $t0, $t5
-	j LOOP0
+	li $t0, 0
+	L0:
+	li $t2, 0
+	seq $t1, $a0, $t2
+	xori $t2, $t1, 0x1
+	bne $t2, $zero, L1
+	li $t0, 1
+	j L3
 	L1:
+	L2:
+	addi $t2, $a0, -1
+	move $a0, $t2
+	sw $t0, 12($fp)
+	jal FUNC_Factorial
+	move $t0, $v0
+	
+	lw $a0, 8($fp)
+	mul $t2, $a0, $t0
+	lw $t0, 12($fp)
+	move $t0, $t2
+	L3:
 	move $sp, $fp
 	lw $fp, 0($sp)
 	lw $ra, 4($sp)
 	addi $sp, $sp, 8
+	move $v0, $t0
 	jr $ra
 # END_FUNC
 
@@ -66,16 +42,10 @@ main:
 	move $fp, $sp
 	li $t0, 5
 	move $a0, $t0
-	li $t0, 10
-	move $a1, $t0
-	lw $t0, 0($fp)
-	li $t0, 9
-	add $t0, $t0, $t0
-	move $a2, $t0
-	sw $t0, 0($fp)
-	jal FUNC_mostraTaulaMultiplicar
+	jal FUNC_Factorial
 	move $t0, $v0
 	
+	move $t1, $t0
 	
 	li $v0, 10
 	syscall # Finalitzem el programa

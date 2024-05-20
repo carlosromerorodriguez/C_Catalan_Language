@@ -264,6 +264,10 @@ public class Lexer {
     }
 
     public void showTokens() {
+        System.out.println( "************************************************************************\n" +
+                            "* TOKENS:\n" +
+                            "************************************************************************\n");
+
         String ANSI_RESET = "\u001B[0m";
         String ANSI_GREEN = "\u001B[32m";
         String ANSI_YELLOW = "\u001B[33m";

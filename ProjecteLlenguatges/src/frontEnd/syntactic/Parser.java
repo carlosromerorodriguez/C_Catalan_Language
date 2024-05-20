@@ -42,15 +42,12 @@ public class Parser {
     }
 
     private void buildParsingTable(Map<String, List<List<String>>> grammar, Map<String, Set<String>> follow, Map<String, Set<String>> first) {
-        System.out.println("\n\nBuilding parsing table");
 
         for (String nonTerminal : grammar.keySet()) {
             Map<String, List<String>> row = new HashMap<>();
             this.parseTable.put(nonTerminal, row);
 
-            System.out.println("\nAnalysing non-terminal: " + nonTerminal);
             for (List<String> production : grammar.get(nonTerminal)) {
-                System.out.println("Production: " + production);
 
                 // Calcular el conjunto First de toda la producción
                 Set<String> productionFirstSet = new HashSet<>();
@@ -71,7 +68,6 @@ public class Parser {
                 for (String terminal : productionFirstSet) {
                     if (!terminal.equals("ε")) {
                         row.put(terminal.trim(), production);
-                        System.out.println("Adding to table: " + nonTerminal + " under " + terminal);
                     }
                 }
 
@@ -80,24 +76,16 @@ public class Parser {
                     Set<String> nonTerminalFollowSet = follow.get(nonTerminal);
                     for (String followSymbol : nonTerminalFollowSet) {
                         row.put(followSymbol.trim(), production);
-                        System.out.println("Adding to table: " + nonTerminal + " under " + followSymbol);
                     }
                 }
             }
         }
     }
 
-    public void printParseTable() {
-        for (String nonTerminal : parseTable.keySet()) {
-            System.out.println(nonTerminal + ":");
-
-            for (String terminal : parseTable.get(nonTerminal).keySet()) {
-                System.out.println("\t" + terminal + ": " + parseTable.get(nonTerminal).get(terminal));
-            }
-        }
-    }
-
     public void buildParsingTree(List<Token> tokens) {
+        System.out.println("\n************************************************************************");
+        System.out.println("* PARSING TREE:");
+        System.out.println("************************************************************************\n");
         Stack<Node> stack = new Stack<>();
         stack.push(symbolTable.getAllTree());  // Símbol de finalització
 
@@ -121,7 +109,6 @@ public class Parser {
 
             Token token = tokens.get(tokenIndex);
             String tokenName = token.getStringToken().toUpperCase().trim();
-            System.out.println("Token: " + tokenName + " - Top symbol: " + topSymbol);
 
             if (terminalSymbols.contains(topSymbol)) {
                 if (!topSymbol.equals(tokenName)) {
@@ -188,7 +175,6 @@ public class Parser {
                 tokenIndex++;
                 depth--;
             } else {  // topSymbol és un no-terminal
-                //System.out.println("\033[33mNext production: " + parseTable.get(topSymbol) + "\033[0m");
                 Map<String, List<String>> mappings = parseTable.get(topSymbol);
                 if (mappings == null) {
                     errorHandler.recordError("No productions found for non-terminal: " + topSymbol, token.getLine());
@@ -198,8 +184,6 @@ public class Parser {
                     parserControlVariables.currentTopNode = topNode;
                     List<String> production = mappings.get(tokenName);
 
-                    System.out.println("Production____----_____: " + production);
-                    //System.out.println("\033[33mSelected production: " + tokenName + "=" + production + "\033[0m");
                     if (production != null) {
                         printTreeStructure(depth, tokenName, production + " (" + token.getLine() + ") ", "\033[33m");
                         stack.pop();
@@ -207,7 +191,6 @@ public class Parser {
                         for (int i = production.size() - 1; i >= 0; i--) {
                             Node newNode = new Node(production.get(i), 0);
                             checkContext(production.get(i));
-                            System.out.println("New node: " + production.get(i));
                             topNode.addChild(newNode);
                             stack.push(newNode);
                             depth++;
@@ -270,7 +253,6 @@ public class Parser {
     }
 
     public void processTopSymbol(Node topNode, String tokenName, Token token) {
-        System.out.println(parserControlVariables.context);
         if (tokenName.equals("LITERAL") || tokenName.equals("VAR_NAME") || tokenName.equals("FUNCTION_NAME") || tokenName.equals("STRING")) {
             topNode.setValue(token.getValue());
             topNode.setLine(token.getLine());
@@ -300,7 +282,6 @@ public class Parser {
             parserControlVariables.equalSeen = false;
         } else {
             // Si no es un nou scope, afegeixim el node com a fill del root del scope actual
-            System.out.println(symbolTable.getCurrentScope());
             symbolTable.getCurrentScope().getRootNode().addChild(topNode);
         }
 
@@ -335,13 +316,14 @@ public class Parser {
     }
 
     public void printTree() {
-        System.out.println("TREE:");
+        System.out.println("\n************************************************************************");
+        System.out.println("* TREE:");
+        System.out.println("************************************************************************\n");
         symbolTable.getAllTree().printTree();
         System.out.println("\n\n");
     }
 
     public void processNode(Node node) {
-        System.out.println(parserControlVariables.context);
         switch (node.getType().toUpperCase()) {
             case "FUNCTION_NAME":
                 //scope nou
@@ -393,7 +375,6 @@ public class Parser {
                         errorHandler.recordVariableDoesntExist(node);
                         return;
                     }
-                    System.out.println("Current var: " + currentVar);
                     if(node.getValue() != null) currentVar.appendExpressionValue(node.getValue());
                     else if(parserControlVariables.argumentsInFunctionSentence) currentVar.appendExpressionValue(node.getType());
                     else if(!node.getType().equals(",")) currentVar.appendExpressionValue(node.getType());
@@ -408,7 +389,6 @@ public class Parser {
                 }
                 if (parserControlVariables.retornSeen) {
                     // Guardem el que trobem al retornValue de la functionEntry del scope actual
-                    System.out.println("SCOPE: " + symbolTable.getCurrentScope());
                     if(node.getValue() != null) symbolTable.getCurrentScope().getFunctionEntry().appendReturnValue(node.getValue());
                     else if(!node.getType().equals("RETORN")) symbolTable.getCurrentScope().getFunctionEntry().appendReturnValue(node.getType());
                 }
@@ -450,7 +430,6 @@ public class Parser {
             }
             if(lastVar != null) lastVar.setExpressionAlreadyAssigned(true);
 
-            System.out.println("Varname: " + node.getValue());
             parserControlVariables.currentVarname = (String) node.getValue();
             parserControlVariables.equalSeen = false;
             parserControlVariables.retornSeen = false;

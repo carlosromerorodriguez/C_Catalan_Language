@@ -1,5 +1,0 @@
-proces Calçot() fer:
-    enter: numero1 = 0 ç
-    numero1 = 4 + 2 ç
-    mostra("El resultado es: " + numero1 + " calçots" + " y " + numero1 + " salsa romesco") ç
-fi

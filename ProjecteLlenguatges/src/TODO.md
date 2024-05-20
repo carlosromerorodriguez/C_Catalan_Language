@@ -1,2 +1,0 @@
-# TODO:
-+ Recuperació d'errors.

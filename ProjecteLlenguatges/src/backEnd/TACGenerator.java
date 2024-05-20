@@ -696,7 +696,9 @@ public class TACGenerator {
     }
 
     public void printTAC() {
-        //code.removeEmptyBlocks();
+        System.out.println("************************************************************************\n" +
+                "* TAC:\n" +
+                "************************************************************************\n");
         code.printTAC();
     }
 
