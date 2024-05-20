@@ -216,6 +216,7 @@ fi
 ### Inicializers and terminators
 + ```fer```
 + ```fi```
++ ```fisi```
 + ```fisino```
 + ```ç```
 
@@ -226,6 +227,8 @@ fi
 ### Iterator
 + ```mentre``` 
 + ```per```
++ ```de```
++ ```fins```
 + ```sumant```
 + ```restant```
 
