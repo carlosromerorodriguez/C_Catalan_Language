@@ -1,9 +1,3 @@
-//TODO:
-// - S'ha d'afegir diverses expresions a una variable ja que es poden donar una en un if i una en un else
-//   per el tema del boolean expressionAlreadyAssigned a VariableEntry
-// - Arguments de funcions
-// - Control d'errors
-
 package frontEnd.syntactic;
 
 import frontEnd.global.ErrorHandler;
@@ -13,6 +7,9 @@ import frontEnd.syntactic.symbolTable.*;
 
 import java.util.*;
 
+/**
+ * The type Parser.
+ */
 public class Parser {
     private final TokenConverter tokenConverter;
     private final Map<String, Map<String, List<String>>> parseTable;
@@ -21,6 +18,9 @@ public class Parser {
     private SymbolTable symbolTable;
     private Map<String, List<List<String>>> grammar;
     private ParserControlVariables parserControlVariables;
+    /**
+     * The Terminal symbols.
+     */
     Set<String> terminalSymbols = new HashSet<>(Arrays.asList(
             "+", "-", "*", "/", "=", ";", ",", ":", "(", ")", "{", "}", "GREATER", "LOWER", "LOWER_EQUAL", "GREATER_EQUAL", "!", "==", "!=",
             "RETORN", "FUNCTION", "START", "END", "LITERAL", "VAR_NAME", "FOR", "DE", "FINS", "VAR_TYPE", "IF",
@@ -28,6 +28,14 @@ public class Parser {
             "PRINT", "STRING"
     ));
 
+    /**
+     * Instantiates a new Parser.
+     *
+     * @param firstFollow    the first follow
+     * @param tokenConverter the token converter
+     * @param errorHandler   the error handler
+     * @param grammar        the grammar
+     */
     public Parser(FirstFollow firstFollow, TokenConverter tokenConverter, ErrorHandler errorHandler, Map<String, List<List<String>>> grammar) {
         this.tokenConverter = tokenConverter;
         this.errorHandler = errorHandler;
@@ -82,6 +90,11 @@ public class Parser {
         }
     }
 
+    /**
+     * Build parsing tree.
+     *
+     * @param tokens the tokens
+     */
     public void buildParsingTree(List<Token> tokens) {
         System.out.println("\n************************************************************************");
         System.out.println("* PARSING TREE:");
@@ -252,6 +265,13 @@ public class Parser {
         }
     }
 
+    /**
+     * Process top symbol.
+     *
+     * @param topNode   the top node
+     * @param tokenName the token name
+     * @param token     the token
+     */
     public void processTopSymbol(Node topNode, String tokenName, Token token) {
         if (tokenName.equals("LITERAL") || tokenName.equals("VAR_NAME") || tokenName.equals("FUNCTION_NAME") || tokenName.equals("STRING")) {
             topNode.setValue(token.getValue());
@@ -315,6 +335,9 @@ public class Parser {
         System.out.println(lineLead + colorCode + node + "\033[0m" + (action.isEmpty() ? "" : " - " + action));
     }
 
+    /**
+     * Print tree.
+     */
     public void printTree() {
         System.out.println("\n************************************************************************");
         System.out.println("* TREE:");
@@ -323,6 +346,11 @@ public class Parser {
         System.out.println("\n\n");
     }
 
+    /**
+     * Process node.
+     *
+     * @param node the node
+     */
     public void processNode(Node node) {
         switch (node.getType().toUpperCase()) {
             case "FUNCTION_NAME":
@@ -619,22 +647,29 @@ public class Parser {
         }
     }
 
+    /**
+     * Optimize tree.
+     */
     public void optimizeTree() {
         symbolTable.getAllTree().pruneEpsilonPaths();
         symbolTable.getAllTree().collapseSingleChildNodes();
         symbolTable.getAllTree().optimizeTree();
     }
 
-
-    public Node getParsingTree(){
-        return symbolTable.getAllTree();
-    }
-
-
+    /**
+     * Gets symbol table.
+     *
+     * @return the symbol table
+     */
     public SymbolTable getSymbolTable() {
         return symbolTable;
     }
 
+    /**
+     * Gets terminal symbols.
+     *
+     * @return the terminal symbols
+     */
     public Set<String> getTerminalSymbols() {
         return this.terminalSymbols;
     }
