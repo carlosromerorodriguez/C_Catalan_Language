@@ -13,31 +13,47 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- *
+ * Class that tokenizes the source code.
  */
 public class Lexer {
+    /**
+     * All the tokens Pattern.
+     */
     private final String tokenPattern =
             "\\b(si|cert|fals|sino|mentre|per|fer|fi|fisi|fisino|enter|decimal|lletra|lletres|siono|res|Calçot|proces|retorn|crida|de|fins|mostra)\\b\n|" + // Palabras reservadas
             "([A-Za-zÀ-ú][A-Za-zÀ-ú0-9_]*)|" + // Identificadores
             "(\\d+(\\.\\d+)?)|" + // Números (decimales y enteros)
             "(!|==|!=|<=|>=|\\+|-|\\*|/|=|<|>|\\(|\\)|;|,|:)"; // Operadores y símbolos
+    /**
+     * The Error handler.
+     */
     private final ErrorHandler errorHandler;
+    /**
+     * The Code lines.
+     */
     private final List<CodeLine> codeLines;
+    /**
+     * The Tokens.
+     */
     private final List<Token> tokens;
+    /**
+     * The Token converter.
+     */
     private final TokenConverter tokenConverter;
-    private int currentIndex;
+
 
     /**
      * Constructor for the Lexer class.
-     * @param codeLines The source code to be tokenized.
+     *
      * @param tokenConverter converter of tokens
+     * @param errorHandler   the error handler
+     * @param codeLines      The source code to be tokenized.
      */
     public Lexer(TokenConverter tokenConverter, ErrorHandler errorHandler, List<CodeLine> codeLines) {
         this.errorHandler = errorHandler;
         this.codeLines = codeLines;
         this.tokens = new ArrayList<>();
         this.tokenConverter = tokenConverter;
-        this.currentIndex = 0;
 
         this.tokenize();         // Convierte el código fuente en tokens
         this.reClassifyTokens(); // Reclasifica los tokens para asignarles su tipo específico
@@ -45,7 +61,7 @@ public class Lexer {
     }
 
     /**
-     * Tokenizes the source code.
+     * Tokenizes the source code to get all the tokens from it.
      */
 
 
@@ -80,7 +96,7 @@ public class Lexer {
                     // Agregar el token 'print'
                     this.tokens.add(new Token<String>("print", codeLine.getLine(), lexeme, lexeme));
 
-                    // Capturar todo lo que esté dentro de los paréntesis
+                    // Capturar lo que esté dentro de los paréntesis
                     int start = matcher.end(); // Coger el índice del primer paréntesis
                     int end = line.indexOf(")", start); // Coger el índice del último paréntesis
                     if (end != -1) {
@@ -153,6 +169,9 @@ public class Lexer {
         }
     }
 
+    /**
+     * Re classify tokens to assign them a specific type.
+     */
     private void reClassifyTokens() {
         for (int i = 0; i < tokens.size() - 1; i++) {
             Token token = tokens.get(i);
@@ -165,6 +184,13 @@ public class Lexer {
             }
         }
     }
+
+    /**
+     * Clasify the tokens of type name in function_name or var_name depending on the context.
+     *
+     * @param token token to process
+     * @param index index of the token in the list
+     */
 
     private void classifyNameToken(Token token, int index) {
         String auxToken = tokenConverter.getToken((String) token.getValue());
@@ -183,12 +209,23 @@ public class Lexer {
         }
     }
 
+    /**
+     * Classify the tokens of type function in function_main or function depending on the context.
+     * @param token token to process
+     * @param index index of the token in the list
+     */
     private void classifyFunctionToken(Token token, int index) {
         if ((index < tokens.size() - 1) && "Calçot".equals(tokens.get(index + 1).getStringToken())) {
             token.setStringToken("function_main");
         }
     }
 
+    /**
+     * Check if the lexeme is a permitted lexeme.
+     * @param lexeme lexeme to check
+     * @param token token to assign
+     * @param codeLine code line where the lexeme is
+     */
     private void checkIsPermittedLexeme(String lexeme, String token, CodeLine codeLine) {
         if (lexeme.equals("Calçot")) {
             tokens.add(new Token<String>(token, codeLine.getLine(), lexeme, lexeme));
@@ -197,6 +234,11 @@ public class Lexer {
         }
     }
 
+    /**
+     * Check if the lexeme is a float or an integer.
+     * @param lexeme lexeme to check
+     * @param codeLine code line where the lexeme is
+     */
     private void checkIsFloatOrInteger(String lexeme, CodeLine codeLine) {
         if (lexeme.contains(".")) {
             this.tokens.add(new Token<Float>("literal", codeLine.getLine(), Float.parseFloat(lexeme), lexeme));
@@ -205,6 +247,9 @@ public class Lexer {
         }
     }
 
+    /**
+     * Re process tokens to unify the symbols + and - with the literals.
+     */
     void reProcessTokens() {
         ArrayList<Integer> deletedPositions = new ArrayList<>();
         for (int i = 0; i < tokens.size() - 1; i++) {
@@ -218,10 +263,20 @@ public class Lexer {
         removeDeletedTokens(deletedPositions);
     }
 
+    /**
+     * Check if the token is a plus or minus symbol.
+     * @param token token to check
+     * @return if the token is a plus or minus symbol
+     */
     private boolean isPlusOrMinus(Token token) {
         return token.getStringToken().equals("+") || token.getStringToken().equals("-");
     }
 
+    /**
+     * Check if the token is in a unary operator context.
+     * @param prevToken previous token
+     * @return if the token is in a unary operator context
+     */
     private boolean isUnaryOperatorContext(Token prevToken) {
         String prevTokenStr = prevToken.getStringToken();
         return prevTokenStr.matches("\\(|=|\\+|-|\\*|/|==|!=|,|!") ||
@@ -232,6 +287,11 @@ public class Lexer {
                 prevTokenStr.equalsIgnoreCase("RETORN");
     }
 
+    /**
+     * Handle the unary operator.
+     * @param index index of the token
+     * @param deletedPositions list of deleted positions
+     */
     private void handleUnaryOperator(int index, ArrayList<Integer> deletedPositions) {
         Token nextToken = tokens.get(index + 1);
         if (nextToken.getStringToken().equals("literal")) {
@@ -244,6 +304,11 @@ public class Lexer {
         }
     }
 
+    /**
+     * Process the literal token.
+     * @param index index of the token
+     * @param nextToken next token to process
+     */
     private void processLiteralToken(int index, Token nextToken) {
         if (tokens.get(index).getStringToken().equals("+")) {
             nextToken.setValue(nextToken.getValue()); // Es redundante, pero se deja para claridad
@@ -257,12 +322,19 @@ public class Lexer {
         }
     }
 
+    /**
+     * Remove the deleted tokens.
+     * @param deletedPositions list of deleted positions
+     */
     private void removeDeletedTokens(ArrayList<Integer> deletedPositions) {
         for (int i = 0; i < deletedPositions.size(); i++) {
             tokens.remove(deletedPositions.get(i) - i);
         }
     }
 
+    /**
+     * Show tokens on terminal.
+     */
     public void showTokens() {
         System.out.println( "************************************************************************\n" +
                             "* TOKENS:\n" +
@@ -295,6 +367,11 @@ public class Lexer {
         }
     }
 
+    /**
+     * Gets all the tokens.
+     *
+     * @return the tokens
+     */
     public List<Token> getTokens() {
         return tokens;
     }

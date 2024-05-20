@@ -16,11 +16,29 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
+/**
+ *
+ * Class that preprocesses the code before the lexical analysis.
+ */
 public class PreProcessing {
+    /**
+     * Path of the file to preprocess.
+     */
     private final String filePath;
+    /**
+     * Error handler to record errors.
+     */
     private final ErrorHandler errorHandler;
+    /**
+     * Dictionary of tokens to add spaces to.
+     */
     private final HashMap<String, String> tokensDictionary;
 
+    /**
+     * Constructor of the class.
+     * @param errorHandler Error handler to record errors.
+     * @param filePath Path of the file to preprocess.
+     */
     public PreProcessing(ErrorHandler errorHandler, String filePath) {
         this.filePath = filePath;
         this.errorHandler = errorHandler;
@@ -28,6 +46,9 @@ public class PreProcessing {
         this.addSpacesToSomeTokens();
     }
 
+    /**
+     * Adds spaces to some tokens.
+     */
     private void addSpacesToSomeTokens() {
         // Operators
         this.tokensDictionary.put("(", " ( ");
@@ -43,6 +64,11 @@ public class PreProcessing {
         this.tokensDictionary.put(":", " : ");
     }
 
+    /**
+     * Reads all the lines of the file.
+     * @return List of code lines.
+     * @throws IOException If the file is not found.
+     */
     private List<CodeLine> readAllLines() throws IOException {
         List<CodeLine> codeLines = new ArrayList<>();
 
@@ -56,6 +82,10 @@ public class PreProcessing {
         return codeLines;
     }
 
+    /**
+     * Reads the file and preprocesses it.
+     * @return List of code lines.
+     */
     public List<CodeLine> readFile() {
         List<CodeLine> codeLines;
         try {
@@ -112,6 +142,11 @@ public class PreProcessing {
         return resultLines;
     }
 
+    /**
+     * Loads the grammar from a file.
+     * @param path Path of the file.
+     * @return Map with the grammar.
+     */
     public Map<String, List<List<String>>> loadGrammar(String path){
         Gson gson = new GsonBuilder().create();
         Map<String, List<List<String>>> productions = new HashMap<>();
@@ -124,12 +159,3 @@ public class PreProcessing {
         return productions;
     }
 }
-
-/* ------ FUNCIÓ ESBORRAR COMENTARIS COMPRIMIDA ------
-
-public static String removeComments(String code) {
-    String scanComments = "(xiuxiueja[^\n]*)|(comenta[\\s\\S]*?ficomenta)";
-    String emptyLines = code.replaceAll(scanComments, "");
-    return emptyLines.replaceAll("(?m)^[ \t]*\r?\n", "");
-}
-*/
