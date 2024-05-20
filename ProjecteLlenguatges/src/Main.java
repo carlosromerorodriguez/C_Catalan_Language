@@ -45,10 +45,10 @@ public class Main {
         semanticAnalizer.analizeSymbolTable();
 
         // Si trobem errors al frontend no continuem amb el backend
-        /*if(errorHandler.hasErrors()) {
+        if(errorHandler.hasErrors()) {
             errorHandler.printErrors();
             return;
-        }*/
+        }
 
         TACGenerator tacGenerator = new TACGenerator(parser.getTerminalSymbols());
         tacGenerator.generateTAC(parser.getSymbolTable().getAllTree());

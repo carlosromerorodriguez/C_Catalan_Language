@@ -1,17 +1,17 @@
-proces res HOLA() fer:
-    enter: a = b ç
-fi
+proces enter mesGran(enter: a, enter: b) fer:
+  siono: resultat = fals ç
+  enter: a = 5 * 4 ç
+  enter: b = 3 ç
+  resultat = cert ç
 
-proces res HOLA() fer:
-    enter: a = b ç
+  retorna 4 ç
 fi
 
 proces Calçot() fer:
-    enter: iterador = 0 ç
-    enter: iterador = 45 ç
+    enter: a = 3 ç
+    enter: b = 5 ç
 
-    per iterador de 10 fins 79 restant 4 fer:
-        enter: b = 5 ç
-        enter: c = 8 ç
-    fi
+    enter: resultat = mesGran(2+cert, b) ç
+
+    mostra("1") ç
 fi

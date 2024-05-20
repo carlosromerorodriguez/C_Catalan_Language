@@ -79,9 +79,7 @@ public class SemanticAnalizer {
     private void checkCall(Scope scope, CallEntry callEntry) {
         FunctionEntry functionEntry = (FunctionEntry) this.symbolTable.getRootScope().getEntry(callEntry.getName());
         if(callEntry.getParameters().size() == 0){
-            List<List<Object>> parameters = new ArrayList<>();
-            parameters.add(callEntry.getTempParameters());
-            callEntry.setParameters(parameters);
+            callEntry.reArrangeParameters();
         }
         checkParametersType(callEntry, functionEntry, scope);
 
@@ -177,6 +175,9 @@ public class SemanticAnalizer {
         for (int i = 0; i < functionEntry.getParameters().size(); i++) {
             functionParameterType = stringToType(functionEntry.getParameters().get(i).getType());
             for (Object term : call.getParameters().get(i)) {
+                if(term.toString().equals(",")){
+                    continue;
+                }
                 callParameterType = getTermType(term, scope);
                 if (callParameterType != Vartype.UNASSIGNED && functionParameterType != callParameterType) {
                     this.errorHandler.recordTypeMismatchError("parameter number" + (i + 1), functionEntry.getReturnType(), call.getLine());
