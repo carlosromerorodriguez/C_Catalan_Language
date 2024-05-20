@@ -1,4 +1,3 @@
-import backEnd.TAC;
 import backEnd.TACGenerator;
 import backEnd.TACToRISCConverter;
 import frontEnd.global.ErrorHandler;
@@ -52,7 +51,7 @@ public class Main {
         }
 
         // 7. Classe per generar el TAC
-        TACGenerator tacGenerator = new TACGenerator(parser.getTerminalSymbols());
+        TACGenerator tacGenerator = new TACGenerator();
         tacGenerator.generateTAC(parser.getSymbolTable().getAllTree());
         tacGenerator.processFunctionArguments(parser.getSymbolTable());
         tacGenerator.printTAC();
