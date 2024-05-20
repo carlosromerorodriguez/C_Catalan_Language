@@ -1,35 +1,101 @@
 package backEnd;
 
-import frontEnd.syntactic.symbolTable.VariableEntry;
+import frontEnd.syntactic.symbolTable.entries.VariableEntry;
 
 import java.io.*;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * TACToRISCConverter class responsible for converting Three Address Code (TAC) to RISC (MIPS) assembly code.
+ */
 public class  TACToRISCConverter {
+    /**
+     * Path to the MIPS file.
+     */
     private final String MIPS_FILE_PATH;
+    /**
+     * Stack to store free registers.
+     */
     private Stack<String> freeRegisters; // Registres lliures
+    /**
+     * Map to associate variables with registers.
+     */
     private LinkedHashMap<String, String> variableToRegisterMap; // Mapa de variables a registres
-    private Stack<String> usedRegisters; // Registres que estan en us
-    // Offset de la pila
+    /**
+     * Stack to store used registers.
+     */
+    private Stack<String> usedRegisters; // Registres que estan en ús
+    /**
+     * Map to store the last used time of each register.
+     */
     private Map<String, Integer> lastUsedTimeMap = new HashMap<>(); // Mapa de temps de l'últim ús de cada registre
+    /**
+     * Counter to track the current time for register usage.
+     */
     private int currentTime = 0; //Contador de temps per veure el last used register
+    /**
+     * Current function being processed.
+     */
     private String currentFunction = null;
+    /**
+     * Set to store function variables.
+     */
     private Set<HashMap<String, String>> functionVariables = new HashSet<>();
+    /**
+     * Map to associate variable names with their stack offsets.
+     */
     private LinkedHashMap<String, Integer> varNameToOffsetMap = new LinkedHashMap<>();
+    /**
+     * Current TAC block being processed.
+     */
     private TACBlock currentBlock;
+    /**
+     * Map to store the TAC blocks of the code.
+     */
     private LinkedHashMap<String, TACBlock> code;
+    /**
+     * Map to associate registers with their values.
+     */
     private LinkedHashMap<String, String> registerToValue = new LinkedHashMap<>();
+    /**
+     * List of registers to be freed.
+     */
     private List<String> registersToFree = new ArrayList<>();
+    /**
+     * Map to track already reserved stack variables.
+     */
     private HashMap<String, Boolean> alreadyReservedStack = new HashMap<>();
+    /**
+     * Counter for function parameters.
+     */
     private int paramCount = 0;
+    /**
+     * Stack decrement value.
+     */
     private int stackDecrement;
+    /**
+     * List of function names.
+     */
     private final List<String> functionNames = new ArrayList<>();
+    /**
+     * Map to store print strings.
+     */
     private final Map<String, String> printStrings = new HashMap<>();
+    /**
+     * Counter for print strings.
+     */
     private int printStringsCounters = 1;
+    /**
+     * List of current arguments.
+     */
     private List<VariableEntry> currentArguments = new ArrayList<>();
 
+    /**
+     * Constructor for TACToRISCConverter.
+     * @param path Path to the MIPS file.
+     */
     public TACToRISCConverter(String path) {
         this.MIPS_FILE_PATH = path;
         this.freeRegisters = new Stack<>();
@@ -38,6 +104,9 @@ public class  TACToRISCConverter {
         initializeRegisters();
     }
 
+    /**
+     * Method to initialize the temporary registers.
+     */
     private void initializeRegisters() {
         // Inicialitzem els registres temporals
         for (int i = 9; i >= 0; i--) {
@@ -45,6 +114,10 @@ public class  TACToRISCConverter {
         }
     }
 
+    /**
+     * Method to convert TAC blocks to MIPS assembly code.
+     * @param blocks LinkedHashMap of TAC blocks.
+     */
     public void convertTAC(LinkedHashMap<String, TACBlock> blocks) {
         code = blocks;
         boolean isLastBlock = false;
@@ -79,11 +152,16 @@ public class  TACToRISCConverter {
         }
     }
 
+    /**
+     * Method to preprocess print statements in TAC blocks.
+     * @param blocks LinkedHashMap of TAC blocks.
+     * @param writer BufferedWriter to write to the MIPS file.
+     * @throws IOException If an I/O error occurs.
+     */
     private void preprocessPrints(LinkedHashMap<String, TACBlock> blocks, BufferedWriter writer) throws IOException {
         for (Map.Entry<String, TACBlock> blockEntry : blocks.entrySet()) {
             for (TACEntry entry : blockEntry.getValue().getEntries()) {
                 if(entry.getType().equals(Type.PRINT)) {
-                    // Si emnmpieza con comillas es un string
                     if (!entry.toString().startsWith("PRINT VAR_NAME")) {
                         String formatted = entry.toString().replace("PRINT ", "");
                         printStrings.put(formatted, "");
@@ -101,6 +179,9 @@ public class  TACToRISCConverter {
         writer.write(".text\n");
     }
 
+    /**
+     * Method to clear and reset the state of the converter.
+     */
     private void clearAndReset() {
         freeRegisters = new Stack<>();
         variableToRegisterMap = new LinkedHashMap<>();
@@ -119,6 +200,10 @@ public class  TACToRISCConverter {
         initializeRegisters();
     }
 
+    /**
+     * Method to check if the current block is the last block of the function.
+     * @return true if it is the last block of the function, false otherwise.
+     */
     private boolean lastFunctionBlock() {
         boolean canCheck = false;
         for(TACBlock block: code.values()) {
@@ -133,6 +218,9 @@ public class  TACToRISCConverter {
         return false;
     }
 
+    /**
+     * Method to free dead registers.
+     */
     private void freeDeadRegisters() {
         for(String reg: registersToFree) {
             if (!freeRegisters.contains(reg)) freeRegister(reg);
@@ -140,6 +228,11 @@ public class  TACToRISCConverter {
         registersToFree = new ArrayList<>();
     }
 
+    /**
+     * Method to check if the given key corresponds to the last block.
+     * @param key Key of the block.
+     * @return true if it is the last block, false otherwise.
+     */
     private boolean checkLastBlock(String key) {
         boolean isLastBlock = false;
         for (Map.Entry<String, TACBlock> blockEntry : code.entrySet()) {
@@ -152,6 +245,12 @@ public class  TACToRISCConverter {
         return isLastBlock;
     }
 
+    /**
+     * Method to save the stack and frame pointer if needed.
+     * @param value TAC block value.
+     * @param writer BufferedWriter to write to the MIPS file.
+     * @throws IOException If an I/O error occurs.
+     */
     private void saveStackAndFramePointerIfNeeded(TACBlock value, BufferedWriter writer) throws IOException {
         //Si el value no es L + numero, es una funcio i per tant hem de guardar el frame pointer i el stack pointer
         if(!value.getLabel().matches("L\\d+") && !value.getLabel().contains("LOOP")) {
@@ -196,11 +295,16 @@ public class  TACToRISCConverter {
         }
     }
 
+    /**
+     * Method to translate a TAC entry to MIPS assembly code.
+     * @param entry TAC entry.
+     * @param writer BufferedWriter to write to the MIPS file.
+     * @return Translated MIPS code as a string.
+     * @throws IOException If an I/O error occurs.
+     */
     private String translateToMIPS(TACEntry entry, BufferedWriter writer) throws IOException {
-        StringBuilder localBuilder = new StringBuilder();
-
-        // Afeegim el codi MIPS corresponent a l'entrada TAC
-        localBuilder.append(switch (entry.getType()) {
+        // Afegim el codi MIPS corresponent a l'entrada TAC
+        return switch (entry.getType()) {
             case ADD, SUB, MUL, DIV -> processOperation(entry, writer);
             case AND, OR, EQ, NE, LT, LE, GT, GE -> processCondition(entry, writer);
             case CONDITION -> processConditional(entry, writer);
@@ -211,11 +315,16 @@ public class  TACToRISCConverter {
             case GOTO -> processGoto(entry);
             case PRINT -> processPrint(entry, writer);
             default -> "";
-        }).append("\n");
-
-        return localBuilder.toString();
+        } + "\n";
     }
 
+    /**
+     * Method to process print TAC entries.
+     * @param entry TAC entry.
+     * @param writer BufferedWriter to write to the MIPS file.
+     * @return MIPS code for the print statement.
+     * @throws IOException If an I/O error occurs.
+     */
     private String processPrint(TACEntry entry, BufferedWriter writer) throws IOException {
         String printString;
         if (entry.toString().startsWith("PRINT VAR_NAME")) {
@@ -237,6 +346,13 @@ public class  TACToRISCConverter {
         return printString;
     }
 
+    /**
+     * Method to find the register associated with a variable.
+     * @param formatted Variable name.
+     * @param writer BufferedWriter to write to the MIPS file.
+     * @return The register associated with the variable.
+     * @throws IOException If an I/O error occurs.
+     */
     private String foundVariableRegister(String formatted, BufferedWriter writer) throws IOException {
         System.out.println(variableToRegisterMap);
         for (Map.Entry<String, String> entry : variableToRegisterMap.entrySet()) {
@@ -250,6 +366,13 @@ public class  TACToRISCConverter {
         return "";
     }
 
+    /**
+     * Method to determine if a value is a variable or a register and return the corresponding register.
+     * @param operand Operand value.
+     * @param writer BufferedWriter to write to the MIPS file.
+     * @return The register associated with the operand.
+     * @throws IOException If an I/O error occurs.
+     */
     private String varOrReg(String operand, BufferedWriter writer) throws IOException {
         if (variableToRegisterMap.containsKey(operand)) {
             //Si el registre es $a0, $a1, $a2, $a3 retornar el registre
@@ -316,6 +439,11 @@ public class  TACToRISCConverter {
         }
     }
 
+    /**
+     * Method to check if a string represents a numeric value.
+     * @param str String to check.
+     * @return true if the string is numeric, false otherwise.
+     */
     private boolean isNumeric(String str) {
         try {
             Double.parseDouble(str);
@@ -325,6 +453,13 @@ public class  TACToRISCConverter {
         }
     }
 
+    /**
+     * Method to allocate a register for a variable.
+     * @param var Variable name.
+     * @param writer BufferedWriter to write to the MIPS file.
+     * @return The allocated register.
+     * @throws IOException If an I/O error occurs.
+     */
     private String allocateRegister(String var, BufferedWriter writer) throws IOException {
         if (freeRegisters.isEmpty()) {
             if (usedRegisters.isEmpty()) {
@@ -343,6 +478,10 @@ public class  TACToRISCConverter {
         return reg;
     }
 
+    /**
+     * Method to find the least recently used register.
+     * @return The least recently used register.
+     */
     private String findLeastUsedRegister() {
         String leastUsedReg = null;
         int oldestTime = Integer.MAX_VALUE;
@@ -358,6 +497,10 @@ public class  TACToRISCConverter {
         return leastUsedReg;
     }
 
+    /**
+     * Method to free a register.
+     * @param reg Register to free.
+     */
     private void freeRegister(String reg) {
         if (usedRegisters.contains(reg)) {
             usedRegisters.remove(reg);
@@ -365,7 +508,13 @@ public class  TACToRISCConverter {
         }
     }
 
-
+    /**
+     * Method to process arithmetic operations in TAC entries.
+     * @param entry TAC entry.
+     * @param writer BufferedWriter to write to the MIPS file.
+     * @return MIPS code for the operation.
+     * @throws IOException If an I/O error occurs.
+     */
     private String processOperation(TACEntry entry, BufferedWriter writer) throws IOException {
         String operand1 = varOrReg(entry.getOperand1(), writer);
         //Si operand1 comença amb $ fem aixo:
@@ -443,6 +592,12 @@ public class  TACToRISCConverter {
         return code;
     }
 
+    /**
+     * Method to check if a value is needed later in the code.
+     * @param checkValue Value to check.
+     * @param currentEntry Current TAC entry.
+     * @return true if the value is needed later, false otherwise.
+     */
     private boolean isNeededLater(String checkValue, TACEntry currentEntry) {
         boolean dontCheck = false;
         boolean checkEntry = false;
@@ -464,16 +619,20 @@ public class  TACToRISCConverter {
                                 isNeeded = true;
                             }
                         }
-
                     }
                 }
             }
         }
-
         return isNeeded;
     }
 
-
+    /**
+     * Method to process conditional operations in TAC entries.
+     * @param entry TAC entry.
+     * @param writer BufferedWriter to write to the MIPS file.
+     * @return MIPS code for the condition.
+     * @throws IOException If an I/O error occurs.
+     */
     private String processCondition(TACEntry entry, BufferedWriter writer) throws IOException {
         String operand1 = varOrReg(entry.getOperand1(), writer);
         String operand2 = varOrReg(entry.getOperand2(), writer);
@@ -534,6 +693,13 @@ public class  TACToRISCConverter {
         return mipsCode;
     }
 
+    /**
+     * Method to process conditional jumps in TAC entries.
+     * @param entry TAC entry.
+     * @param writer BufferedWriter to write to the MIPS file.
+     * @return MIPS code for the conditional jump.
+     * @throws IOException If an I/O error occurs.
+     */
     private String processConditional(TACEntry entry, BufferedWriter writer) throws IOException {
         boolean isNegate = entry.getOperand1().contains("!");
         String operand1 = entry.getOperand1().replace("!", ""); // Neteja el '!'
@@ -566,6 +732,13 @@ public class  TACToRISCConverter {
         return mipsCode;
     }
 
+    /**
+     * Method to process function calls in TAC entries.
+     * @param entry TAC entry.
+     * @param writer BufferedWriter to write to the MIPS file.
+     * @return MIPS code for the function call.
+     * @throws IOException If an I/O error occurs.
+     */
     private String processCall(TACEntry entry, BufferedWriter writer) throws IOException {
         StringBuilder stringBuilder = new StringBuilder();
         List<String> removeRegisters = new ArrayList<>();
@@ -618,6 +791,13 @@ public class  TACToRISCConverter {
         return stringBuilder.toString();
     }
 
+    /**
+     * Method to process assignment operations in TAC entries.
+     * @param entry TAC entry.
+     * @param writer BufferedWriter to write to the MIPS file.
+     * @return MIPS code for the assignment.
+     * @throws IOException If an I/O error occurs.
+     */
     private String processAssignment(TACEntry entry, BufferedWriter writer) throws IOException {
         String src = entry.getOperand1();
         String dest = varOrReg(entry.getDestination(), writer);
@@ -657,6 +837,13 @@ public class  TACToRISCConverter {
         }
     }
 
+    /**
+     * Method to process function parameters in TAC entries.
+     * @param entry TAC entry.
+     * @param writer BufferedWriter to write to the MIPS file.
+     * @return MIPS code for the parameter.
+     * @throws IOException If an I/O error occurs.
+     */
     private String processParameter(TACEntry entry, BufferedWriter writer) throws IOException {
         String param = varOrReg(entry.getOperand2(), writer);
         // Pot ser que tinguem més parametres, a0, a1, a2, a3
@@ -677,6 +864,13 @@ public class  TACToRISCConverter {
         return paramReturn;
     }
 
+    /**
+     * Method to process return statements in TAC entries.
+     * @param entry TAC entry.
+     * @param writer BufferedWriter to write to the MIPS file.
+     * @return MIPS code for the return statement.
+     * @throws IOException If an I/O error occurs.
+     */
     private String processReturn(TACEntry entry, BufferedWriter writer) throws IOException {
         StringBuilder stringBuilder = new StringBuilder();
         if (entry.getOperand2() != null && !entry.getOperand2().isEmpty()) {
@@ -703,14 +897,29 @@ public class  TACToRISCConverter {
         return stringBuilder.toString();
     }
 
+    /**
+     * Method to process GOTO statements in TAC entries.
+     * @param entry TAC entry.
+     * @return MIPS code for the GOTO statement.
+     */
     private String processGoto(TACEntry entry) {
         return "j " + entry.getDestination();
     }
 
+    /**
+     * Method to update the usage time of a register.
+     * @param reg Register to update.
+     */
     private void updateRegisterUsage(String reg) {
         lastUsedTimeMap.put(reg, currentTime++);
     }
 
+    /**
+     * Method to spill a register to the stack.
+     * @param reg Register to spill.
+     * @param writer BufferedWriter to write to the MIPS file.
+     * @throws IOException If an I/O error occurs.
+     */
     private void spillRegisterToStack(String reg, BufferedWriter writer) throws IOException {
         int offset = varNameToOffsetMap.get(getVarnameFromRegister(reg));
 
@@ -726,6 +935,11 @@ public class  TACToRISCConverter {
         if (!freeRegisters.contains(reg)) freeRegister(reg);
     }
 
+    /**
+     * Method to get the variable name associated with a register.
+     * @param reg Register.
+     * @return Variable name associated with the register.
+     */
     private String getVarnameFromRegister(String reg) {
         for (Map.Entry<String, String> entry : variableToRegisterMap.entrySet()) {
             if (entry.getValue().equals(reg) && !entry.getKey().matches("t\\d+")) {
@@ -735,6 +949,10 @@ public class  TACToRISCConverter {
         return null;
     }
 
+    /**
+     * Method to reprocess function stack adjustments.
+     * @throws IOException If an I/O error occurs.
+     */
     private void reprocessFunction() throws IOException {
         File inputFile = new File(this.MIPS_FILE_PATH);
         File tempFile = new File(this.MIPS_FILE_PATH + ".temp");
@@ -813,6 +1031,9 @@ public class  TACToRISCConverter {
         }
     }
 
+    /**
+     * Method to reprocess sub values in the MIPS file.
+     */
     public void reprocessSubValues() {
         try {
             reprocessFunction();

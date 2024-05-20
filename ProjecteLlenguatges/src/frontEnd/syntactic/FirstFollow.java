@@ -2,12 +2,32 @@ package frontEnd.syntactic;
 
 import java.util.*;
 
+/**
+ * The type First follow.
+ */
 public class FirstFollow {
+    /**
+     * The Grammar.
+     */
     private final Map<String, List<List<String>>> grammar;
+    /**
+     * The Terminals of the grammar.
+     */
     private final Set<String> terminals;
+    /**
+     * The First set of the grammar.
+     */
     private final Map<String, Set<String>> first;
+    /**
+     * The Follow set of the grammar.
+     */
     private final Map<String, Set<String>> follow;
 
+    /**
+     * Instantiates a new First follow.
+     *
+     * @param grammar the grammar
+     */
     public FirstFollow(Map<String, List<List<String>>> grammar) {
         this.grammar = grammar;
         terminals = new HashSet<>();
@@ -19,6 +39,9 @@ public class FirstFollow {
 
     }
 
+    /**
+     * Initialize terminals of the grammar.
+     */
     private void initializeTerminals() {
         // Inicialitza els terminals
         Set<String> terminalSymbols = new HashSet<>(Arrays.asList(
@@ -27,11 +50,12 @@ public class FirstFollow {
                 "ELSE", "WHILE", "CALL", "FUNCTION_NAME", "AND", "OR", "CALÇOT", "VOID", "FUNCTION_MAIN", "SUMANT", "RESTANT", "ENDELSE", "ENDIF",
                 "PRINT", "STRING"
         ));
-        //String[] terminalSymbols = {"+", "*", "(", ")", "id"};
-        //String[] terminalSymbols = {"+", "*", "(", ")", "id", "const"};
         terminals.addAll(terminalSymbols);
     }
 
+    /**
+     * Calculates the first set for each non-terminal symbol in the grammar.
+     */
     public void calculateFirsts() {
         for (String noTerminal : grammar.keySet()){
             // Inicialitza el conjunt FIRST pel símbol no terminal
@@ -43,6 +67,12 @@ public class FirstFollow {
         }
     }
 
+    /**
+     * Compute first set for a given symbol.
+     *
+     * @param symbol the symbol
+     * @return the set of symbols that can be derived from the given symbol
+     */
     private Set<String> computeFirst(String symbol) {
         // Si el símbol és un terminal, el seu conjunt FIRST conté només ell mateix
         if (terminals.contains(symbol)){
@@ -99,12 +129,9 @@ public class FirstFollow {
 
     }
 
-    public void showFIRST() {
-        for (String no_terminal : first.keySet()){
-            System.out.println("FIRST(" + no_terminal + ") = " + first.get(no_terminal));
-        }
-    }
-
+    /**
+     * Calculate follows for each non-terminal symbol in the grammar.
+     */
     public void calculateFollows() {
         for (String nonTerminal : grammar.keySet()) {
             follow.put(nonTerminal, new HashSet<>());
@@ -141,24 +168,71 @@ public class FirstFollow {
         } while (changed);
     }
 
+    /**
+     * Checks if a given symbol is a non-terminal.
+     *
+     * @param item the symbol to check
+     * @return true if the symbol is a non-terminal, false otherwise
+     */
     private boolean isNonTerminal(String item) {
         return grammar.containsKey(item);
     }
 
-    public void showFOLLOW() {
-        for (String nonTerminal : follow.keySet()) {
-            System.out.println("FOLLOW(" + nonTerminal + ") = " + follow.get(nonTerminal));
+    /**
+     * Shows the first set for each non-terminal symbol in the grammar.
+     */
+    public void showFIRST() {
+        System.out.println("\n\n************************************************************************\n" +
+                "* FIRST SET:\n" +
+                "************************************************************************\n");
+        String ANSI_RESET = "\u001B[0m";
+        String ANSI_CYAN = "\u001B[36m";
+        String ANSI_GREEN = "\u001B[32m";
+
+        for (String no_terminal : first.keySet()) {
+            System.out.println(ANSI_GREEN + "FIRST(" + ANSI_CYAN + no_terminal + ANSI_GREEN + ") = " + ANSI_RESET + first.get(no_terminal));
         }
     }
 
+    /**
+     * Shows the follow set for each non-terminal symbol in the grammar.
+     */
+    public void showFOLLOW() {
+        System.out.println("\n\n************************************************************************\n" +
+                "* FOLLOW SET:\n" +
+                "************************************************************************\n");
+        String ANSI_RESET = "\u001B[0m";
+        String ANSI_CYAN = "\u001B[36m";
+        String ANSI_GREEN = "\u001B[32m";
+
+        for (String nonTerminal : follow.keySet()) {
+            System.out.println(ANSI_GREEN + "FOLLOW(" + ANSI_CYAN + nonTerminal + ANSI_GREEN + ") = " + ANSI_RESET + follow.get(nonTerminal));
+        }
+    }
+
+    /**
+     * Gets follow.
+     *
+     * @return the follow
+     */
     public Map<String, Set<String>> getFollow() {
         return this.follow;
     }
 
+    /**
+     * Gets grammar.
+     *
+     * @return the grammar
+     */
     public Map<String, List<List<String>>> getGrammar() {
         return this.grammar;
     }
 
+    /**
+     * Gets first.
+     *
+     * @return the first
+     */
     public Map<String, Set<String>> getFirst() {
         return this.first;
     }

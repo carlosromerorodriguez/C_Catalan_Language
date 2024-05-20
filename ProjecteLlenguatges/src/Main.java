@@ -14,7 +14,7 @@ import java.util.List;
 
 
 public class Main {
-    private static final String FILE_PATH = "src/files/customExamples/exampleFactorial.ç";
+    private static final String FILE_PATH = "src/files/customExamples/exampleForSimple.ç";
     private static final String GRAMMAR_PATH = "src/files/grammar.json";
     private static final String MIPS_FILE_PATH = "src/mips.asm";
 
@@ -33,15 +33,18 @@ public class Main {
         Lexer lexer = new Lexer(tokenConverter, errorHandler, linesWithOutComments);
         lexer.showTokens();
 
-        // 5. Classe per carregar la gramàtica i omplir la taula de parsing
+        // 5. Classe per generar els conjunts First i Follow de la gramàtica
         FirstFollow inputFirstFollow = new FirstFollow(preProcessing.loadGrammar(GRAMMAR_PATH));
+        inputFirstFollow.showFIRST();
+        inputFirstFollow.showFOLLOW();
 
+        // 6. Classe per generar l'arbre sintàctic
         Parser parser = new Parser(inputFirstFollow, tokenConverter, errorHandler, inputFirstFollow.getGrammar());
         parser.buildParsingTree(lexer.getTokens());
         parser.optimizeTree();
         parser.printTree();
 
-        // 6. Classe per analitzar semànticament el codi
+        // 7. Classe per analitzar semànticament el codi
         SemanticAnalizer semanticAnalizer = new SemanticAnalizer(parser.getSymbolTable(), errorHandler);
         semanticAnalizer.analizeSymbolTable();
 
@@ -51,13 +54,13 @@ public class Main {
             return;
         }
 
-        // 7. Classe per generar el TAC
-        TACGenerator tacGenerator = new TACGenerator(parser.getTerminalSymbols());
+        // 8. Classe per generar el TAC
+        TACGenerator tacGenerator = new TACGenerator();
         tacGenerator.generateTAC(parser.getSymbolTable().getAllTree());
         tacGenerator.processFunctionArguments(parser.getSymbolTable());
         tacGenerator.printTAC();
 
-        // 8. Classe per convertir el TAC a MIPS
+        // 9. Classe per convertir el TAC a MIPS
         TACToRISCConverter tacToRISCConverter = new TACToRISCConverter(MIPS_FILE_PATH);
         tacToRISCConverter.convertTAC(tacGenerator.getTAC());
         tacToRISCConverter.reprocessSubValues();

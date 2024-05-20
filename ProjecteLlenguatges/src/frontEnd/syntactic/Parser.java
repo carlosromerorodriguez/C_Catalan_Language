@@ -1,26 +1,48 @@
-//TODO:
-// - S'ha d'afegir diverses expresions a una variable ja que es poden donar una en un if i una en un else
-//   per el tema del boolean expressionAlreadyAssigned a VariableEntry
-// - Arguments de funcions
-// - Control d'errors
-
 package frontEnd.syntactic;
 
 import frontEnd.global.ErrorHandler;
 import frontEnd.lexic.Token;
 import frontEnd.lexic.TokenConverter;
 import frontEnd.syntactic.symbolTable.*;
+import frontEnd.syntactic.symbolTable.entries.*;
 
 import java.util.*;
 
+/**
+ * Parser class to generate the AST from the tokens and fill the symbol table
+ */
 public class Parser {
+    /**
+     * Token converter to get the tokens from the input file
+     */
     private final TokenConverter tokenConverter;
+    /**
+     * The Parse table.
+     */
     private final Map<String, Map<String, List<String>>> parseTable;
+    /**
+     * The Root node for the AST
+     */
     private final Node rootNode;
+    /**
+     * The Error handler to add errors
+     */
     private final ErrorHandler errorHandler;
+    /**
+     * The Symbol table to store the symbols
+     */
     private SymbolTable symbolTable;
+    /**
+     * The Grammar to generate the AST
+     */
     private Map<String, List<List<String>>> grammar;
+    /**
+     * The Parser control variables to handle the parser context
+     */
     private ParserControlVariables parserControlVariables;
+    /**
+     * The Terminal symbols.
+     */
     Set<String> terminalSymbols = new HashSet<>(Arrays.asList(
             "+", "-", "*", "/", "=", ";", ",", ":", "(", ")", "{", "}", "GREATER", "LOWER", "LOWER_EQUAL", "GREATER_EQUAL", "!", "==", "!=",
             "RETORN", "FUNCTION", "START", "END", "LITERAL", "VAR_NAME", "FOR", "DE", "FINS", "VAR_TYPE", "IF",
@@ -28,6 +50,14 @@ public class Parser {
             "PRINT", "STRING"
     ));
 
+    /**
+     * Instantiates a new Parser.
+     *
+     * @param firstFollow    the first follow
+     * @param tokenConverter the token converter
+     * @param errorHandler   the error handler
+     * @param grammar        the grammar
+     */
     public Parser(FirstFollow firstFollow, TokenConverter tokenConverter, ErrorHandler errorHandler, Map<String, List<List<String>>> grammar) {
         this.tokenConverter = tokenConverter;
         this.errorHandler = errorHandler;
@@ -41,6 +71,13 @@ public class Parser {
         this.buildParsingTable(firstFollow.getGrammar(), firstFollow.getFollow(), firstFollow.getFirst());
     }
 
+    /**
+     * Builds the parsing table given the grammar, follow and first sets
+     *
+     * @param grammar the grammar
+     * @param follow  the follow set of the grammar
+     * @param first   the first set of the grammar
+     */
     private void buildParsingTable(Map<String, List<List<String>>> grammar, Map<String, Set<String>> follow, Map<String, Set<String>> first) {
 
         for (String nonTerminal : grammar.keySet()) {
@@ -82,6 +119,11 @@ public class Parser {
         }
     }
 
+    /**
+     * Builds parsing tree given a list of tokens
+     *
+     * @param tokens the tokens to generate the AST
+     */
     public void buildParsingTree(List<Token> tokens) {
         System.out.println("\n************************************************************************");
         System.out.println("* PARSING TREE:");
@@ -196,8 +238,6 @@ public class Parser {
                             depth++;
                         }
                         //Afegir al scope actual
-                        //if(symbolTable.getCurrentScope().getRootNode() != null) symbolTable.getCurrentScope().getRootNode().addChild(topNode);
-                        //symbolTable.getAllTree().addChild(topNode);
                         if(parserControlVariables.lastTopNode != null){
                             //if(!parserControlVariables.lastTopNode.getChildren().contains(topNode) && doesBelongToProduction(topNode)) parserControlVariables.lastTopNode.addChild(topNode);
                         }
@@ -207,13 +247,19 @@ public class Parser {
                         parserControlVariables.currentTopNode = topNode;
                     } else {
                         stack.pop();
-                        //errorHandler.recordError("Error de sintaxi: no es pot processar el token " + token.getStringToken(), token.getLine());
                     }
                 }
             }
         }
     }
 
+    /**
+     * Method that returns if the node belongs to its production
+     *
+     * @param topNode the top node to check
+     *
+     * @return boolean if the node belongs to its production
+     */
     private boolean doesBelongToProduction(Node topNode) {
         List<List<String>> production = grammar.get(parserControlVariables.lastTopNode.getType());
 
@@ -224,6 +270,11 @@ public class Parser {
         return false;
     }
 
+    /**
+     * Method that checks the context of the parser and changes it if necessary
+     *
+     * @param production the production to check
+     */
     private void checkContext(String production) {
         if (production.trim().equals("arguments") || production.trim().equals("assignació") || production.trim().equals("retorn")) {
             if(production.trim().equals("arguments") || parserControlVariables.isInArguments) {
@@ -252,6 +303,13 @@ public class Parser {
         }
     }
 
+    /**
+     * Processes top symbol and adds it to the AST
+     *
+     * @param topNode   the top node to process
+     * @param tokenName the token name to process
+     * @param token     the token to process
+     */
     public void processTopSymbol(Node topNode, String tokenName, Token token) {
         if (tokenName.equals("LITERAL") || tokenName.equals("VAR_NAME") || tokenName.equals("FUNCTION_NAME") || tokenName.equals("STRING")) {
             topNode.setValue(token.getValue());
@@ -263,7 +321,6 @@ public class Parser {
 
         //Comprovar si el lastTopNode conte el topNode a afegir
         if(!parserControlVariables.lastTopNode.getChildren().contains(topNode) && doesBelongToProduction(topNode)) parserControlVariables.lastTopNode.addChild(topNode);
-        //symbolTable.getCurrentScope().getRootNode().addChild(topNode);
 
         // Mires si es IF, FUNCTION, ELSE, WHILE
         if (requiresNewScope(tokenName)) {
@@ -272,8 +329,6 @@ public class Parser {
             // Si es el main scope el marquem com a tal
             if(tokenName.equals("FUNCTION_MAIN")) symbolTable.getCurrentScope().setIsMainScope(true);
         } else if (tokenName.equals("END") || tokenName.equals("ENDIF") || tokenName.equals("ENDELSE")) {
-            // Si es END analitzem semanticament l'arbre del scope actual
-            //analizeSemantic(symbolTable.getCurrentScope());
 
             // Sortim del scope actual
             reArrangeParameters();
@@ -289,6 +344,9 @@ public class Parser {
         processNode(topNode);
     }
 
+    /**
+     * Rearranges the parameters of the function call
+     */
     private void reArrangeParameters() {
         if(parserControlVariables.callEntryStack.isEmpty()) return;
 
@@ -298,23 +356,46 @@ public class Parser {
         }
     }
 
+    /**
+     * Enters a scope.
+     *
+     * @param newNode the new node
+     */
     private void enterScope(Node newNode) {
         symbolTable.addScope();
         symbolTable.getCurrentScope().setRootNode(newNode);
     }
 
+    /**
+     * Method that determines if a new scope is required
+     *
+     * @param tokenName token name we are processing
+     *
+     * @return boolean if a new scope is required
+     */
     private boolean requiresNewScope(String tokenName) {
         // Aquesta funció determina si el tipus de node requereix un nou àmbit
         // Per exemple, 'FUNCTION', 'IF', 'FOR', 'WHILE' poden iniciar nous àmbits
         return tokenName.equals("FUNCTION_MAIN") || tokenName.equals("FUNCTION") || tokenName.equals("FOR") || tokenName.equals("IF") || tokenName.equals("WHILE") || tokenName.equals("ELSE");
     }
 
+    /**
+     * Prints tree structure during the construction of the AST
+     *
+     * @param depth     the depth
+     * @param node      the node
+     * @param action    the action
+     * @param colorCode the color code
+     */
     private void printTreeStructure(int depth, String node, String action, String colorCode) {
         String indent = " ".repeat(depth * 4);
         String lineLead = indent + (depth > 0 ? "|-- " : "");
         System.out.println(lineLead + colorCode + node + "\033[0m" + (action.isEmpty() ? "" : " - " + action));
     }
 
+    /**
+     * Prints the tree.
+     */
     public void printTree() {
         System.out.println("\n************************************************************************");
         System.out.println("* TREE:");
@@ -323,6 +404,11 @@ public class Parser {
         System.out.println("\n\n");
     }
 
+    /**
+     * Process the current node and adds it to the symbol table
+     *
+     * @param node the node
+     */
     public void processNode(Node node) {
         switch (node.getType().toUpperCase()) {
             case "FUNCTION_NAME":
@@ -393,18 +479,29 @@ public class Parser {
                     else if(!node.getType().equals("RETORN")) symbolTable.getCurrentScope().getFunctionEntry().appendReturnValue(node.getType());
                 }
                 if (parserControlVariables.insideCondition) {
-                     ConditionalEntry currentConditionalEntry = (ConditionalEntry) symbolTable.getCurrentScope().lookup(parserControlVariables.currentConditional);
-                     if(node.getValue() != null) currentConditionalEntry.addCondition(node.getValue());
-                     else if(!node.getType().equals("(") && !node.getType().equals(":") && !node.getType().equals("START") && !node.getType().equals(")")) currentConditionalEntry.addCondition(node.getType());
+                    ConditionalEntry currentConditionalEntry = (ConditionalEntry) symbolTable.getCurrentScope().lookup(parserControlVariables.currentConditional);
+                    if(node.getValue() != null) currentConditionalEntry.addCondition(node.getValue());
+                    else if(!node.getType().equals("(") && !node.getType().equals(":") && !node.getType().equals("START") && !node.getType().equals(")")) currentConditionalEntry.addCondition(node.getType());
                 }
                 break;
         }
     }
 
+    /**
+     * Does nothing when a string is found but is used to control the symbol table
+     *
+     * @param node the node we are processing
+     */
     private void handleString(Node node) {
-
+        // Necessari per mantenir el control de la taula de simbols
+        return;
     }
 
+    /**
+     * Handles all the necessary steps when a conditional is found
+     *
+     * @param node the node we are processing
+     */
     private void handleConditional(Node node) {
         //Ficar currentConditional el nom de la conditionalEntry creada
         parserControlVariables.currentConditional = node.getType();
@@ -414,6 +511,11 @@ public class Parser {
         symbolTable.addSymbolEntry(conditionalEntry);
     }
 
+    /**
+     * Handles all the necessary steps when a varname is found
+     *
+     * @param node the node we are processing
+     */
     private void handleVarname(Node node) {
         if((!parserControlVariables.argumentsInFunctionSentence && parserControlVariables.lastTopSymbol.equals(",")) ||
                 parserControlVariables.lastTopSymbol.equals(";") || parserControlVariables.lastTopSymbol.equals("START") ||
@@ -477,6 +579,11 @@ public class Parser {
         }
     }
 
+    /**
+     * Handles all the necessary steps when a varname is found in a conditional
+     *
+     * @param node the node we are processing
+     */
     private void handleVarnameInCondicional(Node node) {
         // Guardem el que trobem a la condició de la conditionalEntry del scope actual
         if(node.getValue() != null) {
@@ -485,6 +592,11 @@ public class Parser {
         }
     }
 
+    /**
+     * Handles all the necessary steps when a varname is found in an assignation
+     *
+     * @param node the node we are processing
+     */
     private void handleVarnameInAssignation(Node node) {
         VariableEntry variableEntry = (VariableEntry) symbolTable.getCurrentScope().lookup((String)node.getValue());
         // Si la varname no es troba a la taula de simbols -> ERROR
@@ -508,6 +620,11 @@ public class Parser {
     }
 
 
+    /**
+     * Handles all the necessary steps when a varname is found in arguments
+     *
+     * @param node the node we are processing
+     */
     private void handleVarnameInArguments(Node node) {
         // Busquem la function_entry del scope actual i no del pare
         FunctionEntry functionEntry = symbolTable.getCurrentScope().getFunctionEntry();
@@ -518,6 +635,11 @@ public class Parser {
         symbolTable.addSymbolEntry(symbolTableEntry);
     }
 
+    /**
+     * Handles all the necessary steps when a varname is found in a declaration
+     *
+     * @param node the node we are processing
+     */
     private void handleVarnameInDeclaration(Node node) {
         //Assignar a la variable el tipus de variable guardat a typeDeclaration
         // Si la varname no es troba a la taula de simbols, afegir-la amb el tipus typeDeclaration ja que es una variable nova
@@ -540,6 +662,11 @@ public class Parser {
         currentVar.appendExpressionValue(node.getValue());
     }
 
+    /**
+     * Handles all the necessary steps when a function is found
+     *
+     * @param node the node we are processing
+     */
     private void handleFunction(Node node) {
         if(parserControlVariables.equalSeen) {
             // Comprovar si existeix la funcio a la taula de simbols del scope actual
@@ -619,22 +746,29 @@ public class Parser {
         }
     }
 
+    /**
+     * Optimizes the tree by removing epsilon paths and collapsing single child nodes
+     */
     public void optimizeTree() {
         symbolTable.getAllTree().pruneEpsilonPaths();
         symbolTable.getAllTree().collapseSingleChildNodes();
         symbolTable.getAllTree().optimizeTree();
     }
 
-
-    public Node getParsingTree(){
-        return symbolTable.getAllTree();
-    }
-
-
+    /**
+     * Gets symbol table.
+     *
+     * @return the symbol table
+     */
     public SymbolTable getSymbolTable() {
         return symbolTable;
     }
 
+    /**
+     * Gets terminal symbols.
+     *
+     * @return the terminal symbols
+     */
     public Set<String> getTerminalSymbols() {
         return this.terminalSymbols;
     }
