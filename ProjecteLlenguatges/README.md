@@ -38,21 +38,22 @@ The compiler relies on the following external dependency:
 
 ## Installation and setup
 #### 1. Download our project
-#### 2. Navigate to directory:
+#### 2. Configure the JDK we've used (JDK-21):
+#### 3. Navigate to directory:
 ```bash
 cd ProjecteLlenguatges
 ```
-#### 3. Select Ç input file path in main.java:
+#### 4. Select Ç input file path in main.java:
 ```java
 private static final String FILE_PATH = "path/to/file.ç";
 ```
 
-#### 4. Select Grammar JSON path:
+#### 5. Select Grammar JSON path:
 ```java
 private static final String GRAMMAR_PATH = "path/to/grammar.json";
 ```
 
-#### 5. Select MIPS output path:
+#### 6. Select MIPS output path:
 ```java
 private static final String MIPS_FILE_PATH = "path/to/mips.asm";
 ```
