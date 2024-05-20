@@ -3,9 +3,18 @@ package frontEnd.lexic;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * TokenConverter class
+ */
 public class TokenConverter {
+    /**
+     * Tokens dictionary
+     */
     private final Map<String, String> tokensDictionary;
 
+    /**
+     * Constructor of the class TokenConverter
+     */
     public TokenConverter() {
         tokensDictionary = new HashMap<>();
         this.fillTokensDictionary();
@@ -91,6 +100,12 @@ public class TokenConverter {
         return tokensDictionary.getOrDefault(proprietaryLexeme, "");
     }
 
+    /**
+     * Given a token returns the corresponding Ç lexeme.
+     *
+     * @param token the token to convert
+     * @return the Ç lexeme corresponding to the token
+     */
     public String getKeyFromToken(String token) {
         for (Map.Entry<String, String> entry : tokensDictionary.entrySet()) {
             if (entry.getValue().equals(token)) {
