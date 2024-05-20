@@ -8,6 +8,9 @@ import java.util.*;
  * Class that manages the errors found in the code file
  */
 public class ErrorHandler {
+    /**
+     * The Errors list.
+     */
     private final LinkedList<Error> errors;
 
     /**

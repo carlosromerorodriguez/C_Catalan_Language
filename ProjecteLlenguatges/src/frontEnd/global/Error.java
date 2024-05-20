@@ -4,7 +4,13 @@ package frontEnd.global;
  * Error clas that represents an error in the code
  */
 public class Error {
+    /**
+     * The Error message.
+     */
     private final String errorMsg;
+    /**
+     * The Line where the error is.
+     */
     private final int line;
 
     /**
