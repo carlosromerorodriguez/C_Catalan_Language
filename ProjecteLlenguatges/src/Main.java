@@ -44,17 +44,16 @@ public class Main {
         SemanticAnalizer semanticAnalizer = new SemanticAnalizer(parser.getSymbolTable(), errorHandler);
         semanticAnalizer.analizeSymbolTable();
 
-        // Si trobem errors al frontend no continuem amb el backend
-        /*if(errorHandler.hasErrors()) {
+        // Si trobem errors al frontend no generem ni el TAC ni el MIPS
+        if(errorHandler.hasErrors()) {
             errorHandler.printErrors();
             return;
-        }*/
+        }
 
         TACGenerator tacGenerator = new TACGenerator(parser.getTerminalSymbols());
         tacGenerator.generateTAC(parser.getSymbolTable().getAllTree());
         tacGenerator.processFunctionArguments(parser.getSymbolTable());
         tacGenerator.printTAC();
-        //errorHandler.printErrors();
 
         TACToRISCConverter tacToRISCConverter = new TACToRISCConverter(MIPS_FILE_PATH);
         tacToRISCConverter.convertTAC(tacGenerator.getTAC());
