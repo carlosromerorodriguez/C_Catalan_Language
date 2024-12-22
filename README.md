@@ -1,6 +1,6 @@
 # Ç Language
 <p align="center">
-  <img src="resources/LOGO_ç.png" alt="Ç language logo" width="300" style="margin:auto;"/>
+  <img src="resources/LOGO_Ç.png" alt="Ç language logo" width="300" style="margin:auto;"/>
 </p>
 
 ## Table of Contents
